@@ -87,6 +87,7 @@ def generate_fault_hypotheses(
                 fault_name=names[fault_id],
                 confidence=confidence,
                 severity=severities[fault_id],
+                evidence_refs=unique_evidence,
                 supporting_evidence=unique_evidence,
                 counter_evidence=[],
                 recommended_next_steps=unique_steps,

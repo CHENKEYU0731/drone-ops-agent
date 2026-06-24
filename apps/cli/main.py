@@ -27,13 +27,21 @@ from packages.telemetry_rules import summarize_flight
 app = typer.Typer(help="无人机运维 Agent 离线 MVP CLI。")
 
 
+def _run_cli(action) -> None:
+    try:
+        action()
+    except (FileNotFoundError, ValueError) as exc:
+        typer.echo(f"错误: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+
 @app.command("analyze-log")
 def analyze_log_command(
     log: Path = typer.Option(..., "--log", help="CSV 或 JSON 飞行日志路径。"),
     asset: Path = typer.Option(..., "--asset", help="无人机资产 JSON 路径。"),
     out: Path = typer.Option(..., "--out", help="输出目录。"),
 ) -> None:
-    _run_analyze_log(log, asset, out)
+    _run_cli(lambda: _run_analyze_log(log, asset, out))
     typer.echo(f"日志分析完成: {out}")
 
 
@@ -43,7 +51,7 @@ def diagnose_command(
     asset: Path = typer.Option(..., "--asset", help="无人机资产 JSON 路径。"),
     out: Path = typer.Option(..., "--out", help="输出目录。"),
 ) -> None:
-    _run_diagnose(summary, asset, out)
+    _run_cli(lambda: _run_diagnose(summary, asset, out))
     typer.echo(f"诊断和维护建议完成: {out}")
 
 
@@ -55,7 +63,7 @@ def generate_report_command(
     out: Path = typer.Option(..., "--out", help="Markdown 报告输出路径。"),
     asset: Path = typer.Option(Path("data/sample_assets/uav_001.json"), "--asset", help="无人机资产 JSON 路径。"),
 ) -> None:
-    _run_generate_report(summary, diagnosis, maintenance, out, asset)
+    _run_cli(lambda: _run_generate_report(summary, diagnosis, maintenance, out, asset))
     typer.echo(f"报告生成完成: {out}")
 
 
@@ -65,14 +73,18 @@ def run_mvp_command(
     asset: Path = typer.Option(..., "--asset", help="无人机资产 JSON 路径。"),
     out: Path = typer.Option(..., "--out", help="输出目录。"),
 ) -> None:
-    _run_analyze_log(log, asset, out)
-    _run_diagnose(out / "flight_summary.json", asset, out)
-    _run_generate_report(
-        out / "flight_summary.json",
-        out / "diagnosis.json",
-        out / "maintenance_recommendations.json",
-        out / "ops_report.md",
-        asset,
+    _run_cli(
+        lambda: (
+            _run_analyze_log(log, asset, out),
+            _run_diagnose(out / "flight_summary.json", asset, out),
+            _run_generate_report(
+                out / "flight_summary.json",
+                out / "diagnosis.json",
+                out / "maintenance_recommendations.json",
+                out / "ops_report.md",
+                asset,
+            ),
+        )
     )
     typer.echo(f"MVP 流程完成: {out}")
 

@@ -20,6 +20,7 @@ def test_diagnosis_ranks_multiple_fault_hypotheses() -> None:
     assert len(hypotheses) >= 5
     assert hypotheses == sorted(hypotheses, key=lambda item: item.confidence, reverse=True)
     assert all(hypothesis.supporting_evidence for hypothesis in hypotheses)
+    assert all(hypothesis.evidence_refs for hypothesis in hypotheses)
     assert all(hypothesis.human_review_required for hypothesis in hypotheses)
 
 

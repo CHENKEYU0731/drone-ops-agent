@@ -89,6 +89,7 @@ def test_output_models_carry_evidence_and_human_review() -> None:
         confidence=0.8,
         severity=Severity.HIGH,
         supporting_evidence=[ref],
+        evidence_refs=[ref],
         counter_evidence=[],
         recommended_next_steps=["人工复核电池循环次数和内阻。"],
         drone_id="UAV-001",
@@ -111,6 +112,7 @@ def test_output_models_carry_evidence_and_human_review() -> None:
 
     assert anomaly.human_review_required is True
     assert fault.human_review_required is True
+    assert fault.evidence_refs[0].rule_id == "BATTERY_LOW_SOC"
     assert recommendation.human_review_required is True
     assert recommendation.evidence_refs[0].rule_id == "BATTERY_LOW_SOC"
 

@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from packages.log_parsers import parse_flight_log
 from packages.telemetry_rules import summarize_flight
 
@@ -27,3 +29,23 @@ def test_summary_calculates_operational_metrics() -> None:
     assert summary.link_quality_summary["min_link_quality_pct"] == 48
     assert "FAILSAFE" in {item["flight_mode"] for item in summary.flight_mode_timeline}
     assert summary.flight_mode_timeline[-1]["flight_mode"] == "LAND"
+
+
+def test_parse_empty_csv_reports_clear_error(tmp_path: Path) -> None:
+    path = tmp_path / "empty.csv"
+    path.write_text("", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="CSV 缺少表头"):
+        parse_flight_log(path)
+
+
+def test_parse_missing_csv_field_reports_field_name(tmp_path: Path) -> None:
+    path = tmp_path / "missing_field.csv"
+    path.write_text(
+        "timestamp,flight_mode,altitude_m\n"
+        "2026-06-24T10:00:00Z,AUTO,10\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="battery_voltage_v"):
+        parse_flight_log(path)

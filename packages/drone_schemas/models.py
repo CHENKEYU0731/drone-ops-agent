@@ -165,6 +165,7 @@ class FaultHypothesis(ReviewableOutput):
     fault_name: str
     confidence: float = Field(ge=0, le=1)
     severity: Severity
+    evidence_refs: list[EvidenceRef]
     supporting_evidence: list[EvidenceRef]
     counter_evidence: list[EvidenceRef] = Field(default_factory=list)
     recommended_next_steps: list[str]

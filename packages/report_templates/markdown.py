@@ -68,6 +68,7 @@ def render_ops_report(
             f"- `{anomaly.timestamp.isoformat()}` `{anomaly.type}` "
             f"{anomaly.severity.value}：{anomaly.human_readable_summary}"
         )
+        lines.append(f"  - 证据：{_brief_refs(anomaly.evidence_refs)}")
     if not anomalies:
         lines.append("- 未检测到异常事件。")
 
@@ -79,6 +80,7 @@ def render_ops_report(
         )
         for step in hypothesis.recommended_next_steps:
             lines.append(f"  - 下一步：{step}")
+        lines.append(f"  - 证据：{_brief_refs(hypothesis.evidence_refs)}")
     if not diagnosis:
         lines.append("- 没有足够证据生成故障假设。")
 
@@ -90,6 +92,7 @@ def render_ops_report(
         )
         lines.append(f"  - 原因：{recommendation.reason}")
         lines.append(f"  - 审批：{recommendation.required_approval}；预计工作量：{recommendation.estimated_effort}")
+        lines.append(f"  - 证据：{_brief_refs(recommendation.evidence_refs)}")
     if not maintenance:
         lines.append("- 暂无维护建议。")
 
@@ -148,3 +151,12 @@ def _evidence_lines(
             f"字段 `{ref.field}`={ref.measured_value}，阈值 `{ref.threshold}`。{ref.description}"
         )
     return lines
+
+
+def _brief_refs(refs) -> str:
+    if not refs:
+        return "无"
+    parts = [f"{ref.rule_id}@{ref.source_id}" for ref in refs[:3]]
+    if len(refs) > 3:
+        parts.append(f"另 {len(refs) - 3} 条")
+    return "；".join(parts)

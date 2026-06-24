@@ -58,3 +58,5 @@ def test_report_contains_required_sections() -> None:
         "## 11. 证据引用附录",
     ]:
         assert heading in report
+    assert "证据：" in report
+    assert "LOW_BATTERY_SOC" in report
