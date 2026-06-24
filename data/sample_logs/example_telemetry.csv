@@ -1,0 +1,6 @@
+timestamp,flight_mode,altitude_m,vertical_speed_mps,ground_speed_mps,battery_voltage_v,battery_current_a,battery_soc_pct,gps_satellites,gps_hdop,vibration_x,vibration_y,vibration_z,motor_1_output,motor_2_output,motor_3_output,motor_4_output,link_quality_pct,temperature_c,ekf_variance,failsafe_active
+2026-06-24T10:00:00Z,MANUAL,0,0,0,16.2,8,94,17,0.7,0.10,0.11,0.12,22,23,22,23,98,30,0.12,false
+2026-06-24T10:00:10Z,STABILIZE,8,0.8,4.2,15.9,18,88,16,0.8,0.15,0.16,0.14,40,41,39,40,96,34,0.16,false
+2026-06-24T10:00:20Z,AUTO,25,0.4,7.5,15.3,46,72,13,1.4,0.22,0.25,0.24,50,52,51,50,90,42,0.25,false
+2026-06-24T10:00:30Z,AUTO,42,0.3,8.2,14.2,38,28,6,2.6,1.45,1.10,1.32,82,48,50,49,64,58,0.92,false
+2026-06-24T10:00:40Z,ACRO,39,-0.2,6.8,14.0,44,24,5,2.8,1.60,1.35,1.42,85,46,48,47,58,61,1.05,true

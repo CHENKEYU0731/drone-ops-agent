@@ -120,12 +120,47 @@ class PreflightCheckResult(ReviewableOutput):
 class TelemetrySnapshot(BaseModel):
     timestamp: datetime
     drone_id: str
+    flight_mode: str = "UNKNOWN"
     altitude_m: float
+    vertical_speed_mps: float = 0
+    ground_speed_mps: float = 0
     battery_voltage_v: float
+    battery_current_a: float = 0
     battery_soc_pct: float = Field(ge=0, le=100)
     gps_satellites: int = Field(ge=0)
     gps_hdop: float = Field(ge=0)
+    vibration_x: float = 0
+    vibration_y: float = 0
+    vibration_z: float = 0
+    motor_1_output: float = Field(default=0, ge=0, le=100)
+    motor_2_output: float = Field(default=0, ge=0, le=100)
+    motor_3_output: float = Field(default=0, ge=0, le=100)
+    motor_4_output: float = Field(default=0, ge=0, le=100)
     link_quality_pct: float = Field(ge=0, le=100)
+    temperature_c: float = 0
+    ekf_variance: float = Field(default=0, ge=0)
+    failsafe_active: bool = False
+
+
+class MonitoringEvent(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("MON"))
+    timestamp: datetime
+    event_type: str
+    severity: Severity
+    message: str
+    measured_value: float | int | str
+    threshold: float | int | str
+    rule_id: str
+    evidence_refs: list[EvidenceRef]
+
+
+class MonitoringSummary(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("MONSUM"))
+    source_refs: list[str]
+    event_count: int
+    highest_severity: Severity
+    monitored_duration_s: int
+    samples_processed: int
 
 
 class FlightLogRecord(BaseModel):

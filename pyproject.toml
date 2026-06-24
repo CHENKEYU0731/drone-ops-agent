@@ -33,6 +33,7 @@ packages = [
   "packages.diagnosis_rules",
   "packages.maintenance_rules",
   "packages.preflight_rules",
+  "packages.state_monitoring",
   "packages.simulation",
   "packages.report_templates",
   "packages.audit_logger",

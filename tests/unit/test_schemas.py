@@ -11,6 +11,8 @@ from packages.drone_schemas import (
     FlightLogRecord,
     MaintenancePriority,
     MaintenanceRecommendation,
+    MonitoringEvent,
+    MonitoringSummary,
     PreflightCheckItem,
     PreflightCheckResult,
     Severity,
@@ -170,3 +172,46 @@ def test_preflight_check_result_carries_items_and_evidence() -> None:
 
     assert result.blocking_items[0].evidence_refs[0].rule_id == "BATTERY_SOC_BLOCKING"
     assert result.human_review_required is True
+
+
+def test_monitoring_outputs_carry_evidence_and_review_flags() -> None:
+    ref = EvidenceRef(
+        source_type="telemetry",
+        source_id="example_telemetry.csv:4",
+        timestamp=datetime(2026, 6, 24, 10, 0, tzinfo=UTC),
+        field="battery_soc_pct",
+        measured_value=24,
+        threshold=30,
+        rule_id="MON_LOW_BATTERY_SOC",
+        description="Battery SOC is below the offline monitoring threshold.",
+    )
+    event = MonitoringEvent(
+        drone_id="UAV-001",
+        timestamp=ref.timestamp,
+        event_type="LOW_BATTERY_SOC",
+        severity=Severity.HIGH,
+        message="Battery SOC is below the offline monitoring threshold.",
+        measured_value=24,
+        threshold=30,
+        rule_id="MON_LOW_BATTERY_SOC",
+        evidence_refs=[ref],
+        human_review_required=True,
+        generated_by_skill="state-monitoring",
+        skill_version="1.0.0",
+    )
+    summary = MonitoringSummary(
+        drone_id="UAV-001",
+        source_refs=["data/sample_logs/example_telemetry.csv", "data/sample_rules/monitoring_rules.yaml"],
+        event_count=1,
+        highest_severity=Severity.HIGH,
+        monitored_duration_s=40,
+        samples_processed=5,
+        human_review_required=True,
+        generated_by_skill="state-monitoring",
+        skill_version="1.0.0",
+    )
+
+    assert event.evidence_refs[0].rule_id == "MON_LOW_BATTERY_SOC"
+    assert event.human_review_required is True
+    assert summary.human_review_required is True
+    assert summary.highest_severity == Severity.HIGH

@@ -73,3 +73,18 @@ jobs:
           test -d /tmp/drone_ops_preflight/audit
           test "$(find /tmp/drone_ops_preflight/audit -name '*.json' | wc -l)" -ge 1
 
+      - name: Run monitoring replay smoke test
+        run: |
+          python -m apps.cli.main monitor-replay \
+            --telemetry data/sample_logs/example_telemetry.csv \
+            --asset data/sample_assets/uav_001.json \
+            --rules data/sample_rules/monitoring_rules.yaml \
+            --out /tmp/drone_ops_monitoring
+
+      - name: Verify monitoring replay outputs
+        run: |
+          test -f /tmp/drone_ops_monitoring/monitoring_summary.json
+          test -f /tmp/drone_ops_monitoring/monitoring_events.json
+          test -d /tmp/drone_ops_monitoring/audit
+          test "$(find /tmp/drone_ops_monitoring/audit -name '*.json' | wc -l)" -ge 1
+

@@ -13,6 +13,7 @@
 
 - `FlightLogRecord`：单条飞行日志记录。
 - `FlightLogSummary`：飞行时长、最低电压、最大电流、最低 SOC、GPS、振动、电机不平衡、链路和模式切换摘要。
+- `TelemetrySnapshot`：离线状态监控回放的单条遥测记录，包含飞行模式、高度、速度、电池、GPS、振动、电机输出、链路质量、温度、EKF 方差和 failsafe 状态。
 
 ## 运维输出
 
@@ -21,6 +22,8 @@
 - `MaintenanceRecommendation`：带优先级、审批和证据的维护建议。
 - `PreflightCheckResult`：离线飞行前检查结果，包含 `GO`、`REVIEW_REQUIRED` 或 `NO_GO` 状态。
 - `PreflightCheckItem`：飞行前检查 warning 或 blocking item，包含 item、severity、reason、measured value、threshold、rule id、evidence refs 和 recommendation。
+- `MonitoringSummary`：离线遥测回放摘要，包含 source refs、event count、highest severity、monitored duration、samples processed 和 human review 标记。
+- `MonitoringEvent`：状态监控事件，包含 event type、severity、message、measured value、threshold、rule id 和 evidence refs。
 - `OpsReport`：报告产物引用。
 
 ## 可追溯对象

@@ -15,6 +15,8 @@ from packages.drone_schemas import (
     FlightLogSummary,
     MaintenanceRecommendation,
     MissionPlan,
+    MonitoringEvent,
+    MonitoringSummary,
     PreflightCheckResult,
     load_model,
     load_model_list,
@@ -26,6 +28,7 @@ from packages.log_parsers import parse_flight_log
 from packages.maintenance_rules import generate_maintenance_recommendations
 from packages.preflight_rules import run_preflight_check
 from packages.report_templates import render_ops_report
+from packages.state_monitoring import run_monitoring_replay
 from packages.telemetry_rules import summarize_flight
 
 
@@ -107,6 +110,17 @@ def preflight_check_command(
     typer.echo(f"飞行前检查完成: {out}")
 
 
+@app.command("monitor-replay")
+def monitor_replay_command(
+    telemetry: Path = typer.Option(..., "--telemetry", help="CSV 或 JSON 离线遥测文件路径。"),
+    asset: Path = typer.Option(..., "--asset", help="无人机资产 JSON 路径。"),
+    rules: Path = typer.Option(..., "--rules", help="状态监控规则 YAML 路径。"),
+    out: Path = typer.Option(..., "--out", help="输出目录。"),
+) -> None:
+    _run_cli(lambda: _run_monitor_replay(telemetry, asset, rules, out))
+    typer.echo(f"状态监控回放完成: {out}")
+
+
 def _run_analyze_log(log: Path, asset: Path, out: Path) -> tuple[FlightLogSummary, list[AnomalyEvent]]:
     out.mkdir(parents=True, exist_ok=True)
     drone = load_model(asset, DroneAsset)
@@ -164,6 +178,33 @@ def _run_preflight_check(
         status="success",
     )
     return result
+
+
+def _run_monitor_replay(
+    telemetry_path: Path,
+    asset_path: Path,
+    rules_path: Path,
+    out: Path,
+) -> tuple[MonitoringSummary, list[MonitoringEvent]]:
+    out.mkdir(parents=True, exist_ok=True)
+    asset = load_model(asset_path, DroneAsset)
+    summary, events = run_monitoring_replay(telemetry_path, asset, rules_path)
+    summary_path = out / "monitoring_summary.json"
+    events_path = out / "monitoring_events.json"
+    write_model(summary_path, summary)
+    write_model_list(events_path, events)
+    write_audit_record(
+        out_dir=out,
+        skill_name="state-monitoring",
+        skill_version="1.0.0",
+        input_refs=[str(telemetry_path), str(asset_path), str(rules_path)],
+        output_refs=[str(summary_path), str(events_path)],
+        tools_called=["parse_telemetry_replay", "load_monitoring_rules", "run_monitoring_replay"],
+        rules_triggered=sorted({event.rule_id for event in events}),
+        human_review_required=summary.human_review_required,
+        status="success",
+    )
+    return summary, events
 
 
 def _run_diagnose(

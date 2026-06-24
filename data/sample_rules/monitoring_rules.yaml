@@ -1,0 +1,78 @@
+low_battery_soc:
+  event_type: LOW_BATTERY_SOC
+  severity: HIGH
+  rule_id: MON_LOW_BATTERY_SOC
+  threshold: 30
+  message: Battery SOC is below the offline monitoring threshold.
+battery_voltage_sag:
+  event_type: BATTERY_VOLTAGE_SAG
+  severity: HIGH
+  rule_id: MON_BATTERY_VOLTAGE_SAG
+  threshold: 14.4
+  message: Battery voltage is below the offline monitoring threshold.
+high_current_draw:
+  event_type: HIGH_CURRENT_DRAW
+  severity: MEDIUM
+  rule_id: MON_HIGH_CURRENT_DRAW
+  threshold: 42
+  message: Battery current draw is above the offline monitoring threshold.
+gps_degradation:
+  event_type: GPS_DEGRADATION
+  severity: MEDIUM
+  rule_id: MON_GPS_DEGRADATION
+  threshold: 10
+  message: GPS satellite count indicates degraded positioning quality.
+high_hdop:
+  event_type: HIGH_HDOP
+  severity: MEDIUM
+  rule_id: MON_HIGH_HDOP
+  threshold: 2.0
+  message: GPS HDOP is above the offline monitoring threshold.
+low_satellite_count:
+  event_type: LOW_SATELLITE_COUNT
+  severity: HIGH
+  rule_id: MON_LOW_SATELLITE_COUNT
+  threshold: 7
+  message: GPS satellite count is below the minimum monitoring threshold.
+high_vibration:
+  event_type: HIGH_VIBRATION
+  severity: HIGH
+  rule_id: MON_HIGH_VIBRATION
+  threshold: 1.2
+  message: Vibration peak is above the offline monitoring threshold.
+motor_output_imbalance:
+  event_type: MOTOR_OUTPUT_IMBALANCE
+  severity: MEDIUM
+  rule_id: MON_MOTOR_OUTPUT_IMBALANCE
+  threshold: 20
+  message: Motor output spread indicates possible imbalance.
+communication_link_drop:
+  event_type: COMMUNICATION_LINK_DROP
+  severity: HIGH
+  rule_id: MON_COMMUNICATION_LINK_DROP
+  threshold: 70
+  message: Communication link quality is below the monitoring threshold.
+high_temperature:
+  event_type: HIGH_TEMPERATURE
+  severity: MEDIUM
+  rule_id: MON_HIGH_TEMPERATURE
+  threshold: 55
+  message: Temperature is above the offline monitoring threshold.
+ekf_variance_high:
+  event_type: EKF_VARIANCE_HIGH
+  severity: HIGH
+  rule_id: MON_EKF_VARIANCE_HIGH
+  threshold: 0.8
+  message: EKF variance is above the offline monitoring threshold.
+failsafe_active:
+  event_type: FAILSAFE_ACTIVE
+  severity: CRITICAL
+  rule_id: MON_FAILSAFE_ACTIVE
+  message: Failsafe was active in the replayed telemetry.
+unexpected_mode_transition:
+  event_type: UNEXPECTED_MODE_TRANSITION
+  severity: HIGH
+  rule_id: MON_UNEXPECTED_MODE_TRANSITION
+  message: Flight mode transition is outside the configured replay policy.
+  allowed_modes: [MANUAL, STABILIZE, AUTO, LOITER, RTL, LAND]
+  allowed_transitions: [MANUAL->STABILIZE, STABILIZE->AUTO, AUTO->LOITER, LOITER->AUTO, AUTO->RTL, RTL->LAND]

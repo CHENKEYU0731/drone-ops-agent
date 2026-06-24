@@ -1,36 +1,63 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "state-monitoring",
-  "description": "????????? skeleton?",
+  "description": "离线 telemetry 回放状态监控 skill 输出契约。",
   "type": "object",
   "properties": {
-    "skill_name": {
-      "const": "state-monitoring"
+    "summary": {
+      "type": "object",
+      "required": [
+        "id",
+        "timestamp",
+        "drone_id",
+        "source_refs",
+        "event_count",
+        "highest_severity",
+        "monitored_duration_s",
+        "samples_processed",
+        "human_review_required",
+        "generated_by_skill",
+        "skill_version"
+      ]
     },
-    "skill_version": {
-      "type": "string"
-    },
-    "inputs": {
+    "events": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "object",
+        "required": [
+          "id",
+          "timestamp",
+          "event_type",
+          "severity",
+          "message",
+          "measured_value",
+          "threshold",
+          "rule_id",
+          "evidence_refs",
+          "human_review_required",
+          "generated_by_skill",
+          "skill_version"
+        ]
       }
     },
-    "outputs": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "human_review_required": {
-      "type": "boolean"
+    "audit": {
+      "type": "object",
+      "required": [
+        "skill_name",
+        "skill_version",
+        "input_refs",
+        "output_refs",
+        "tools_called",
+        "rules_triggered",
+        "human_review_required",
+        "status",
+        "created_at"
+      ]
     }
   },
   "required": [
-    "skill_name",
-    "skill_version",
-    "inputs",
-    "outputs",
-    "human_review_required"
+    "summary",
+    "events",
+    "audit"
   ]
 }
