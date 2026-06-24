@@ -16,7 +16,7 @@
 - 可运行离线状态监控回放 skill。
 - 失败运行审计。
 - 可配置规则阈值。
-- PDF 报告生成。
+- PDF 报告基础导出。
 - 更多样例数据和 golden cases。
 - PX4 ULog 和 ArduPilot BIN 只读解析。
 
@@ -24,6 +24,7 @@
 
 - MAVLink 遥测只读导入。
 - SITL 仿真验证。
+- PDF 报告高级排版和表格渲染。
 - Web Dashboard。
 - 工单系统或 CMMS 集成。
 - 团队级 skill 版本管理和评估体系。

@@ -7,7 +7,7 @@
 - 增加 MAVLink 遥测只读导入。
 - 扩展 `monitor-replay` 规则和样例 telemetry 数据，但必须保持离线 advisory-only，不得连接真实无人机或执行真实动作。
 - 增加 SITL 仿真验证，但保持真实硬件隔离。
-- 增加 PDF 报告生成。
+- 扩展 PDF 报告高级排版、表格渲染和模板版本管理。
 - 增加 Web Dashboard。
 - 增加工单系统或 CMMS 集成。
 - 增加失败运行审计。
