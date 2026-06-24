@@ -25,3 +25,7 @@
 - Web Dashboard。
 - 工单系统或 CMMS 集成。
 - 团队级 skill 版本管理和评估体系。
+
+## 项目历史
+
+- PR #1 因 GitHub 状态问题未通过 PR 按钮 merge；已将 `origin/feat/drone-ops-agent-mvp` 以等价 squash merge 合入 main，main commit 为 `d7e82b79329df24ce1144382cf439c7cb0a372f7`。
