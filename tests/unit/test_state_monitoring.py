@@ -64,6 +64,34 @@ def test_parse_telemetry_replay_supports_csv_and_json(tmp_path: Path) -> None:
     assert csv_records[0].failsafe_active is False
 
 
+def test_parse_telemetry_replay_rejects_empty_file(tmp_path: Path) -> None:
+    telemetry_path = tmp_path / "empty.csv"
+    telemetry_path.write_text(",".join(_normal_row().keys()) + "\n", encoding="utf-8")
+
+    try:
+        parse_telemetry_replay(telemetry_path, drone_id="UAV-001")
+    except ValueError as exc:
+        assert "empty" in str(exc).lower()
+        assert str(telemetry_path) in str(exc)
+    else:
+        raise AssertionError("empty telemetry should fail")
+
+
+def test_parse_telemetry_replay_reports_missing_fields(tmp_path: Path) -> None:
+    telemetry_path = tmp_path / "missing.csv"
+    row = _normal_row()
+    row.pop("ekf_variance")
+    telemetry_path.write_text(",".join(row.keys()) + "\n" + ",".join(str(value) for value in row.values()) + "\n", encoding="utf-8")
+
+    try:
+        parse_telemetry_replay(telemetry_path, drone_id="UAV-001")
+    except ValueError as exc:
+        assert "ekf_variance" in str(exc)
+        assert str(telemetry_path) in str(exc)
+    else:
+        raise AssertionError("telemetry with missing fields should fail")
+
+
 def test_normal_state_produces_summary_without_events(tmp_path: Path) -> None:
     telemetry_path = tmp_path / "normal.json"
     telemetry_path.write_text(json.dumps([_normal_row(), _normal_row(timestamp="2026-06-24T10:00:10Z")]), encoding="utf-8")

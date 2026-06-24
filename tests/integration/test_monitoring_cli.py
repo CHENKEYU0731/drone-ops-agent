@@ -65,3 +65,45 @@ def test_monitor_replay_cli_missing_file_error_is_clear(tmp_path: Path) -> None:
     assert result.exit_code == 1
     assert "missing_telemetry.csv" in result.output
     assert "Traceback" not in result.output
+
+
+def test_monitor_replay_cli_missing_asset_error_is_clear(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        [
+            "monitor-replay",
+            "--telemetry",
+            "data/sample_logs/example_telemetry.csv",
+            "--asset",
+            "missing_asset.json",
+            "--rules",
+            "data/sample_rules/monitoring_rules.yaml",
+            "--out",
+            str(tmp_path),
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "missing_asset.json" in result.output
+    assert "Traceback" not in result.output
+
+
+def test_monitor_replay_cli_missing_rules_error_is_clear(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        [
+            "monitor-replay",
+            "--telemetry",
+            "data/sample_logs/example_telemetry.csv",
+            "--asset",
+            "data/sample_assets/uav_001.json",
+            "--rules",
+            "missing_rules.yaml",
+            "--out",
+            str(tmp_path),
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "missing_rules.yaml" in result.output
+    assert "Traceback" not in result.output
