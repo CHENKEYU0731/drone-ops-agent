@@ -2,14 +2,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Literal, Protocol
 
 from packages.drone_schemas import FlightLogRecord
 
 
-SUPPORTED_LOG_FORMATS = ("auto", "csv", "json", "px4-ulog", "ardupilot-bin")
+ParserFormat = Literal["auto", "csv", "json", "px4-ulog", "ardupilot-bin"]
 
-EXTENSION_FORMATS = {
+SUPPORTED_LOG_FORMATS: tuple[str, ...] = ("auto", "csv", "json", "px4-ulog", "ardupilot-bin")
+
+EXTENSION_FORMATS: dict[str, str] = {
     ".csv": "csv",
     ".json": "json",
     ".ulg": "px4-ulog",
@@ -46,15 +48,7 @@ class LogParserDependencyError(ValueError):
     pass
 
 
-def resolve_log_format(path: Path, requested_format: str = "auto") -> str:
-    normalized = requested_format.lower()
-    if normalized not in SUPPORTED_LOG_FORMATS:
-        raise ValueError(
-            f"Unsupported log format '{requested_format}'. Supported formats: "
-            f"{', '.join(SUPPORTED_LOG_FORMATS)}"
-        )
-    if normalized != "auto":
-        return normalized
+def detect_log_format(path: Path) -> str:
     resolved = EXTENSION_FORMATS.get(path.suffix.lower())
     if resolved is None:
         raise ValueError(
@@ -62,3 +56,18 @@ def resolve_log_format(path: Path, requested_format: str = "auto") -> str:
             ".csv->csv, .json->json, .ulg->px4-ulog, .bin->ardupilot-bin"
         )
     return resolved
+
+
+def resolve_log_format(path: Path, requested_format: str = "auto") -> str:
+    normalized = requested_format.lower()
+    if normalized not in SUPPORTED_LOG_FORMATS:
+        raise ValueError(
+            f"Unsupported log format '{requested_format}'. Supported formats: "
+            f"{', '.join(SUPPORTED_LOG_FORMATS)}"
+        )
+    if normalized == "auto":
+        return detect_log_format(path)
+    suffix_format = EXTENSION_FORMATS.get(path.suffix.lower())
+    if suffix_format is not None and suffix_format != normalized:
+        raise ValueError(f"log format {normalized} cannot parse file: {path}")
+    return normalized

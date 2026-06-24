@@ -64,3 +64,13 @@
 - 增加 ULog/BIN 只读解析。
 - 增加规则阈值配置文件。
 - 增加更多 golden case。
+
+## ArduPilot BIN Addendum
+
+- `analyze-log` accepts `--format auto`, `csv`, `json`, and `ardupilot-bin`. Auto detection maps `.csv->csv`, `.json->json`, `.ulg->px4-ulog`, and `.bin->ardupilot-bin`.
+- ArduPilot BIN support is local-file-only. It must not connect to real aircraft, execute MAVLink commands, arm, disarm, take off, land, RTL, run missions, write parameters, or upload firmware.
+- Real `.bin` parsing uses the optional `pymavlink` dependency from `pip install -e .[ardupilot]`. Missing dependencies must be reported clearly without traceback.
+- The parser normalizes the minimum usable BIN fields into `FlightLogRecord`; summary and anomaly generation remain in the existing `FlightLogSummary` and `AnomalyEvent` flow.
+- Each run writes `audit/flight-log-analysis-<run_id>.json` with the requested format and parser name/version in `input_refs`, and `parse_flight_log_with_metadata:<parser>@<version>` in `tools_called`.
+- All generated summaries and anomalies must include `evidence_refs`. Safety or maintenance related conclusions must keep `human_review_required=true`.
+- Tests cover the mock BIN fixture, `--format ardupilot-bin`, `--format auto` for `.bin`, optional dependency errors, and CSV/JSON regression behavior.

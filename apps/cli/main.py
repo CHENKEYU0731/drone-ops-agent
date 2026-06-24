@@ -45,7 +45,7 @@ def _run_cli(action) -> None:
 
 @app.command("analyze-log")
 def analyze_log_command(
-    log: Path = typer.Option(..., "--log", help="CSV、JSON 或 PX4 ULog 飞行日志路径。"),
+    log: Path = typer.Option(..., "--log", help="CSV、JSON、PX4 ULog 或 ArduPilot BIN 飞行日志路径。"),
     asset: Path = typer.Option(..., "--asset", help="无人机资产 JSON 路径。"),
     out: Path = typer.Option(..., "--out", help="输出目录。"),
     log_format: str = typer.Option("auto", "--format", help="auto, csv, json, px4-ulog, ardupilot-bin"),
@@ -161,9 +161,13 @@ def _run_analyze_log(
         out_dir=out,
         skill_name="flight-log-analysis",
         skill_version="1.0.0",
-        input_refs=[str(log), str(asset)],
+        input_refs=[str(log), str(asset), f"format={log_format}", f"parser={parsed.parser_name}@{parsed.parser_version}"],
         output_refs=[str(out / "flight_summary.json"), str(out / "anomalies.json")],
-        tools_called=["parse_flight_log", "summarize_flight", "detect_anomalies"],
+        tools_called=[
+            f"parse_flight_log_with_metadata:{parsed.parser_name}@{parsed.parser_version}",
+            "summarize_flight",
+            "detect_anomalies",
+        ],
         rules_triggered=sorted({event.rule_id for event in anomalies}),
         human_review_required=bool(anomalies),
         status="success",

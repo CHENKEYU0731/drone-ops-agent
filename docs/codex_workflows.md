@@ -3,7 +3,7 @@
 可以把以下任务继续交给 Codex：
 
 - PX4 ULog 只读解析支持已具备 MVP：`drone-ops analyze-log --format px4-ulog --log <local.ulg> ...`，真实 ULog 解析需安装 `pip install -e .[px4]`，mock fixture 可用于离线测试。
-- 增加 ArduPilot BIN 只读解析支持。
+- ArduPilot BIN 只读解析支持已具备 MVP：`drone-ops analyze-log --format ardupilot-bin --log <local.bin> ...`，真实 BIN 解析需安装 `pip install -e .[ardupilot]`，mock fixture 可用于离线测试。
 - 增加 MAVLink 遥测只读导入。
 - 扩展 `monitor-replay` 规则和样例 telemetry 数据，但必须保持离线 advisory-only，不得连接真实无人机或执行真实动作。
 - 增加 SITL 仿真验证，但保持真实硬件隔离。
@@ -21,4 +21,13 @@ PX4 ULog 工作流约束：
 - 仅处理本地 `.ulg` 文件，禁止连接真实无人机。
 - 禁止执行 MAVLink command、arm/disarm、takeoff、land、RTL、mission execution、firmware upload 或 parameter write。
 - `--format auto` 必须按 `.ulg -> px4-ulog` 识别；CSV/JSON 旧流程必须保持可用。
+- `flight-log-analysis` audit JSON 需记录 parser name、parser version、requested format、actual format 和 parser metadata。
+
+ArduPilot BIN 工作流约束：
+
+- 仅处理本地 `.bin` 文件，禁止连接真实无人机。
+- 禁止执行 MAVLink command、arm/disarm、takeoff、land、RTL、mission execution、firmware upload 或 parameter write。
+- `--format auto` 必须按 `.bin -> ardupilot-bin` 识别；CSV/JSON 旧流程必须保持可用。
+- 真实 BIN 解析使用可选 `pymavlink` 依赖：`pip install -e .[ardupilot]`。
+- 仓库只保留小型 mock BIN fixture，不提交大体积真实飞行日志。
 - `flight-log-analysis` audit JSON 需记录 parser name、parser version、requested format、actual format 和 parser metadata。
