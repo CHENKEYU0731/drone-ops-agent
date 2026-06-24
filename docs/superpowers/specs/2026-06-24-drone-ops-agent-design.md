@@ -1,108 +1,112 @@
-# Drone Ops Agent MVP Design
+# 无人机运维 Agent MVP 设计
 
-Date: 2026-06-24
+日期：2026-06-24
 
-## Goal
+## 目标
 
-Build `drone-ops-agent`, a production-oriented offline MVP for drone operations support. The system reduces manual debugging, fault triage, maintenance planning, and report writing effort without directly controlling any real drone hardware.
+构建 `drone-ops-agent`，一个面向生产级 MVP 的离线无人机运维支持系统。系统用于降低人工调试、故障排查、维护规划和报告撰写的工作量，但不直接控制任何真实无人机硬件。
 
-The MVP is a Python 3.11+ CLI application. It processes sample flight logs and sample asset data, produces deterministic rule-based analysis, and writes auditable outputs:
+MVP 是一个 Python 3.11+ CLI 应用。它基于样例飞行日志和样例资产数据运行确定性的规则分析，并输出可审计结果：
 
 - `flight_summary.json`
 - `anomalies.json`
 - `diagnosis.json`
 - `maintenance_recommendations.json`
 - `ops_report.md`
-- audit JSON files for each skill run
+- 每次 skill 运行对应的 audit JSON 文件
 
-## Safety Boundary
+## Markdown 语言约定
 
-The system is advisory only. It must not contain commands, APIs, or workflows that arm or disarm vehicles, unlock or start motors, trigger takeoff, landing, return-to-home, waypoint flight, firmware upload, flight-controller parameter changes, or any other real flight-control action.
+本项目中的 `.md` 文件统一使用中文撰写，包括 `README.md`、`docs/*.md`、`skills/*/SKILL.md`、设计文档和实现计划。代码标识符、命令、字段名和文件名保持英文，以便与 Python 包、CLI 和 JSON schema 对齐。
 
-Any flight-safety, maintenance-safety, or flight-parameter-related recommendation must require human review and approval. MVP diagnostic and maintenance outputs default to `human_review_required=true` when they influence safety or maintenance decisions.
+## 安全边界
 
-## Scope
+系统只能作为运维支持和决策辅助工具。代码、命令、接口和工作流中不得包含解锁电机、启动电机、起飞、降落、返航、航线飞行、上传固件、修改飞控关键参数、arm/disarm 飞行器或任何真实飞控命令。
 
-### In Scope
+任何涉及飞行安全、维护安全或飞控参数变更的建议，都必须要求人工复核和批准。MVP 中影响安全或维护决策的诊断与维护输出默认设置 `human_review_required=true`。
 
-- Empty-repository initial implementation.
-- Python package structure using Pydantic domain models.
-- CSV and JSON flight-log parsing.
-- Deterministic anomaly detection rules.
-- Rule-based fault diagnosis producing ranked hypotheses.
-- Rule-based maintenance recommendations.
-- Markdown operations report generation.
-- Audit log creation for each skill execution.
-- Typer CLI commands:
+## 范围
+
+### MVP 范围内
+
+- 当前空仓库的初始实现。
+- 使用 Pydantic 领域模型的 Python 包结构。
+- CSV 和 JSON 飞行日志解析。
+- 确定性的规则型异常检测。
+- 生成按置信度排序的规则型故障假设。
+- 生成规则型维护建议。
+- Markdown 运维报告生成。
+- 每次 skill 执行写入审计日志。
+- Typer CLI 命令：
   - `drone-ops analyze-log`
   - `drone-ops diagnose`
   - `drone-ops generate-report`
   - `drone-ops run-mvp`
-- Sample assets, logs, missions, and reports.
-- Unit, integration, and golden tests runnable with `pytest`.
-- Documentation for architecture, safety, audit policy, data contracts, Codex workflows, and roadmap.
-- Complete `SKILL.md`, `schema.json`, `examples/`, and `tests/` directories for all requested skills.
+- 样例资产、日志、任务和报告目录。
+- 可通过 `pytest` 运行的单元测试、集成测试和 golden 测试。
+- 架构、安全、审计、数据契约、Codex 工作流和路线图文档。
+- 所有请求的 skill 目录都包含完整的 `SKILL.md`、`schema.json`、`examples/` 和 `tests/`。
 
-### Out of Scope for MVP
+### MVP 范围外
 
-- Real drone hardware integration.
-- MAVLink command execution.
-- PX4 ULog or ArduPilot BIN parsing.
-- SITL execution.
-- Web dashboard.
-- PDF generation.
-- Work order or CMMS integration.
-- Machine-learning-based diagnosis.
+- 真实无人机硬件集成。
+- MAVLink 命令执行。
+- PX4 ULog 或 ArduPilot BIN 解析。
+- SITL 实际运行。
+- Web Dashboard。
+- PDF 生成。
+- 工单系统或 CMMS 集成。
+- 基于机器学习的诊断。
 
-These are kept as documented extension points.
+这些能力作为后续扩展点记录在文档中。
 
-## Recommended Architecture
+## 推荐架构
 
-The repository root is the project root. The requested `drone-ops-agent/` contents are created directly in the current workspace.
+当前工作目录就是项目根目录。用户要求的 `drone-ops-agent/` 内部内容会直接创建在当前工作目录下。
 
-Core modules:
+核心模块：
 
-- `packages/drone_schemas`: Pydantic domain objects and shared enums.
-- `packages/log_parsers`: CSV and JSON flight-log readers.
-- `packages/telemetry_rules`: summary calculations and low-level metrics.
-- `packages/anomaly_detection`: deterministic anomaly rules.
-- `packages/diagnosis_rules`: ranked fault hypothesis generation.
-- `packages/maintenance_rules`: maintenance recommendation generation.
-- `packages/report_templates`: Markdown report rendering.
-- `packages/audit_logger`: audit record creation and JSON persistence.
-- `apps/cli`: Typer CLI entrypoint and orchestration glue.
+- `packages/drone_schemas`：Pydantic 领域对象和共享枚举。
+- `packages/log_parsers`：CSV 和 JSON 飞行日志读取器。
+- `packages/telemetry_rules`：飞行摘要计算和基础指标计算。
+- `packages/anomaly_detection`：确定性异常检测规则。
+- `packages/diagnosis_rules`：故障假设排序规则。
+- `packages/maintenance_rules`：维护建议生成规则。
+- `packages/report_templates`：Markdown 报告渲染。
+- `packages/audit_logger`：审计记录创建和 JSON 持久化。
+- `apps/cli`：Typer CLI 入口和工作流编排。
 
-Agent directories under `agents/` are thin placeholders in MVP. They document responsibility boundaries and can later host richer orchestration logic.
+`agents/` 目录在 MVP 阶段保持轻量，用于记录各 agent 的职责边界，后续可承载更复杂的编排逻辑。
 
-Skill directories under `skills/` are operational contracts. The runnable MVP behavior lives in Python packages; each skill directory documents inputs, outputs, hard rules, evidence requirements, audit behavior, tests, limitations, and future extensions.
+`skills/` 目录是可复用能力的运行契约。MVP 可运行逻辑放在 Python 包中，每个 skill 目录负责描述输入、输出、硬规则、证据要求、审计要求、测试、已知限制和未来扩展。
 
-## Data Flow
+## 数据流
 
-1. `analyze-log` loads a flight log and asset file.
-2. The log parser validates records into `FlightLogRecord` objects.
-3. Summary logic creates a `FlightLogSummary`.
-4. Anomaly rules create `AnomalyEvent` records with evidence references.
-5. The command writes `flight_summary.json`, `anomalies.json`, and an audit file.
-6. `diagnose` loads summary, anomalies, and asset data, then creates ranked `FaultHypothesis` records.
-7. Maintenance logic converts hypotheses plus asset and summary context into `MaintenanceRecommendation` records.
-8. `generate-report` renders a PDF-ready Markdown report from summary, diagnosis, maintenance, and audit metadata.
-9. `run-mvp` runs the full flow and writes all outputs in deterministic filenames.
+1. `analyze-log` 加载飞行日志和资产文件。
+2. 日志解析器将记录验证为 `FlightLogRecord` 对象。
+3. 摘要逻辑生成 `FlightLogSummary`。
+4. 异常规则生成带证据引用的 `AnomalyEvent` 列表。
+5. 命令写入 `flight_summary.json`、`anomalies.json` 和审计文件。
+6. `diagnose` 加载摘要、异常和资产数据，生成排序后的 `FaultHypothesis` 列表。
+7. 维护逻辑结合故障假设、资产和摘要，生成 `MaintenanceRecommendation` 列表。
+8. `generate-report` 根据摘要、诊断、维护建议和审计元数据渲染 PDF-ready Markdown 报告。
+9. `run-mvp` 串联完整流程，并用确定性文件名写出全部结果。
 
 ```mermaid
 flowchart LR
-  A["Flight log CSV/JSON"] --> B["Log parser"]
-  C["Drone asset JSON"] --> B
+  A["飞行日志 CSV/JSON"] --> B["日志解析器"]
+  C["无人机资产 JSON"] --> B
   B --> D["FlightLogSummary"]
-  B --> E["AnomalyEvent list"]
-  D --> F["Diagnosis rules"]
+  B --> E["AnomalyEvent 列表"]
+  D --> F["诊断规则"]
   E --> F
   C --> F
-  F --> G["FaultHypothesis list"]
-  G --> H["Maintenance rules"]
+  F --> G["FaultHypothesis 列表"]
+  G --> H["维护规则"]
   D --> H
   C --> H
-  H --> I["MaintenanceRecommendation list"]
-  D --> J["Report generator"]
+  H --> I["MaintenanceRecommendation 列表"]
+  D --> J["报告生成器"]
   E --> J
   G --> J
   I --> J
@@ -113,9 +117,9 @@ flowchart LR
   J --> L
 ```
 
-## Domain Models
+## 领域模型
 
-Pydantic models include:
+Pydantic 模型包括：
 
 - `DroneAsset`
 - `BatteryAsset`
@@ -134,64 +138,64 @@ Pydantic models include:
 - `EvidenceRef`
 - `SkillRunAudit`
 
-Important output models include identifiers, timestamps, evidence or source references, applicable severity and confidence, `human_review_required`, `generated_by_skill`, and `skill_version`.
+重要输出对象包含标识符、时间戳、证据或来源引用、适用的严重级别和置信度、`human_review_required`、`generated_by_skill` 和 `skill_version`。
 
-`EvidenceRef` is the traceability backbone. It records source type, source id, timestamp, field, measured value, threshold, rule id, and description.
+`EvidenceRef` 是可追溯性的核心，记录 source type、source id、timestamp、field、measured value、threshold、rule id 和 description。
 
-`SkillRunAudit` records run id, skill name, skill version, input refs, tools called, rules triggered, output refs, human-review flag, reviewer, creation time, and status.
+`SkillRunAudit` 记录 run id、skill name、skill version、input refs、tools called、rules triggered、output refs、human-review flag、reviewer、created time 和 status。
 
-## Rule Behavior
+## 规则行为
 
-### Log Summary
+### 日志摘要
 
-The parser and summary layer calculate:
+日志解析和摘要层计算：
 
-- flight duration
-- minimum battery voltage
-- maximum current
-- minimum battery SOC
-- GPS quality summary
-- vibration summary
-- motor output imbalance summary
-- communication link summary
-- flight mode transition timeline
-- detected anomaly events
+- 飞行时长
+- 最低电池电压
+- 最大电流
+- 最低电池 SOC
+- GPS 质量摘要
+- 振动摘要
+- 电机输出不平衡摘要
+- 通信链路摘要
+- 飞行模式切换时间线
+- 检测到的异常事件
 
-### Anomaly Detection
+### 异常检测
 
-MVP rules cover:
+MVP 规则覆盖：
 
-- battery voltage drop
-- low battery SOC
-- high current
-- GPS quality degradation
-- high HDOP
-- low satellite count
-- high vibration
-- motor output imbalance
-- communication link quality degradation
-- high temperature
-- unexpected flight mode transition
+- 电池电压骤降
+- 低电量 SOC
+- 电流过高
+- GPS 质量下降
+- HDOP 过高
+- 卫星数过低
+- 振动过高
+- 电机输出不平衡
+- 通信链路质量下降
+- 温度过高
+- 非预期飞行模式切换
 
-Each anomaly contains an anomaly id, type, severity, timestamp or range, evidence refs, human-readable summary, rule id, measured value, and threshold.
+每个异常包含 anomaly id、type、severity、timestamp 或时间范围、evidence refs、human-readable summary、rule id、measured value 和 threshold。
 
-### Fault Diagnosis
+### 故障诊断
 
-Diagnosis produces ranked hypotheses, not a single definitive root cause unless evidence is exceptionally strong. MVP rules cover:
+诊断输出按置信度排序的多个假设。除非证据非常充分，否则不输出唯一确定根因。MVP 规则覆盖：
 
-- propeller damage or dynamic balance issue
-- motor performance degradation
-- battery health degradation
-- GPS reception issue
-- sensor vibration issue
-- communication link issue
-- thermal anomaly issue
+- 桨叶损伤或动平衡异常
+- 电机性能衰退
+- 电池健康衰退
+- GPS 接收问题
+- 传感器振动问题
+- 通信链路问题
+- 热异常问题
 
-Hypotheses include confidence, severity, supporting evidence, counter evidence, next steps, and human-review requirements.
+故障假设包含置信度、严重级别、支持证据、反证、建议下一步和人工复核要求。
 
-### Maintenance Advice
+### 维护建议
 
-Maintenance recommendations map fault hypotheses to actions with priorities:
+维护建议把故障假设映射为动作，优先级包括：
 
 - `IMMEDIATE_GROUNDING`
 - `BEFORE_NEXT_FLIGHT`
@@ -199,11 +203,11 @@ Maintenance recommendations map fault hypotheses to actions with priorities:
 - `SCHEDULED_MAINTENANCE`
 - `MONITOR`
 
-Each recommendation includes component, action, priority, reason, evidence refs, required approval, estimated effort, and human-review flag.
+每条建议包含 component、action、priority、reason、evidence refs、required approval、estimated effort 和 human-review flag。
 
-## CLI Design
+## CLI 设计
 
-Commands:
+命令：
 
 ```bash
 drone-ops analyze-log --log data/sample_logs/example_flight.csv --asset data/sample_assets/uav_001.json --out data/sample_reports/
@@ -212,21 +216,21 @@ drone-ops generate-report --summary data/sample_reports/flight_summary.json --di
 drone-ops run-mvp --log data/sample_logs/example_flight.csv --asset data/sample_assets/uav_001.json --out data/sample_reports/
 ```
 
-`diagnose` also reads `anomalies.json` from the summary output directory by default. If needed, a later enhancement can add an explicit `--anomalies` option.
+`diagnose` 默认从 summary 所在目录读取 `anomalies.json`。如果后续需要，可以增加显式 `--anomalies` 参数。
 
-## Error Handling
+## 错误处理
 
-- Missing input files fail with clear path-specific errors.
-- Invalid JSON or CSV schema failures name the file and field.
-- Empty logs fail before rule execution.
-- Report generation fails if required upstream artifacts are absent.
-- Audit records are written for successful skill runs. Failed-run audit can be added after the initial MVP if command-level exception handling needs deeper coverage.
+- 输入文件缺失时，错误信息包含具体路径。
+- JSON 或 CSV schema 无效时，错误信息包含文件和字段。
+- 日志为空时，在执行规则前失败。
+- 缺少必要上游产物时，报告生成失败并说明缺失内容。
+- 成功执行的 skill 都写入审计记录。失败运行审计可在首版 MVP 后补充更细的命令级异常记录。
 
-## Testing
+## 测试
 
-Test layers:
+测试层次：
 
-- Unit tests:
+- 单元测试：
   - schema validation
   - log parsing
   - anomaly rules
@@ -234,56 +238,56 @@ Test layers:
   - maintenance recommendation generation
   - report rendering
   - audit record creation
-- Integration tests:
-  - command orchestration across multiple modules
-- Golden tests:
-  - full `run-mvp` flow over sample data with deterministic output structure
+- 集成测试：
+  - 跨模块命令编排
+- Golden 测试：
+  - 基于样例数据的完整 `run-mvp` 流程和确定性输出结构
 
-Primary verification command:
+主要验证命令：
 
 ```bash
 pytest
 ```
 
-## Documentation
+## 文档
 
-Documentation files:
+文档文件：
 
-- `README.md`: purpose, safety boundary, install, MVP run, tests, adding skills, audit logs.
-- `docs/architecture.md`: architecture, data flow, agent and skill boundaries, extension points.
-- `docs/safety_policy.md`: allowed and disallowed actions, human-in-the-loop rules, flight-critical restrictions.
-- `docs/audit_policy.md`: logged content, audit rationale, evidence traceability.
-- `docs/data_contracts.md`: core schema overview.
-- `docs/codex_workflows.md`: future Codex tasks.
-- `docs/roadmap.md`: MVP and post-MVP roadmap.
+- `README.md`：项目用途、安全边界、安装、MVP 运行、测试、添加 skill、查看审计日志。
+- `docs/architecture.md`：系统架构、数据流、agent 和 skill 边界、扩展点。
+- `docs/safety_policy.md`：允许动作、禁止动作、human-in-the-loop 要求、飞行关键动作限制。
+- `docs/audit_policy.md`：记录内容、审计原因、证据追溯方式。
+- `docs/data_contracts.md`：核心 schema 概览。
+- `docs/codex_workflows.md`：后续可交给 Codex 的任务。
+- `docs/roadmap.md`：MVP 和后续路线图。
 
-## Implementation Order
+## 实现顺序
 
-1. Create project skeleton, `pyproject.toml`, docs, package directories, and skill directories.
-2. Implement Pydantic schemas.
-3. Add sample asset and sample flight logs.
-4. Implement log parsing and summary calculation.
-5. Implement anomaly detection rules.
-6. Implement diagnosis and maintenance rules.
-7. Implement audit logger.
-8. Implement Markdown report generation.
-9. Implement Typer CLI orchestration.
-10. Add tests and golden flow.
-11. Run `pytest`, fix failures, and verify CLI MVP.
+1. 创建项目骨架、`pyproject.toml`、docs、package 目录和 skill 目录。
+2. 实现 Pydantic schema。
+3. 添加样例资产和样例飞行日志。
+4. 实现日志解析和摘要计算。
+5. 实现异常检测规则。
+6. 实现诊断和维护规则。
+7. 实现审计日志。
+8. 实现 Markdown 报告生成。
+9. 实现 Typer CLI 编排。
+10. 添加测试和 golden 流程。
+11. 运行 `pytest`，修复失败，并验证 CLI MVP。
 
-## Acceptance Criteria
+## 验收标准
 
-- `pytest` passes.
-- CLI MVP processes sample data.
-- Required JSON, Markdown, and audit files are generated.
-- Every anomaly, diagnosis, and maintenance recommendation contains evidence references.
-- Flight-critical or maintenance-critical recommendations require human review.
-- No code attempts to control real drone hardware.
-- README and docs explain how to operate and extend the project.
+- `pytest` 通过。
+- CLI MVP 可以处理样例数据。
+- 生成要求的 JSON、Markdown 和 audit 文件。
+- 每个异常、诊断和维护建议都包含 evidence references。
+- 飞行关键或维护关键建议必须要求人工复核。
+- 代码中不尝试控制真实无人机硬件。
+- README 和文档说明如何运行和扩展项目。
 
-## Known Tradeoffs
+## 已知取舍
 
-- The MVP prioritizes deterministic, testable rules over advanced agent autonomy.
-- CLI orchestration keeps the system simple and offline-first.
-- Agent directories are intentionally thin until external integrations or richer orchestration are needed.
-- Reports are Markdown and PDF-ready, but PDF generation is deferred.
+- MVP 优先确定性、可测试规则，而不是高级 agent 自主能力。
+- CLI 编排保持系统简单且离线优先。
+- `agents/` 目录在首版中保持轻量，等待外部集成或更复杂编排需求出现后再扩展。
+- 报告使用 Markdown 且结构 PDF-ready，但 PDF 生成推迟到后续阶段。

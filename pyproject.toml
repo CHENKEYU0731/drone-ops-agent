@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "drone-ops-agent"
+version = "0.1.0"
+description = "Offline drone operations support agent MVP"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "pydantic>=2.7,<3",
+  "typer>=0.12,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8,<9",
+]
+
+[project.scripts]
+drone-ops = "apps.cli.main:app"
+
+[tool.setuptools]
+packages = [
+  "apps",
+  "apps.cli",
+  "packages",
+  "packages.drone_schemas",
+  "packages.log_parsers",
+  "packages.telemetry_rules",
+  "packages.anomaly_detection",
+  "packages.diagnosis_rules",
+  "packages.maintenance_rules",
+  "packages.simulation",
+  "packages.report_templates",
+  "packages.audit_logger",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

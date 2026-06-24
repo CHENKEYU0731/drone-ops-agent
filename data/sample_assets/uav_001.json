@@ -1,0 +1,12 @@
+{
+  "drone_id": "UAV-001",
+  "model": "Quad-X4",
+  "serial_number": "SN-UAV-001",
+  "firmware_version": "simulated-1.0",
+  "total_flight_hours": 42.5,
+  "battery_ids": ["BAT-001"],
+  "maintenance_history": [
+    "2026-06-01: 更换 1 号桨叶",
+    "2026-06-12: 完成常规机体检查"
+  ]
+}
