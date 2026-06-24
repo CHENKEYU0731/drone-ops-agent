@@ -27,7 +27,7 @@ from packages.drone_schemas import (
 from packages.log_parsers import parse_flight_log
 from packages.maintenance_rules import generate_maintenance_recommendations
 from packages.preflight_rules import run_preflight_check
-from packages.report_templates import render_ops_report
+from packages.report_templates import export_markdown_to_pdf, render_ops_report
 from packages.state_monitoring import run_monitoring_replay
 from packages.telemetry_rules import summarize_flight
 
@@ -66,12 +66,14 @@ def diagnose_command(
 @app.command("generate-report")
 def generate_report_command(
     summary: Path = typer.Option(..., "--summary", help="flight_summary.json 路径。"),
+    anomalies: Path | None = typer.Option(None, "--anomalies", help="anomalies.json 路径。"),
     diagnosis: Path = typer.Option(..., "--diagnosis", help="diagnosis.json 路径。"),
     maintenance: Path = typer.Option(..., "--maintenance", help="maintenance_recommendations.json 路径。"),
     out: Path = typer.Option(..., "--out", help="Markdown 报告输出路径。"),
+    pdf: Path | None = typer.Option(None, "--pdf", help="PDF 报告输出路径。"),
     asset: Path = typer.Option(Path("data/sample_assets/uav_001.json"), "--asset", help="无人机资产 JSON 路径。"),
 ) -> None:
-    _run_cli(lambda: _run_generate_report(summary, diagnosis, maintenance, out, asset))
+    _run_cli(lambda: _run_generate_report(summary, diagnosis, maintenance, out, asset, pdf, anomalies))
     typer.echo(f"报告生成完成: {out}")
 
 
@@ -91,6 +93,7 @@ def run_mvp_command(
                 out / "maintenance_recommendations.json",
                 out / "ops_report.md",
                 asset,
+                None,
             ),
         )
     )
@@ -119,6 +122,15 @@ def monitor_replay_command(
 ) -> None:
     _run_cli(lambda: _run_monitor_replay(telemetry, asset, rules, out))
     typer.echo(f"状态监控回放完成: {out}")
+
+
+@app.command("export-pdf")
+def export_pdf_command(
+    markdown: Path = typer.Option(..., "--markdown", help="Markdown 报告输入路径。"),
+    out: Path = typer.Option(..., "--out", help="PDF 报告输出路径。"),
+) -> None:
+    _run_cli(lambda: export_markdown_to_pdf(markdown, out))
+    typer.echo(f"PDF 报告导出完成: {out}")
 
 
 def _run_analyze_log(log: Path, asset: Path, out: Path) -> tuple[FlightLogSummary, list[AnomalyEvent]]:
@@ -252,11 +264,13 @@ def _run_generate_report(
     maintenance_path: Path,
     out: Path,
     asset_path: Path,
+    pdf_path: Path | None = None,
+    anomalies_path: Path | None = None,
 ) -> str:
     out.parent.mkdir(parents=True, exist_ok=True)
     summary = load_model(summary_path, FlightLogSummary)
-    anomalies_path = summary_path.parent / "anomalies.json"
-    anomalies = load_model_list(anomalies_path, AnomalyEvent)
+    resolved_anomalies_path = anomalies_path or summary_path.parent / "anomalies.json"
+    anomalies = load_model_list(resolved_anomalies_path, AnomalyEvent)
     diagnosis = load_model_list(diagnosis_path, FaultHypothesis)
     maintenance = load_model_list(maintenance_path, MaintenanceRecommendation)
     asset = load_model(asset_path, DroneAsset)
@@ -264,7 +278,7 @@ def _run_generate_report(
         out_dir=out.parent,
         skill_name="ops-report-generation",
         skill_version="1.0.0",
-        input_refs=[str(summary_path), str(diagnosis_path), str(maintenance_path), str(anomalies_path), str(asset_path)],
+        input_refs=[str(summary_path), str(diagnosis_path), str(maintenance_path), str(resolved_anomalies_path), str(asset_path)],
         output_refs=[str(out)],
         tools_called=["render_ops_report"],
         rules_triggered=[],
@@ -280,6 +294,8 @@ def _run_generate_report(
         audits=[audit],
     )
     out.write_text(report, encoding="utf-8")
+    if pdf_path is not None:
+        export_markdown_to_pdf(out, pdf_path)
     return report
 
 

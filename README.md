@@ -36,6 +36,7 @@ drone-ops run-mvp --log data/sample_logs/example_flight.csv --asset data/sample_
 drone-ops analyze-log --log data/sample_logs/example_flight.csv --asset data/sample_assets/uav_001.json --out data/sample_reports/
 drone-ops diagnose --summary data/sample_reports/flight_summary.json --asset data/sample_assets/uav_001.json --out data/sample_reports/
 drone-ops generate-report --summary data/sample_reports/flight_summary.json --diagnosis data/sample_reports/diagnosis.json --maintenance data/sample_reports/maintenance_recommendations.json --out data/sample_reports/ops_report.md
+drone-ops export-pdf --markdown data/sample_reports/ops_report.md --out data/sample_reports/ops_report.pdf
 ```
 
 未安装 CLI 入口时，可以使用：
@@ -43,6 +44,30 @@ drone-ops generate-report --summary data/sample_reports/flight_summary.json --di
 ```bash
 python -m apps.cli.main run-mvp --log data/sample_logs/example_flight.csv --asset data/sample_assets/uav_001.json --out data/sample_reports/
 ```
+
+## PDF 报告导出
+
+Markdown 运维报告可以导出为本地 PDF。PDF 导出只读取本地 Markdown 报告并写出 PDF 文件，不改变 advisory-only 安全边界，也不会连接真实无人机或执行任何真实动作。
+
+```bash
+drone-ops export-pdf --markdown data/sample_reports/ops_report.md --out data/sample_reports/ops_report.pdf
+```
+
+未安装 CLI 入口时：
+
+```bash
+python -m apps.cli.main export-pdf --markdown data/sample_reports/ops_report.md --out data/sample_reports/ops_report.pdf
+```
+
+也可以在生成 Markdown 报告时同步导出 PDF：
+
+```bash
+drone-ops generate-report --summary data/sample_reports/flight_summary.json --diagnosis data/sample_reports/diagnosis.json --maintenance data/sample_reports/maintenance_recommendations.json --out data/sample_reports/ops_report.md --pdf data/sample_reports/ops_report.pdf
+```
+
+当前 PDF 以可读和结构清楚为目标，支持标题、段落、列表和代码块的基础渲染；复杂 Markdown 表格和精细排版留作后续扩展。
+
+PDF 导出会优先使用环境变量 `DRONE_OPS_PDF_FONT_PATH` 指定的可嵌入 CJK TrueType/OpenType 字体；未设置时会搜索常见 Linux、Windows 和 macOS 系统字体。若环境中没有可用中文字体，请先安装 Noto CJK 等字体，或设置 `DRONE_OPS_PDF_FONT_PATH=/path/to/font.ttf`。
 
 ## 飞行前检查
 
@@ -85,6 +110,7 @@ python -m apps.cli.main monitor-replay --telemetry data/sample_logs/example_tele
 - `diagnosis.json`
 - `maintenance_recommendations.json`
 - `ops_report.md`
+- `ops_report.pdf`，仅在运行 `export-pdf` 或 `generate-report --pdf` 时生成
 - `preflight_check_result.json`，仅在运行 `preflight-check` 时生成
 - `monitoring_summary.json` 和 `monitoring_events.json`，仅在运行 `monitor-replay` 时生成
 - `audit/*.json`
@@ -112,4 +138,4 @@ pytest
 - 仅支持 CSV 和 JSON 样例飞行日志、飞行前检查数据和离线 telemetry 回放数据。
 - 仅使用确定性规则，不使用机器学习。
 - 不包含真实硬件、MAVLink、PX4 ULog、ArduPilot BIN 或 SITL 集成。
-- 报告为 Markdown，PDF 生成留作后续扩展。
+- PDF 报告当前为基础可读排版，复杂 Markdown 表格和高级版式留作后续扩展。
