@@ -101,6 +101,46 @@ python -m apps.cli.main monitor-replay --telemetry data/sample_logs/example_tele
 
 输出文件为 `monitoring_summary.json`、`monitoring_events.json` 和 `audit/state-monitoring-*.json`。每个监控事件都包含 `evidence_refs`，可追溯到 telemetry 来源、字段、测量值、阈值和规则 ID。任何 `HIGH` 或 `CRITICAL` 事件都会要求人工复核；即使未来扩展到 MAVLink 遥测，也只能作为 read-only 导入，必须与 MAVLink command execution 严格隔离。
 
+## 离线日志格式扩展
+
+`analyze-log` 支持统一的 `--format` 参数。默认 `auto` 按扩展名识别日志格式：
+
+- `.csv` -> `csv`
+- `.json` -> `json`
+- `.ulg` -> `px4-ulog`
+- `.bin` -> `ardupilot-bin`
+
+```bash
+drone-ops analyze-log --log data/sample_logs/example_flight.csv --asset data/sample_assets/uav_001.json --out data/sample_reports --format auto
+drone-ops analyze-log --log data/sample_logs/example_flight.json --asset data/sample_assets/uav_001.json --out data/sample_reports --format auto
+drone-ops analyze-log --log data/sample_logs/example_px4_mock.ulg --asset data/sample_assets/uav_001.json --out data/sample_reports --format px4-ulog
+drone-ops analyze-log --log data/sample_logs/example_ardupilot.bin --asset data/sample_assets/uav_001.json --out data/sample_reports --format ardupilot-bin
+```
+
+PX4 ULog 和 ArduPilot BIN 初版只做本地离线解析适配，不连接真实无人机，不执行 MAVLink command，不写飞控参数，也不上传固件。真实 `.ulg` 解析依赖可选 extra：
+
+```bash
+pip install -e .[px4]
+```
+
+真实 `.bin` 解析依赖可选 extra：
+
+```bash
+pip install -e .[ardupilot]
+```
+
+默认安装和 `pip install -e .[dev]` 不会强制安装这些可选飞控日志解析库。缺少可选依赖时，CLI 会给出安装提示并退出，不显示 traceback。
+
+## 离线仿真验证
+
+`validate-simulation` 是 simulation-validation skill 的离线 MVP。它只导入 mock/exported simulation result JSON，并基于规则输出 `PASS`、`FAIL` 或 `REVIEW_REQUIRED`，不会启动 PX4、ArduPilot、Gazebo 或真实 SITL 环境。
+
+```bash
+drone-ops validate-simulation --scenario data/sample_simulation/example_scenario.json --result data/sample_simulation/example_simulation_result.json --out data/sample_reports/
+```
+
+输出文件为 `simulation_run.json` 和 `audit/simulation-validation-*.json`。所有仿真验证输出都包含 `evidence_refs`，并固定要求 `human_review_required=true`。`PASS` 只表示离线仿真导入结果未发现阻断项，不代表真实飞行授权。
+
 ## 输出文件
 
 运行后会生成：
@@ -113,6 +153,7 @@ python -m apps.cli.main monitor-replay --telemetry data/sample_logs/example_tele
 - `ops_report.pdf`，仅在运行 `export-pdf` 或 `generate-report --pdf` 时生成
 - `preflight_check_result.json`，仅在运行 `preflight-check` 时生成
 - `monitoring_summary.json` 和 `monitoring_events.json`，仅在运行 `monitor-replay` 时生成
+- `simulation_run.json`，仅在运行 `validate-simulation` 时生成
 - `audit/*.json`
 
 ## 运行测试
@@ -135,7 +176,9 @@ pytest
 
 ## 当前限制
 
-- 仅支持 CSV 和 JSON 样例飞行日志、飞行前检查数据和离线 telemetry 回放数据。
+- CSV/JSON、PX4 ULog 和 ArduPilot BIN 支持仍以离线样例和最小字段映射为主。
 - 仅使用确定性规则，不使用机器学习。
-- 不包含真实硬件、MAVLink、PX4 ULog、ArduPilot BIN 或 SITL 集成。
+- 不包含真实硬件连接、实时 MAVLink、真实 SITL 启动或任何飞控命令执行。
+- PX4 ULog / ArduPilot BIN 真实日志解析依赖为可选 extra，默认安装不包含。
+- SITL validation 初版只支持 mock/offline simulation result import。
 - PDF 报告当前为基础可读排版，复杂 Markdown 表格和高级版式留作后续扩展。

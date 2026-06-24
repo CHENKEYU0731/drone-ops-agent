@@ -15,6 +15,14 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+px4 = [
+  "pyulog>=1.1,<2",
+]
+ardupilot = [
+  "pymavlink>=2.4,<3",
+]
+sim = [
+]
 dev = [
   "pypdf>=5,<7",
   "pytest>=8,<9",

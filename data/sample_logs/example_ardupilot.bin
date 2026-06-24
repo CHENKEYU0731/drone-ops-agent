@@ -1,0 +1,63 @@
+DRONE_OPS_ARDUPILOT_BIN_MOCK_V1
+{
+  "format": "ardupilot-bin-mock-v1",
+  "records": [
+    {
+      "timestamp": "2026-06-24T10:00:00Z",
+      "flight_mode": "STABILIZE",
+      "altitude_m": 0,
+      "battery_voltage_v": 16.4,
+      "battery_current_a": 8,
+      "battery_soc_pct": 92,
+      "gps_satellites": 12,
+      "gps_hdop": 0.8,
+      "vibration_x": 0.2,
+      "vibration_y": 0.1,
+      "vibration_z": 0.2,
+      "motor_1_output": 18,
+      "motor_2_output": 18,
+      "motor_3_output": 19,
+      "motor_4_output": 18,
+      "link_quality_pct": 96,
+      "temperature_c": 31
+    },
+    {
+      "timestamp": "2026-06-24T10:01:00Z",
+      "flight_mode": "AUTO",
+      "altitude_m": 48,
+      "battery_voltage_v": 15.7,
+      "battery_current_a": 24,
+      "battery_soc_pct": 61,
+      "gps_satellites": 10,
+      "gps_hdop": 1.1,
+      "vibration_x": 0.5,
+      "vibration_y": 0.4,
+      "vibration_z": 0.5,
+      "motor_1_output": 52,
+      "motor_2_output": 53,
+      "motor_3_output": 51,
+      "motor_4_output": 52,
+      "link_quality_pct": 91,
+      "temperature_c": 38
+    },
+    {
+      "timestamp": "2026-06-24T10:02:00Z",
+      "flight_mode": "FAILSAFE",
+      "altitude_m": 42,
+      "battery_voltage_v": 14.1,
+      "battery_current_a": 39,
+      "battery_soc_pct": 24,
+      "gps_satellites": 6,
+      "gps_hdop": 2.4,
+      "vibration_x": 1.6,
+      "vibration_y": 1.4,
+      "vibration_z": 1.5,
+      "motor_1_output": 45,
+      "motor_2_output": 77,
+      "motor_3_output": 48,
+      "motor_4_output": 47,
+      "link_quality_pct": 64,
+      "temperature_c": 62
+    }
+  ]
+}

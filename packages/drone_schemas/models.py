@@ -276,3 +276,4 @@ class SkillRunAudit(BaseModel):
     reviewer: str | None = None
     created_at: datetime = Field(default_factory=utc_now)
     status: str
+    metadata: dict[str, Any] = Field(default_factory=dict)

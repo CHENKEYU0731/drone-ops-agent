@@ -18,16 +18,19 @@ from packages.drone_schemas import (
     MonitoringEvent,
     MonitoringSummary,
     PreflightCheckResult,
+    SimulationRun,
+    SimulationScenario,
     load_model,
     load_model_list,
     read_json_file,
     write_model,
     write_model_list,
 )
-from packages.log_parsers import parse_flight_log
+from packages.log_parsers import SUPPORTED_LOG_FORMATS, ParsedFlightLog, parse_flight_log_details
 from packages.maintenance_rules import generate_maintenance_recommendations
 from packages.preflight_rules import run_preflight_check
 from packages.report_templates import export_markdown_to_pdf, render_ops_report
+from packages.simulation import parse_simulation_result, validate_simulation_result
 from packages.state_monitoring import run_monitoring_replay
 from packages.telemetry_rules import summarize_flight
 
@@ -45,11 +48,12 @@ def _run_cli(action) -> None:
 
 @app.command("analyze-log")
 def analyze_log_command(
-    log: Path = typer.Option(..., "--log", help="CSV 或 JSON 飞行日志路径。"),
+    log: Path = typer.Option(..., "--log", help="CSV、JSON、PX4 ULog 或 ArduPilot BIN 飞行日志路径。"),
     asset: Path = typer.Option(..., "--asset", help="无人机资产 JSON 路径。"),
     out: Path = typer.Option(..., "--out", help="输出目录。"),
+    log_format: str = typer.Option("auto", "--format", help="auto, csv, json, px4-ulog, ardupilot-bin"),
 ) -> None:
-    _run_cli(lambda: _run_analyze_log(log, asset, out))
+    _run_cli(lambda: _run_analyze_log(log, asset, out, log_format))
     typer.echo(f"日志分析完成: {out}")
 
 
@@ -124,6 +128,16 @@ def monitor_replay_command(
     typer.echo(f"状态监控回放完成: {out}")
 
 
+@app.command("validate-simulation")
+def validate_simulation_command(
+    scenario: Path = typer.Option(..., "--scenario", help="离线仿真场景 JSON 路径。"),
+    result: Path = typer.Option(..., "--result", help="离线仿真结果 JSON 路径。"),
+    out: Path = typer.Option(..., "--out", help="输出目录。"),
+) -> None:
+    _run_cli(lambda: _run_validate_simulation(scenario, result, out))
+    typer.echo(f"仿真验证完成: {out}")
+
+
 @app.command("export-pdf")
 def export_pdf_command(
     markdown: Path = typer.Option(..., "--markdown", help="Markdown 报告输入路径。"),
@@ -133,31 +147,64 @@ def export_pdf_command(
     typer.echo(f"PDF 报告导出完成: {out}")
 
 
-def _run_analyze_log(log: Path, asset: Path, out: Path) -> tuple[FlightLogSummary, list[AnomalyEvent]]:
+def _run_analyze_log(
+    log: Path,
+    asset: Path,
+    out: Path,
+    log_format: str = "auto",
+) -> tuple[FlightLogSummary, list[AnomalyEvent]]:
+    if log_format not in SUPPORTED_LOG_FORMATS:
+        supported = ", ".join(SUPPORTED_LOG_FORMATS)
+        raise ValueError(f"Unsupported log format '{log_format}'. Supported formats: {supported}")
     out.mkdir(parents=True, exist_ok=True)
     drone = load_model(asset, DroneAsset)
-    records = parse_flight_log(log)
-    anomalies = detect_anomalies(records, drone_id=drone.drone_id, source_log_id=log.name)
+    parsed = parse_flight_log_details(log, requested_format=log_format)
+    records = parsed.records
+    anomalies = detect_anomalies(records, drone_id=drone.drone_id, source_log_id=parsed.source_log_id)
     summary = summarize_flight(
         records,
         drone_id=drone.drone_id,
-        source_log_id=log.name,
+        source_log_id=parsed.source_log_id,
         anomaly_count=len(anomalies),
     )
+    _annotate_summary_evidence(summary, parsed)
     write_model(out / "flight_summary.json", summary)
     write_model_list(out / "anomalies.json", anomalies)
     write_audit_record(
         out_dir=out,
         skill_name="flight-log-analysis",
         skill_version="1.0.0",
-        input_refs=[str(log), str(asset)],
+        input_refs=[str(log), str(asset), f"format={log_format}", f"parser={parsed.parser_name}@{parsed.parser_version}"],
         output_refs=[str(out / "flight_summary.json"), str(out / "anomalies.json")],
-        tools_called=["parse_flight_log", "summarize_flight", "detect_anomalies"],
+        tools_called=[
+            f"parse_flight_log_with_metadata:{parsed.parser_name}@{parsed.parser_version}",
+            "summarize_flight",
+            "detect_anomalies",
+        ],
         rules_triggered=sorted({event.rule_id for event in anomalies}),
         human_review_required=bool(anomalies),
         status="success",
+        metadata={
+            "requested_format": parsed.requested_format,
+            "actual_format": parsed.actual_format,
+            "parser_name": parsed.parser_name,
+            "parser_version": parsed.parser_version,
+            "warnings": parsed.warnings,
+            "source_metadata": parsed.source_metadata,
+            "parser_metadata": parsed.parser_metadata,
+        },
     )
     return summary, anomalies
+
+
+def _annotate_summary_evidence(summary: FlightLogSummary, parsed: ParsedFlightLog) -> None:
+    for evidence in summary.evidence_refs:
+        source_path = parsed.source_metadata.get("path", parsed.source_log_id)
+        evidence.source_id = f"{parsed.source_log_id}:{source_path}"
+        evidence.description = (
+            f"{evidence.description} Parser={parsed.parser_name} "
+            f"{parsed.parser_version}; format={parsed.actual_format}; field={evidence.field}."
+        )
 
 
 def _run_preflight_check(
@@ -217,6 +264,43 @@ def _run_monitor_replay(
         status="success",
     )
     return summary, events
+
+
+def _run_validate_simulation(
+    scenario_path: Path,
+    result_path: Path,
+    out: Path,
+) -> SimulationRun:
+    out.mkdir(parents=True, exist_ok=True)
+    scenario = load_model(scenario_path, SimulationScenario)
+    result = parse_simulation_result(result_path)
+    run = validate_simulation_result(
+        scenario,
+        result,
+        scenario_path=scenario_path,
+        result_path=result_path,
+    )
+    output_path = out / "simulation_run.json"
+    write_model(output_path, run)
+    write_audit_record(
+        out_dir=out,
+        skill_name="simulation-validation",
+        skill_version="1.0.0",
+        input_refs=[str(scenario_path), str(result_path)],
+        output_refs=[str(output_path)],
+        tools_called=["parse_simulation_result", "validate_simulation_result"],
+        rules_triggered=sorted({ref.rule_id for ref in run.evidence_refs}),
+        human_review_required=True,
+        status="success",
+        metadata={
+            "scenario_id": scenario.scenario_id,
+            "result_id": result.result_id,
+            "result_source": result.source,
+            "simulation_status": run.status,
+            "safety_boundary": "offline-import-only",
+        },
+    )
+    return run
 
 
 def _run_diagnose(

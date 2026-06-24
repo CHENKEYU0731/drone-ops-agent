@@ -1,0 +1,22 @@
+{
+  "result_id": "SIM-RESULT-001",
+  "scenario_id": "SIM-SCENARIO-001",
+  "mission_id": "MISSION-001",
+  "source": "offline_mock_export",
+  "duration_s": 482,
+  "completed": true,
+  "max_altitude_m": 58.4,
+  "max_cross_track_error_m": 3.2,
+  "max_altitude_error_m": 2.1,
+  "failsafe_events": [],
+  "failure_events": [],
+  "energy_remaining_pct": 34.5,
+  "timeout": false,
+  "constraints": {
+    "max_duration_s": 600,
+    "max_altitude_m": 60,
+    "max_cross_track_error_m": 5,
+    "max_altitude_error_m": 4,
+    "min_energy_remaining_pct": 30
+  }
+}
