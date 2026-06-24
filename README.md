@@ -60,6 +60,22 @@ python -m apps.cli.main preflight-check --asset data/sample_assets/uav_001.json 
 
 输出文件为 `preflight_check_result.json` 和 `audit/preflight-check-*.json`。存在 blocking item 时结果为 `NO_GO`；只有 warning 时为 `REVIEW_REQUIRED`；没有 warning 和 blocking item 时才是 `GO`。`NO_GO` 和 `REVIEW_REQUIRED` 必须人工复核，`GO` 也只是离线建议，不代表自动批准真实飞行。
 
+## 状态监控回放
+
+`monitor-replay` 是离线 advisory-only 遥测回放，不会连接真实无人机，也不会执行任何真实动作。它读取本地 telemetry CSV/JSON、无人机资产和 YAML 规则，按时间顺序生成监控事件、状态摘要和 audit JSON。
+
+```bash
+drone-ops monitor-replay --telemetry data/sample_logs/example_telemetry.csv --asset data/sample_assets/uav_001.json --rules data/sample_rules/monitoring_rules.yaml --out data/sample_reports/
+```
+
+未安装 CLI 入口时：
+
+```bash
+python -m apps.cli.main monitor-replay --telemetry data/sample_logs/example_telemetry.csv --asset data/sample_assets/uav_001.json --rules data/sample_rules/monitoring_rules.yaml --out data/sample_reports/
+```
+
+输出文件为 `monitoring_summary.json`、`monitoring_events.json` 和 `audit/state-monitoring-*.json`。每个监控事件都包含 `evidence_refs`，可追溯到 telemetry 来源、字段、测量值、阈值和规则 ID。任何 `HIGH` 或 `CRITICAL` 事件都会要求人工复核；即使未来扩展到 MAVLink 遥测，也只能作为 read-only 导入，必须与 MAVLink command execution 严格隔离。
+
 ## 输出文件
 
 运行后会生成：
@@ -70,6 +86,7 @@ python -m apps.cli.main preflight-check --asset data/sample_assets/uav_001.json 
 - `maintenance_recommendations.json`
 - `ops_report.md`
 - `preflight_check_result.json`，仅在运行 `preflight-check` 时生成
+- `monitoring_summary.json` 和 `monitoring_events.json`，仅在运行 `monitor-replay` 时生成
 - `audit/*.json`
 
 ## 运行测试
@@ -92,7 +109,7 @@ pytest
 
 ## 当前限制
 
-- 仅支持 CSV 和 JSON 样例飞行日志。
+- 仅支持 CSV 和 JSON 样例飞行日志、飞行前检查数据和离线 telemetry 回放数据。
 - 仅使用确定性规则，不使用机器学习。
 - 不包含真实硬件、MAVLink、PX4 ULog、ArduPilot BIN 或 SITL 集成。
 - 报告为 Markdown，PDF 生成留作后续扩展。

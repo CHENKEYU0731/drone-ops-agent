@@ -5,6 +5,7 @@
 - 增加 PX4 ULog 只读解析支持。
 - 增加 ArduPilot BIN 只读解析支持。
 - 增加 MAVLink 遥测只读导入。
+- 扩展 `monitor-replay` 规则和样例 telemetry 数据，但必须保持离线 advisory-only，不得连接真实无人机或执行真实动作。
 - 增加 SITL 仿真验证，但保持真实硬件隔离。
 - 增加 PDF 报告生成。
 - 增加 Web Dashboard。
