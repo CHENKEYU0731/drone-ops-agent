@@ -1,0 +1,9 @@
+{
+  "scenario_id": "SIM-SCENARIO-001",
+  "drone_id": "UAV-001",
+  "description": "Offline mock validation for the sample inspection mission.",
+  "input_refs": [
+    "data/sample_missions/example_mission.json",
+    "data/sample_simulation/example_simulation_result.json"
+  ]
+}

@@ -18,6 +18,8 @@ from packages.drone_schemas import (
     MonitoringEvent,
     MonitoringSummary,
     PreflightCheckResult,
+    SimulationRun,
+    SimulationScenario,
     load_model,
     load_model_list,
     read_json_file,
@@ -28,6 +30,7 @@ from packages.log_parsers import SUPPORTED_LOG_FORMATS, ParsedFlightLog, parse_f
 from packages.maintenance_rules import generate_maintenance_recommendations
 from packages.preflight_rules import run_preflight_check
 from packages.report_templates import export_markdown_to_pdf, render_ops_report
+from packages.simulation import parse_simulation_result, validate_simulation_result
 from packages.state_monitoring import run_monitoring_replay
 from packages.telemetry_rules import summarize_flight
 
@@ -123,6 +126,16 @@ def monitor_replay_command(
 ) -> None:
     _run_cli(lambda: _run_monitor_replay(telemetry, asset, rules, out))
     typer.echo(f"状态监控回放完成: {out}")
+
+
+@app.command("validate-simulation")
+def validate_simulation_command(
+    scenario: Path = typer.Option(..., "--scenario", help="离线仿真场景 JSON 路径。"),
+    result: Path = typer.Option(..., "--result", help="离线仿真结果 JSON 路径。"),
+    out: Path = typer.Option(..., "--out", help="输出目录。"),
+) -> None:
+    _run_cli(lambda: _run_validate_simulation(scenario, result, out))
+    typer.echo(f"仿真验证完成: {out}")
 
 
 @app.command("export-pdf")
@@ -251,6 +264,36 @@ def _run_monitor_replay(
         status="success",
     )
     return summary, events
+
+
+def _run_validate_simulation(
+    scenario_path: Path,
+    result_path: Path,
+    out: Path,
+) -> SimulationRun:
+    out.mkdir(parents=True, exist_ok=True)
+    scenario = load_model(scenario_path, SimulationScenario)
+    result = parse_simulation_result(result_path)
+    run = validate_simulation_result(
+        scenario,
+        result,
+        scenario_path=scenario_path,
+        result_path=result_path,
+    )
+    output_path = out / "simulation_run.json"
+    write_model(output_path, run)
+    write_audit_record(
+        out_dir=out,
+        skill_name="simulation-validation",
+        skill_version="1.0.0",
+        input_refs=[str(scenario_path), str(result_path)],
+        output_refs=[str(output_path)],
+        tools_called=["parse_simulation_result", "validate_simulation_result"],
+        rules_triggered=sorted({ref.rule_id for ref in run.evidence_refs}),
+        human_review_required=True,
+        status="success",
+    )
+    return run
 
 
 def _run_diagnose(

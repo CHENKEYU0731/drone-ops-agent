@@ -50,6 +50,7 @@ def test_mvp_skill_contracts_name_executable_entrypoints() -> None:
         "maintenance-advisor": ["diagnose", "generate_maintenance_recommendations"],
         "ops-report-generation": ["generate-report", "render_ops_report"],
         "state-monitoring": ["monitor-replay", "run_monitoring_replay", "parse_telemetry_replay"],
+        "simulation-validation": ["validate-simulation", "parse_simulation_result", "validate_simulation_result"],
     }
     for skill, needles in expected.items():
         text = (Path("skills") / skill / "SKILL.md").read_text(encoding="utf-8")
