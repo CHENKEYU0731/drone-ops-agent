@@ -11,6 +11,8 @@ from packages.drone_schemas import (
     FlightLogRecord,
     MaintenancePriority,
     MaintenanceRecommendation,
+    PreflightCheckItem,
+    PreflightCheckResult,
     Severity,
     SkillRunAudit,
 )
@@ -133,3 +135,38 @@ def test_skill_run_audit_records_traceability() -> None:
 
     assert audit.created_at.tzinfo is not None
     assert audit.status == "success"
+
+
+def test_preflight_check_result_carries_items_and_evidence() -> None:
+    ref = EvidenceRef(
+        source_type="battery",
+        source_id="BAT-001",
+        field="soc_pct",
+        measured_value=18,
+        threshold=25,
+        rule_id="BATTERY_SOC_BLOCKING",
+        description="电池 SOC 低于最低阈值。",
+    )
+    item = PreflightCheckItem(
+        item="battery_soc",
+        severity=Severity.HIGH,
+        reason="电池 SOC 低于最低阈值。",
+        measured_value=18,
+        threshold=25,
+        rule_id="BATTERY_SOC_BLOCKING",
+        evidence_refs=[ref],
+        recommendation="更换或充电后重新执行飞行前检查。",
+    )
+    result = PreflightCheckResult(
+        status="NO_GO",
+        blocking_items=[item],
+        warnings=[],
+        evidence_refs=[ref],
+        human_review_required=True,
+        drone_id="UAV-001",
+        generated_by_skill="preflight-check",
+        skill_version="1.0.0",
+    )
+
+    assert result.blocking_items[0].evidence_refs[0].rule_id == "BATTERY_SOC_BLOCKING"
+    assert result.human_review_required is True

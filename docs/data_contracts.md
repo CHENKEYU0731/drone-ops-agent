@@ -5,8 +5,9 @@
 ## 资产对象
 
 - `DroneAsset`：无人机资产信息、序列号、固件版本、累计飞行小时、电池和维护历史。
-- `BatteryAsset`：电池化学类型、标称电压、循环次数和健康度。
-- `MissionPlan`：任务计划、预期模式和计划高度。
+- `DroneAsset.operational_status`：离线资产状态，支持 `active`、`maintenance_due`、`grounded` 等状态。
+- `BatteryAsset`：电池化学类型、标称电压、循环次数、健康度、SOC、电压和温度。
+- `MissionPlan`：任务计划、预期模式、计划高度、返航高度、计划航程、预计飞行时间和电池余量要求。
 
 ## 日志与摘要
 
@@ -18,6 +19,8 @@
 - `AnomalyEvent`：规则触发的异常事件。
 - `FaultHypothesis`：按置信度排序的故障假设。
 - `MaintenanceRecommendation`：带优先级、审批和证据的维护建议。
+- `PreflightCheckResult`：离线飞行前检查结果，包含 `GO`、`REVIEW_REQUIRED` 或 `NO_GO` 状态。
+- `PreflightCheckItem`：飞行前检查 warning 或 blocking item，包含 item、severity、reason、measured value、threshold、rule id、evidence refs 和 recommendation。
 - `OpsReport`：报告产物引用。
 
 ## 可追溯对象

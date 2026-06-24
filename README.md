@@ -44,6 +44,22 @@ drone-ops generate-report --summary data/sample_reports/flight_summary.json --di
 python -m apps.cli.main run-mvp --log data/sample_logs/example_flight.csv --asset data/sample_assets/uav_001.json --out data/sample_reports/
 ```
 
+## 飞行前检查
+
+`preflight-check` 是离线 advisory-only 检查，不会连接真实无人机，也不会授权真实飞行。它读取样例资产、电池、任务、人工观测和 YAML 规则，输出 `GO`、`REVIEW_REQUIRED` 或 `NO_GO`。
+
+```bash
+drone-ops preflight-check --asset data/sample_assets/uav_001.json --battery data/sample_assets/battery_001.json --mission data/sample_missions/example_mission.json --observations data/sample_missions/preflight_observations_ok.json --rules data/sample_rules/preflight_rules.yaml --out data/sample_reports/
+```
+
+未安装 CLI 入口时：
+
+```bash
+python -m apps.cli.main preflight-check --asset data/sample_assets/uav_001.json --battery data/sample_assets/battery_001.json --mission data/sample_missions/example_mission.json --observations data/sample_missions/preflight_observations_ok.json --rules data/sample_rules/preflight_rules.yaml --out data/sample_reports/
+```
+
+输出文件为 `preflight_check_result.json` 和 `audit/preflight-check-*.json`。存在 blocking item 时结果为 `NO_GO`；只有 warning 时为 `REVIEW_REQUIRED`；没有 warning 和 blocking item 时才是 `GO`。`NO_GO` 和 `REVIEW_REQUIRED` 必须人工复核，`GO` 也只是离线建议，不代表自动批准真实飞行。
+
 ## 输出文件
 
 运行后会生成：
@@ -53,6 +69,7 @@ python -m apps.cli.main run-mvp --log data/sample_logs/example_flight.csv --asse
 - `diagnosis.json`
 - `maintenance_recommendations.json`
 - `ops_report.md`
+- `preflight_check_result.json`，仅在运行 `preflight-check` 时生成
 - `audit/*.json`
 
 ## 运行测试

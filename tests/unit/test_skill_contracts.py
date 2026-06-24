@@ -44,6 +44,7 @@ def test_skill_contract_sections_are_present() -> None:
 
 def test_mvp_skill_contracts_name_executable_entrypoints() -> None:
     expected = {
+        "preflight-check": ["preflight-check", "run_preflight_check"],
         "flight-log-analysis": ["analyze-log", "parse_flight_log", "detect_anomalies"],
         "fault-diagnosis": ["diagnose", "generate_fault_hypotheses"],
         "maintenance-advisor": ["diagnose", "generate_maintenance_recommendations"],

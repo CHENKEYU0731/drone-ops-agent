@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "preflight-check",
-  "description": "???????????? skeleton?",
+  "description": "离线飞行前检查 skill 契约。",
   "type": "object",
   "properties": {
     "skill_name": {
@@ -22,6 +22,15 @@
         "type": "string"
       }
     },
+    "status": {
+      "enum": ["GO", "REVIEW_REQUIRED", "NO_GO"]
+    },
+    "blocking_items": {
+      "type": "array"
+    },
+    "warnings": {
+      "type": "array"
+    },
     "human_review_required": {
       "type": "boolean"
     }
@@ -31,6 +40,9 @@
     "skill_version",
     "inputs",
     "outputs",
+    "status",
+    "blocking_items",
+    "warnings",
     "human_review_required"
   ]
 }
