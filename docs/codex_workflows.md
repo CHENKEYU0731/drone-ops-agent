@@ -2,7 +2,7 @@
 
 可以把以下任务继续交给 Codex：
 
-- 增加 PX4 ULog 只读解析支持。
+- PX4 ULog 只读解析支持已具备 MVP：`drone-ops analyze-log --format px4-ulog --log <local.ulg> ...`，真实 ULog 解析需安装 `pip install -e .[px4]`，mock fixture 可用于离线测试。
 - 增加 ArduPilot BIN 只读解析支持。
 - 增加 MAVLink 遥测只读导入。
 - 扩展 `monitor-replay` 规则和样例 telemetry 数据，但必须保持离线 advisory-only，不得连接真实无人机或执行真实动作。
@@ -15,3 +15,10 @@
 - 扩展飞行前检查规则和样例，但必须保持 advisory-only，不得接入真实飞控控制动作。
 
 每个任务都应先更新安全边界和测试，再实现代码。
+
+PX4 ULog 工作流约束：
+
+- 仅处理本地 `.ulg` 文件，禁止连接真实无人机。
+- 禁止执行 MAVLink command、arm/disarm、takeoff、land、RTL、mission execution、firmware upload 或 parameter write。
+- `--format auto` 必须按 `.ulg -> px4-ulog` 识别；CSV/JSON 旧流程必须保持可用。
+- `flight-log-analysis` audit JSON 需记录 parser name、parser version、requested format、actual format 和 parser metadata。

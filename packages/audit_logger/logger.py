@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from packages.drone_schemas import SkillRunAudit, write_model
 
@@ -16,6 +17,7 @@ def write_audit_record(
     human_review_required: bool,
     status: str,
     reviewer: str | None = None,
+    metadata: dict[str, Any] | None = None,
 ) -> SkillRunAudit:
     audit = SkillRunAudit(
         skill_name=skill_name,
@@ -27,6 +29,7 @@ def write_audit_record(
         human_review_required=human_review_required,
         reviewer=reviewer,
         status=status,
+        metadata=metadata or {},
     )
     audit_dir = out_dir / "audit"
     write_model(audit_dir / f"{skill_name}-{audit.run_id}.json", audit)

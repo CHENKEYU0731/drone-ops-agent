@@ -24,7 +24,7 @@ from packages.drone_schemas import (
     write_model,
     write_model_list,
 )
-from packages.log_parsers import parse_flight_log
+from packages.log_parsers import SUPPORTED_LOG_FORMATS, ParsedFlightLog, parse_flight_log_details
 from packages.maintenance_rules import generate_maintenance_recommendations
 from packages.preflight_rules import run_preflight_check
 from packages.report_templates import export_markdown_to_pdf, render_ops_report
@@ -45,11 +45,12 @@ def _run_cli(action) -> None:
 
 @app.command("analyze-log")
 def analyze_log_command(
-    log: Path = typer.Option(..., "--log", help="CSV 或 JSON 飞行日志路径。"),
+    log: Path = typer.Option(..., "--log", help="CSV、JSON 或 PX4 ULog 飞行日志路径。"),
     asset: Path = typer.Option(..., "--asset", help="无人机资产 JSON 路径。"),
     out: Path = typer.Option(..., "--out", help="输出目录。"),
+    log_format: str = typer.Option("auto", "--format", help="auto, csv, json, px4-ulog, ardupilot-bin"),
 ) -> None:
-    _run_cli(lambda: _run_analyze_log(log, asset, out))
+    _run_cli(lambda: _run_analyze_log(log, asset, out, log_format))
     typer.echo(f"日志分析完成: {out}")
 
 
@@ -133,17 +134,27 @@ def export_pdf_command(
     typer.echo(f"PDF 报告导出完成: {out}")
 
 
-def _run_analyze_log(log: Path, asset: Path, out: Path) -> tuple[FlightLogSummary, list[AnomalyEvent]]:
+def _run_analyze_log(
+    log: Path,
+    asset: Path,
+    out: Path,
+    log_format: str = "auto",
+) -> tuple[FlightLogSummary, list[AnomalyEvent]]:
+    if log_format not in SUPPORTED_LOG_FORMATS:
+        supported = ", ".join(SUPPORTED_LOG_FORMATS)
+        raise ValueError(f"Unsupported log format '{log_format}'. Supported formats: {supported}")
     out.mkdir(parents=True, exist_ok=True)
     drone = load_model(asset, DroneAsset)
-    records = parse_flight_log(log)
-    anomalies = detect_anomalies(records, drone_id=drone.drone_id, source_log_id=log.name)
+    parsed = parse_flight_log_details(log, requested_format=log_format)
+    records = parsed.records
+    anomalies = detect_anomalies(records, drone_id=drone.drone_id, source_log_id=parsed.source_log_id)
     summary = summarize_flight(
         records,
         drone_id=drone.drone_id,
-        source_log_id=log.name,
+        source_log_id=parsed.source_log_id,
         anomaly_count=len(anomalies),
     )
+    _annotate_summary_evidence(summary, parsed)
     write_model(out / "flight_summary.json", summary)
     write_model_list(out / "anomalies.json", anomalies)
     write_audit_record(
@@ -156,8 +167,27 @@ def _run_analyze_log(log: Path, asset: Path, out: Path) -> tuple[FlightLogSummar
         rules_triggered=sorted({event.rule_id for event in anomalies}),
         human_review_required=bool(anomalies),
         status="success",
+        metadata={
+            "requested_format": parsed.requested_format,
+            "actual_format": parsed.actual_format,
+            "parser_name": parsed.parser_name,
+            "parser_version": parsed.parser_version,
+            "warnings": parsed.warnings,
+            "source_metadata": parsed.source_metadata,
+            "parser_metadata": parsed.parser_metadata,
+        },
     )
     return summary, anomalies
+
+
+def _annotate_summary_evidence(summary: FlightLogSummary, parsed: ParsedFlightLog) -> None:
+    for evidence in summary.evidence_refs:
+        source_path = parsed.source_metadata.get("path", parsed.source_log_id)
+        evidence.source_id = f"{parsed.source_log_id}:{source_path}"
+        evidence.description = (
+            f"{evidence.description} Parser={parsed.parser_name} "
+            f"{parsed.parser_version}; format={parsed.actual_format}; field={evidence.field}."
+        )
 
 
 def _run_preflight_check(
