@@ -6,3 +6,5 @@ __pycache__/
 dist/
 build/
 *.egg-info/
+data/sample_reports/*
+!data/sample_reports/.gitkeep

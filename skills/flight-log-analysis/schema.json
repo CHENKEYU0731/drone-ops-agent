@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "flight-log-analysis",
+  "description": "?? CSV/JSON ???????????????",
+  "type": "object",
+  "properties": {
+    "skill_name": {
+      "const": "flight-log-analysis"
+    },
+    "skill_version": {
+      "type": "string"
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "human_review_required": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "skill_name",
+    "skill_version",
+    "inputs",
+    "outputs",
+    "human_review_required"
+  ]
+}

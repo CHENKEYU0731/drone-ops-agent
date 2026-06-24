@@ -1,0 +1,8 @@
+{
+  "mission_id": "MISSION-001",
+  "drone_id": "UAV-001",
+  "planned_start": "2026-06-24T10:00:00Z",
+  "planned_end": "2026-06-24T10:10:00Z",
+  "expected_modes": ["STABILIZE", "AUTO", "LAND"],
+  "max_planned_altitude_m": 60
+}
