@@ -292,6 +292,13 @@ def _run_validate_simulation(
         rules_triggered=sorted({ref.rule_id for ref in run.evidence_refs}),
         human_review_required=True,
         status="success",
+        metadata={
+            "scenario_id": scenario.scenario_id,
+            "result_id": result.result_id,
+            "result_source": result.source,
+            "simulation_status": run.status,
+            "safety_boundary": "offline-import-only",
+        },
     )
     return run
 

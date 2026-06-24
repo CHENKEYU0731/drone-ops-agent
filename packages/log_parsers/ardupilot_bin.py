@@ -13,7 +13,7 @@ from packages.log_parsers.base import LogParserDependencyError, ParsedFlightLog
 from packages.log_parsers.parser import REQUIRED_FIELDS, _record_from_row
 
 
-MOCK_MAGIC = b"DRONE_OPS_ARDUPILOT_BIN_MOCK_V1\n"
+MOCK_MAGIC_LINE = b"DRONE_OPS_ARDUPILOT_BIN_MOCK_V1"
 
 
 class ArduPilotBinParser:
@@ -35,8 +35,9 @@ class ArduPilotBinParser:
         raw = path.read_bytes()
         if not raw:
             raise ValueError(f"ArduPilot BIN log is empty: {path}")
-        if raw.startswith(MOCK_MAGIC):
-            return self._parse_mock_fixture(path, raw[len(MOCK_MAGIC) :], requested_format)
+        first_line, separator, payload = raw.partition(b"\n")
+        if first_line.rstrip(b"\r") == MOCK_MAGIC_LINE and separator:
+            return self._parse_mock_fixture(path, payload, requested_format)
         return self._parse_dataflash_log(path, requested_format)
 
     def _parse_mock_fixture(self, path: Path, payload: bytes, requested_format: str) -> ParsedFlightLog:
