@@ -156,3 +156,48 @@ def test_repository_samples_cover_go_review_and_no_go() -> None:
     assert ok.status == "GO"
     assert review.status == "REVIEW_REQUIRED"
     assert no_go.status == "NO_GO"
+
+
+def test_sensor_and_link_status_rules_are_loaded_from_yaml(tmp_path: Path) -> None:
+    rules = tmp_path / "rules.yaml"
+    rules.write_text(
+        """
+asset:
+  blocking_statuses: [grounded]
+  warning_statuses: [maintenance_due]
+battery:
+  min_soc_pct: 25
+  review_soc_pct: 40
+  min_voltage_v: 14.4
+  review_cycle_count: 200
+  max_cycle_count: 300
+  min_temperature_c: 0
+  max_temperature_c: 45
+sensors:
+  blocking_values: [configured_block]
+  warning_values: [configured_warn]
+  min_gps_satellites: 8
+  max_gps_hdop: 2.0
+links:
+  blocking_values: [configured_block]
+  warning_values: [configured_warn]
+mission:
+  max_return_to_home_altitude_m: 80
+  max_planned_distance_km: 5
+  max_estimated_flight_time_min: 18
+  min_battery_reserve_pct: 25
+maintenance:
+  block_open_high_priority: true
+""".strip(),
+        encoding="utf-8",
+    )
+
+    result = run_preflight_check(
+        _asset(),
+        _battery(),
+        _mission(),
+        _observations(imu_status="fail", telemetry_link="degraded"),
+        rules,
+    )
+
+    assert result.status == "GO"

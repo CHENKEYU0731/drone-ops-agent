@@ -18,11 +18,6 @@ from packages.drone_schemas import (
 SKILL_NAME = "preflight-check"
 SKILL_VERSION = "1.0.0"
 
-OK_VALUES = {"ok", "nominal", "pass", "ready", "available"}
-WARNING_VALUES = {"degraded", "warning", "limited", "unstable"}
-BLOCKING_VALUES = {"fail", "failed", "offline", "missing", "unavailable", "blocked"}
-
-
 def load_preflight_rules(path: Path) -> dict[str, Any]:
     try:
         text = path.read_text(encoding="utf-8")
@@ -352,7 +347,7 @@ def _check_status_field(add, observations: dict[str, Any], field: str, rules: di
         )
         return
     value = str(observations[field]).lower()
-    if value in BLOCKING_VALUES or value in _list(rules, "blocking_values"):
+    if value in _list(rules, "blocking_values"):
         add(
             target="blocking",
             item=field,
@@ -365,7 +360,7 @@ def _check_status_field(add, observations: dict[str, Any], field: str, rules: di
             recommendation="排除该项异常并由人工复核后再运行检查。",
             source_id=f"{obs_id}:{field}",
         )
-    elif value in WARNING_VALUES or value in _list(rules, "warning_values"):
+    elif value in _list(rules, "warning_values"):
         add(
             target="warning",
             item=field,
