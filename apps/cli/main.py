@@ -9,17 +9,22 @@ from packages.audit_logger import write_audit_record
 from packages.diagnosis_rules import generate_fault_hypotheses
 from packages.drone_schemas import (
     AnomalyEvent,
+    BatteryAsset,
     DroneAsset,
     FaultHypothesis,
     FlightLogSummary,
     MaintenanceRecommendation,
+    MissionPlan,
+    PreflightCheckResult,
     load_model,
     load_model_list,
+    read_json_file,
     write_model,
     write_model_list,
 )
 from packages.log_parsers import parse_flight_log
 from packages.maintenance_rules import generate_maintenance_recommendations
+from packages.preflight_rules import run_preflight_check
 from packages.report_templates import render_ops_report
 from packages.telemetry_rules import summarize_flight
 
@@ -89,6 +94,19 @@ def run_mvp_command(
     typer.echo(f"MVP 流程完成: {out}")
 
 
+@app.command("preflight-check")
+def preflight_check_command(
+    asset: Path = typer.Option(..., "--asset", help="无人机资产 JSON 路径。"),
+    battery: Path = typer.Option(..., "--battery", help="电池资产 JSON 路径。"),
+    mission: Path = typer.Option(..., "--mission", help="任务计划 JSON 路径。"),
+    observations: Path = typer.Option(..., "--observations", help="飞行前观测 JSON 路径。"),
+    rules: Path = typer.Option(..., "--rules", help="飞行前检查规则 YAML 路径。"),
+    out: Path = typer.Option(..., "--out", help="输出目录。"),
+) -> None:
+    _run_cli(lambda: _run_preflight_check(asset, battery, mission, observations, rules, out))
+    typer.echo(f"飞行前检查完成: {out}")
+
+
 def _run_analyze_log(log: Path, asset: Path, out: Path) -> tuple[FlightLogSummary, list[AnomalyEvent]]:
     out.mkdir(parents=True, exist_ok=True)
     drone = load_model(asset, DroneAsset)
@@ -114,6 +132,38 @@ def _run_analyze_log(log: Path, asset: Path, out: Path) -> tuple[FlightLogSummar
         status="success",
     )
     return summary, anomalies
+
+
+def _run_preflight_check(
+    asset_path: Path,
+    battery_path: Path,
+    mission_path: Path,
+    observations_path: Path,
+    rules_path: Path,
+    out: Path,
+) -> PreflightCheckResult:
+    out.mkdir(parents=True, exist_ok=True)
+    asset = load_model(asset_path, DroneAsset)
+    battery = load_model(battery_path, BatteryAsset)
+    mission = load_model(mission_path, MissionPlan)
+    observations = read_json_file(observations_path)
+    if not isinstance(observations, dict):
+        raise ValueError(f"飞行前观测 JSON 必须是对象: {observations_path}")
+    result = run_preflight_check(asset, battery, mission, observations, rules_path)
+    output_path = out / "preflight_check_result.json"
+    write_model(output_path, result)
+    write_audit_record(
+        out_dir=out,
+        skill_name="preflight-check",
+        skill_version="1.0.0",
+        input_refs=[str(asset_path), str(battery_path), str(mission_path), str(observations_path), str(rules_path)],
+        output_refs=[str(output_path)],
+        tools_called=["load_preflight_rules", "run_preflight_check"],
+        rules_triggered=sorted({item.rule_id for item in [*result.blocking_items, *result.warnings]}),
+        human_review_required=result.human_review_required,
+        status="success",
+    )
+    return result
 
 
 def _run_diagnose(

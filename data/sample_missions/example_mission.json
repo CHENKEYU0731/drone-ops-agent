@@ -4,5 +4,9 @@
   "planned_start": "2026-06-24T10:00:00Z",
   "planned_end": "2026-06-24T10:10:00Z",
   "expected_modes": ["STABILIZE", "AUTO", "LAND"],
-  "max_planned_altitude_m": 60
+  "max_planned_altitude_m": 60,
+  "return_to_home_altitude_m": 45,
+  "planned_distance_km": 1.2,
+  "estimated_flight_time_min": 8,
+  "required_battery_reserve_pct": 30
 }

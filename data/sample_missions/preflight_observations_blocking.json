@@ -1,0 +1,14 @@
+{
+  "observation_id": "OBS-PREFLIGHT-BLOCKING",
+  "imu_status": "fail",
+  "compass_status": "ok",
+  "barometer_status": "ok",
+  "gps_status": "fail",
+  "rtk_status": "offline",
+  "gps_satellites": 5,
+  "gps_hdop": 3.1,
+  "remote_control_link": "ok",
+  "telemetry_link": "fail",
+  "video_link": "degraded",
+  "network_link": "ok"
+}

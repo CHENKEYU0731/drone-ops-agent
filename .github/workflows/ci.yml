@@ -57,3 +57,19 @@ jobs:
             --asset data/sample_assets/uav_001.json \
             --out /tmp/drone_ops_reports_entrypoint
 
+      - name: Run preflight check smoke test
+        run: |
+          python -m apps.cli.main preflight-check \
+            --asset data/sample_assets/uav_001.json \
+            --battery data/sample_assets/battery_001.json \
+            --mission data/sample_missions/example_mission.json \
+            --observations data/sample_missions/preflight_observations_ok.json \
+            --rules data/sample_rules/preflight_rules.yaml \
+            --out /tmp/drone_ops_preflight
+
+      - name: Verify preflight check outputs
+        run: |
+          test -f /tmp/drone_ops_preflight/preflight_check_result.json
+          test -d /tmp/drone_ops_preflight/audit
+          test "$(find /tmp/drone_ops_preflight/audit -name '*.json' | wc -l)" -ge 1
+

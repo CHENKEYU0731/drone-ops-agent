@@ -1,0 +1,26 @@
+asset:
+  blocking_statuses: [grounded]
+  warning_statuses: [maintenance_due]
+battery:
+  min_soc_pct: 25
+  review_soc_pct: 40
+  min_voltage_v: 14.4
+  review_cycle_count: 200
+  max_cycle_count: 300
+  min_temperature_c: 0
+  max_temperature_c: 45
+sensors:
+  blocking_values: [fail, failed, offline, missing, unavailable]
+  warning_values: [degraded, warning, limited, unstable]
+  min_gps_satellites: 8
+  max_gps_hdop: 2.0
+links:
+  blocking_values: [fail, failed, offline, missing, unavailable]
+  warning_values: [degraded, warning, limited, unstable]
+mission:
+  max_return_to_home_altitude_m: 80
+  max_planned_distance_km: 5
+  max_estimated_flight_time_min: 18
+  min_battery_reserve_pct: 25
+maintenance:
+  block_open_high_priority: true

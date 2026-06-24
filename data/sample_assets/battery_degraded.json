@@ -1,0 +1,10 @@
+{
+  "battery_id": "BAT-099",
+  "chemistry": "LiPo",
+  "nominal_voltage_v": 15.2,
+  "cycle_count": 230,
+  "health_pct": 72,
+  "soc_pct": 34,
+  "voltage_v": 15.1,
+  "temperature_c": 31
+}

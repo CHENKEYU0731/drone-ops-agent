@@ -1,0 +1,14 @@
+{
+  "observation_id": "OBS-PREFLIGHT-WARNING",
+  "imu_status": "ok",
+  "compass_status": "ok",
+  "barometer_status": "ok",
+  "gps_status": "ok",
+  "rtk_status": "ok",
+  "gps_satellites": 12,
+  "gps_hdop": 1.9,
+  "remote_control_link": "degraded",
+  "telemetry_link": "ok",
+  "video_link": "degraded",
+  "network_link": "ok"
+}

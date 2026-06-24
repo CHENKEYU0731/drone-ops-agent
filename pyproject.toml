@@ -32,6 +32,7 @@ packages = [
   "packages.anomaly_detection",
   "packages.diagnosis_rules",
   "packages.maintenance_rules",
+  "packages.preflight_rules",
   "packages.simulation",
   "packages.report_templates",
   "packages.audit_logger",

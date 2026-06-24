@@ -62,6 +62,8 @@ class DroneAsset(BaseModel):
     total_flight_hours: float = Field(ge=0)
     battery_ids: list[str] = Field(default_factory=list)
     maintenance_history: list[str] = Field(default_factory=list)
+    operational_status: str = "active"
+    open_maintenance_items: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class BatteryAsset(BaseModel):
@@ -70,6 +72,9 @@ class BatteryAsset(BaseModel):
     nominal_voltage_v: float = Field(gt=0)
     cycle_count: int = Field(ge=0)
     health_pct: float = Field(ge=0, le=100)
+    soc_pct: float = Field(default=100, ge=0, le=100)
+    voltage_v: float | None = None
+    temperature_c: float | None = None
 
 
 class MissionPlan(BaseModel):
@@ -79,6 +84,10 @@ class MissionPlan(BaseModel):
     planned_end: datetime
     expected_modes: list[str]
     max_planned_altitude_m: float = Field(ge=0)
+    return_to_home_altitude_m: float | None = Field(default=None, ge=0)
+    planned_distance_km: float | None = Field(default=None, ge=0)
+    estimated_flight_time_min: float | None = Field(default=None, ge=0)
+    required_battery_reserve_pct: float | None = Field(default=None, ge=0, le=100)
 
 
 class PreflightObservation(ReviewableOutput):
@@ -88,10 +97,23 @@ class PreflightObservation(ReviewableOutput):
     evidence_refs: list[EvidenceRef] = Field(default_factory=list)
 
 
+class PreflightCheckItem(BaseModel):
+    item: str
+    severity: Severity
+    reason: str
+    measured_value: float | int | str | None = None
+    threshold: float | int | str | None = None
+    rule_id: str
+    evidence_refs: list[EvidenceRef]
+    recommendation: str
+
+
 class PreflightCheckResult(ReviewableOutput):
     id: str = Field(default_factory=lambda: new_id("PFR"))
     status: str
     observations: list[PreflightObservation] = Field(default_factory=list)
+    blocking_items: list[PreflightCheckItem] = Field(default_factory=list)
+    warnings: list[PreflightCheckItem] = Field(default_factory=list)
     evidence_refs: list[EvidenceRef] = Field(default_factory=list)
 
 

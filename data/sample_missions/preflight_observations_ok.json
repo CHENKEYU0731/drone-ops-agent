@@ -1,0 +1,14 @@
+{
+  "observation_id": "OBS-PREFLIGHT-OK",
+  "imu_status": "ok",
+  "compass_status": "ok",
+  "barometer_status": "ok",
+  "gps_status": "ok",
+  "rtk_status": "ok",
+  "gps_satellites": 18,
+  "gps_hdop": 0.8,
+  "remote_control_link": "ok",
+  "telemetry_link": "ok",
+  "video_link": "ok",
+  "network_link": "ok"
+}
