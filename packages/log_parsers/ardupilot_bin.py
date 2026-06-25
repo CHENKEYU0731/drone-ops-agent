@@ -98,12 +98,15 @@ class ArduPilotBinParser:
         except Exception as exc:  # pragma: no cover - depends on optional parser internals.
             raise ValueError(f"Unable to open ArduPilot BIN log: {path}: {exc}") from exc
 
-        rows = self._rows_from_dataflash(path, log)
-        if not rows:
+        parsed_rows = self._rows_from_dataflash(path, log)
+        if not parsed_rows.rows:
             raise ValueError(f"ArduPilot BIN log produced no usable records: {path}")
 
-        records = [_record_from_row(path, index, row) for index, row in enumerate(rows, start=1)]
-        warnings = ["ArduPilot BIN parser uses a minimal first-pass message mapping."]
+        records = [_record_from_row(path, index, row) for index, row in enumerate(parsed_rows.rows, start=1)]
+        warnings = [
+            "ArduPilot BIN parser uses a minimal first-pass message mapping.",
+            "link_quality_pct defaulted to 100 because DataFlash link quality mapping is not yet supported.",
+        ]
         return ParsedFlightLog(
             records=records,
             source_log_id=path.name,
@@ -120,17 +123,21 @@ class ArduPilotBinParser:
             parser_metadata={
                 "mock_fixture": False,
                 "messages_used": ["BAT", "BAT2", "GPS", "GPS2", "VIBE", "RCOU", "MODE", "MODE2"],
+                "messages_consumed": parsed_rows.messages_consumed,
+                "snapshot_count": len(parsed_rows.rows),
                 "safety_boundary": "offline-read-only",
             },
         )
 
-    def _rows_from_dataflash(self, path: Path, log: Any) -> list[dict[str, Any]]:
+    def _rows_from_dataflash(self, path: Path, log: Any) -> _ParsedDataFlashRows:
         rows: list[dict[str, Any]] = []
         state = _DefaultingRecordBuilder(path)
+        messages_consumed = 0
         while True:
             message = log.recv_msg()
             if message is None:
                 break
+            messages_consumed += 1
             msg_type = message.get_type()
             values = message.to_dict()
             state.ingest(msg_type, values)
@@ -138,7 +145,13 @@ class ArduPilotBinParser:
                 row = state.snapshot()
                 if row is not None:
                     rows.append(row)
-        return rows
+        return _ParsedDataFlashRows(rows=rows, messages_consumed=messages_consumed)
+
+
+class _ParsedDataFlashRows:
+    def __init__(self, rows: list[dict[str, Any]], messages_consumed: int) -> None:
+        self.rows = rows
+        self.messages_consumed = messages_consumed
 
 
 class _DefaultingRecordBuilder:

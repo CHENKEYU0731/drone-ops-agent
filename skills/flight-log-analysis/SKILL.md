@@ -38,6 +38,7 @@
 
 - 每个异常的 `EvidenceRef` 必须指向原始日志 source id、timestamp、field、measured value、threshold 和 rule id。
 - 摘要必须包含至少一条指向原始日志路径、规范化字段和 parser 的 source evidence。
+- Parser coverage、真实/脱敏 fixture 策略和字段映射说明见 `docs/log_parser_coverage.md` 与 `data/sample_logs/README.md`。
 
 ## Audit Requirements
 
@@ -50,13 +51,16 @@
 - `--format auto` 按扩展名识别 `.csv -> csv`、`.json -> json`、`.ulg -> px4-ulog`、`.bin -> ardupilot-bin`。
 - 空日志和字段缺失会返回清晰错误。
 - 缺少 PX4 ULog 可选依赖时提示 `pip install -e .[px4]` 且不显示 traceback。
+- 缺少 ArduPilot BIN 可选依赖时提示 `pip install -e .[ardupilot]` 且不显示 traceback。
+- 真实/脱敏 `.ulg` / `.bin` fixture 缺失时，测试应文档化 skip，不得要求仓库内置来源不明日志。
 - 所有 MVP 异常规则可被样例日志触发。
 - 每个异常都有证据引用。
 
 ## Known Limitations
 
 - PX4 ULog 初版只覆盖最小可用 topic/字段映射；未覆盖完整 ULog topic。
-- ArduPilot BIN 仍由独立适配器实现，本 worktree 只保留扩展名契约。
+- ArduPilot BIN 初版只覆盖最小可用 DataFlash message/字段映射。
+- 当前仓库不内置未经确认的真实二进制日志；真实/脱敏 fixture 必须满足来源、脱敏和体积策略。
 - 阈值当前写在规则代码中，尚未配置化。
 
 ## Future Extensions

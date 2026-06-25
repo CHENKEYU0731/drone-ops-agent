@@ -31,3 +31,11 @@ ArduPilot BIN 工作流约束：
 - 真实 BIN 解析使用可选 `pymavlink` 依赖：`pip install -e .[ardupilot]`。
 - 仓库只保留小型 mock BIN fixture，不提交大体积真实飞行日志。
 - `flight-log-analysis` audit JSON 需记录 parser name、parser version、requested format、actual format 和 parser metadata。
+
+v0.6.0 real sample log validation 工作流：
+
+- 先使用 `docs/log_parser_coverage.md` 和 `data/sample_logs/README.md` 判断字段覆盖、fixture 来源、脱敏状态和体积限制。
+- 真实或脱敏 `.ulg` 应放入 `data/sample_logs/px4/`，真实或脱敏 `.bin` 应放入 `data/sample_logs/ardupilot/`。
+- 如果无法确认授权、脱敏或文件大小，不要提交真实日志；使用 mock fixture、fake real-path tests 或 documented placeholder。
+- 默认测试必须能在没有真实 `.ulg` / `.bin` 的情况下通过；真实 fixture 测试应 skip 并提示 README。
+- 可选依赖仍只能通过 `pip install -e .[px4]` 或 `pip install -e .[ardupilot]` 安装，不得加入默认或 dev 依赖。
