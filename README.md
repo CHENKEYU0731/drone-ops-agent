@@ -205,6 +205,12 @@ v0.7.0 增加了离线/mock simulation scenario matrix 基线：
 pytest
 ```
 
+v0.7.0 release readiness checklist:
+
+- `docs/v0.7.0_release_readiness.md`
+- `python -m apps.cli.main validate-report --report-dir <tmp-report-dir> --write-index`
+- `python -m apps.cli.main validate-simulation --scenario data/sample_simulation/example_scenario.json --result data/sample_simulation/example_simulation_result.json --out <tmp-simulation-dir>`
+
 ## 添加新的 skill
 
 1. 在 `skills/<skill-name>/` 下创建 `SKILL.md`、`schema.json`、`examples/` 和 `tests/`。
