@@ -29,6 +29,7 @@ from packages.drone_schemas import (
 from packages.log_parsers import SUPPORTED_LOG_FORMATS, ParsedFlightLog, parse_flight_log_details
 from packages.maintenance_rules import generate_maintenance_recommendations
 from packages.preflight_rules import run_preflight_check
+from packages.report_validation import ReportValidationError, ReportValidationPaths, validate_report_outputs
 from packages.report_templates import export_markdown_to_pdf, render_ops_report
 from packages.simulation import parse_simulation_result, validate_simulation_result
 from packages.state_monitoring import run_monitoring_replay
@@ -145,6 +146,70 @@ def export_pdf_command(
 ) -> None:
     _run_cli(lambda: export_markdown_to_pdf(markdown, out))
     typer.echo(f"PDF 报告导出完成: {out}")
+
+
+@app.command("validate-report")
+def validate_report_command(
+    report_dir: Path | None = typer.Option(None, "--report-dir", help="包含 run-mvp 输出的目录。"),
+    summary: Path | None = typer.Option(None, "--summary", help="flight_summary.json 路径。"),
+    anomalies: Path | None = typer.Option(None, "--anomalies", help="anomalies.json 路径。"),
+    diagnosis: Path | None = typer.Option(None, "--diagnosis", help="diagnosis.json 路径。"),
+    maintenance: Path | None = typer.Option(None, "--maintenance", help="maintenance_recommendations.json 路径。"),
+    report: Path | None = typer.Option(None, "--report", help="ops_report.md 路径。"),
+    audit_dir: Path | None = typer.Option(None, "--audit-dir", help="audit JSON 目录。"),
+    write_index: bool = typer.Option(False, "--write-index", help="写出 evidence_index.json 和 report_validation.json。"),
+) -> None:
+    try:
+        paths = _resolve_report_validation_paths(report_dir, summary, anomalies, diagnosis, maintenance, report, audit_dir)
+        result = validate_report_outputs(paths, write_index=write_index)
+    except ReportValidationError as exc:
+        typer.echo("Error: report validation failed", err=True)
+        for error in exc.errors:
+            typer.echo(f"- {error}", err=True)
+        raise typer.Exit(code=1) from exc
+    except (FileNotFoundError, ValueError) as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo("Report validation passed")
+    typer.echo(f"evidence refs: {result.counts.evidence_refs}")
+    typer.echo(f"validated anomalies: {result.counts.validated_anomalies}")
+    typer.echo(f"validated hypotheses: {result.counts.validated_hypotheses}")
+    typer.echo(f"validated recommendations: {result.counts.validated_recommendations}")
+    typer.echo(f"validated audit files: {result.counts.validated_audit_files}")
+
+
+def _resolve_report_validation_paths(
+    report_dir: Path | None,
+    summary: Path | None,
+    anomalies: Path | None,
+    diagnosis: Path | None,
+    maintenance: Path | None,
+    report: Path | None,
+    audit_dir: Path | None,
+) -> ReportValidationPaths:
+    if report_dir is not None:
+        return ReportValidationPaths.from_report_dir(report_dir)
+
+    explicit_paths = {
+        "summary": summary,
+        "anomalies": anomalies,
+        "diagnosis": diagnosis,
+        "maintenance": maintenance,
+        "report": report,
+        "audit_dir": audit_dir,
+    }
+    missing = [name for name, path in explicit_paths.items() if path is None]
+    if missing:
+        raise ValueError("validate-report requires --report-dir or explicit paths for: " + ", ".join(missing))
+    return ReportValidationPaths(
+        summary=summary,
+        anomalies=anomalies,
+        diagnosis=diagnosis,
+        maintenance=maintenance,
+        report=report,
+        audit_dir=audit_dir,
+    )
 
 
 def _run_analyze_log(

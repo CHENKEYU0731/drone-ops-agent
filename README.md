@@ -69,6 +69,40 @@ drone-ops generate-report --summary data/sample_reports/flight_summary.json --di
 
 PDF 导出会优先使用环境变量 `DRONE_OPS_PDF_FONT_PATH` 指定的可嵌入 CJK TrueType/OpenType 字体；未设置时会搜索常见 Linux、Windows 和 macOS 系统字体。若环境中没有可用中文字体，请先安装 Noto CJK 等字体，或设置 `DRONE_OPS_PDF_FONT_PATH=/path/to/font.ttf`。
 
+## 报告验证与证据索引
+
+`validate-report` 是离线可信度检查命令，用于验证 `run-mvp` 生成的结构化 JSON、Markdown 报告和 audit JSON 之间的证据链是否完整。它不会连接真实无人机，不会执行 MAVLink command，也不代表真实飞行安全许可。
+
+```bash
+drone-ops validate-report --report-dir data/sample_reports/
+```
+
+未安装 CLI 入口时，可以使用：
+
+```bash
+python -m apps.cli.main validate-report --report-dir data/sample_reports/
+```
+
+也可以显式传入各个文件：
+
+```bash
+drone-ops validate-report \
+  --summary data/sample_reports/flight_summary.json \
+  --anomalies data/sample_reports/anomalies.json \
+  --diagnosis data/sample_reports/diagnosis.json \
+  --maintenance data/sample_reports/maintenance_recommendations.json \
+  --report data/sample_reports/ops_report.md \
+  --audit-dir data/sample_reports/audit
+```
+
+如需写出检查结果和证据索引：
+
+```bash
+drone-ops validate-report --report-dir data/sample_reports/ --write-index
+```
+
+该命令会生成确定性的 `evidence_index.json` 和 `report_validation.json`。验证内容包括 anomaly、fault hypothesis、maintenance recommendation 的 `evidence_refs`，diagnosis/maintenance 是否能追溯到上游 anomaly、summary 或 diagnosis 证据，高风险输出的 `human_review_required=true`，关键 audit JSON 是否存在，以及 `ops_report.md` 是否包含主要章节和证据引用线索。缺失引用、断裂引用或无法追溯的证据链会作为 validation finding 暴露出来。任何维护或飞行安全建议仍必须由合格人员人工复核。
+
 ## 飞行前检查
 
 `preflight-check` 是离线 advisory-only 检查，不会连接真实无人机，也不会授权真实飞行。它读取样例资产、电池、任务、人工观测和 YAML 规则，输出 `GO`、`REVIEW_REQUIRED` 或 `NO_GO`。

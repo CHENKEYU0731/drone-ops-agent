@@ -46,6 +46,7 @@ packages = [
   "packages.state_monitoring",
   "packages.simulation",
   "packages.report_templates",
+  "packages.report_validation",
   "packages.audit_logger",
 ]
 
