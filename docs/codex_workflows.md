@@ -13,8 +13,16 @@
 - 增加失败运行审计。
 - 增加规则阈值配置文件。
 - 扩展飞行前检查规则和样例，但必须保持 advisory-only，不得接入真实飞控控制动作。
+- 增强报告验证和证据索引：使用 `drone-ops validate-report --report-dir data/sample_reports/` 检查结构化 JSON、Markdown 报告和 audit JSON 的证据链；如需写出 `evidence_index.json` 和 `report_validation.json`，添加 `--write-index`。该流程只做离线可信度检查，不代表真实飞行安全许可。
 
 每个任务都应先更新安全边界和测试，再实现代码。
+
+报告验证工作流约束：
+
+- `validate-report` 必须保持离线，只读取本地 `flight_summary.json`、`anomalies.json`、`diagnosis.json`、`maintenance_recommendations.json`、`ops_report.md` 和 `audit/*.json`。
+- 不得连接真实无人机，不得执行 MAVLink command、arm/disarm、takeoff、land、RTL、mission execution、firmware upload 或 parameter write。
+- 验证规则只能加强维护/飞行安全输出的 `human_review_required=true` 要求，不得静默放宽。
+- CLI 失败时必须输出清晰错误并返回非 0 exit code，不显示 traceback。
 
 PX4 ULog 工作流约束：
 
