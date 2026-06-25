@@ -131,6 +131,8 @@ pip install -e .[ardupilot]
 
 默认安装和 `pip install -e .[dev]` 不会强制安装这些可选飞控日志解析库。缺少可选依赖时，CLI 会给出安装提示并退出，不显示 traceback。
 
+日志字段映射和当前覆盖范围记录在 `docs/log_parser_coverage.md`。真实或脱敏 `.ulg` / `.bin` 样例的提交策略记录在 `data/sample_logs/README.md`；当前仓库不内置未经确认的真实二进制日志，只保留 deterministic mock fixtures 和真实样例 placeholder 目录。
+
 ## 离线仿真验证
 
 `validate-simulation` 是 simulation-validation skill 的离线 MVP。它只导入 mock/exported simulation result JSON，并基于规则输出 `PASS`、`FAIL` 或 `REVIEW_REQUIRED`，不会启动 PX4、ArduPilot、Gazebo 或真实 SITL 环境。

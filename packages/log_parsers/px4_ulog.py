@@ -99,6 +99,7 @@ class PX4ULogParser:
             parser_metadata={
                 "mock_fixture": False,
                 "topics_used": sorted(name for name, rows in topics.items() if rows),
+                "sample_count": len(records),
                 "safety_boundary": "offline-read-only",
             },
         )
