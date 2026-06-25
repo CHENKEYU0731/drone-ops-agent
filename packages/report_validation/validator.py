@@ -55,6 +55,9 @@ def validate_report_outputs(paths: ReportValidationPaths, write_index: bool = Fa
     errors: list[str] = []
     warnings: list[str] = []
     index_entries: dict[str, EvidenceIndexEntry] = {}
+    summary_evidence_keys: set[str] = set()
+    anomaly_evidence_keys: set[str] = set()
+    diagnosis_evidence_keys: set[str] = set()
 
     summary = _read_json(paths.summary, "flight_summary.json", errors)
     anomalies = _read_json_list(paths.anomalies, "anomalies.json", errors)
@@ -64,11 +67,18 @@ def validate_report_outputs(paths: ReportValidationPaths, write_index: bool = Fa
     audit_count = _validate_audits(paths.audit_dir, errors)
 
     if isinstance(summary, dict):
-        _collect_evidence_refs(index_entries, summary.get("evidence_refs", []), f"summary:{summary.get('id', 'unknown')}", errors)
+        summary_evidence_keys = set(
+            _collect_evidence_refs(
+                index_entries,
+                summary.get("evidence_refs", []),
+                f"summary:{summary.get('id', 'unknown')}",
+                errors,
+            )
+        )
 
-    _validate_anomalies(anomalies, errors, index_entries)
-    _validate_diagnosis(diagnosis, errors, index_entries)
-    _validate_maintenance(maintenance, errors, index_entries)
+    anomaly_evidence_keys = _validate_anomalies(anomalies, errors, index_entries)
+    diagnosis_evidence_keys = _validate_diagnosis(diagnosis, errors, index_entries, summary_evidence_keys | anomaly_evidence_keys)
+    _validate_maintenance(maintenance, errors, index_entries, summary_evidence_keys | anomaly_evidence_keys | diagnosis_evidence_keys)
 
     result = ReportValidationResult(
         status="failed" if errors else "passed",
@@ -122,7 +132,8 @@ def _validate_anomalies(
     anomalies: list[dict[str, Any]],
     errors: list[str],
     index_entries: dict[str, EvidenceIndexEntry],
-) -> None:
+) -> set[str]:
+    collected_keys: set[str] = set()
     for index, anomaly in enumerate(anomalies):
         prefix = f"anomalies[{index}]"
         _require_fields(anomaly, ["rule_id", "measured_value", "threshold", "human_review_required"], prefix, errors)
@@ -132,14 +143,25 @@ def _validate_anomalies(
         if not evidence_refs:
             errors.append(f"{prefix} missing evidence_refs")
             continue
-        _collect_evidence_refs(index_entries, evidence_refs, f"anomaly:{anomaly.get('anomaly_id', anomaly.get('id', index))}", errors, prefix)
+        collected_keys.update(
+            _collect_evidence_refs(
+                index_entries,
+                evidence_refs,
+                f"anomaly:{anomaly.get('anomaly_id', anomaly.get('id', index))}",
+                errors,
+                prefix,
+            )
+        )
+    return collected_keys
 
 
 def _validate_diagnosis(
     hypotheses: list[dict[str, Any]],
     errors: list[str],
     index_entries: dict[str, EvidenceIndexEntry],
-) -> None:
+    traceable_keys: set[str],
+) -> set[str]:
+    collected_keys: set[str] = set()
     for index, hypothesis in enumerate(hypotheses):
         prefix = f"diagnosis[{index}]"
         _require_fields(hypothesis, ["confidence", "severity", "recommended_next_steps", "human_review_required"], prefix, errors)
@@ -147,21 +169,25 @@ def _validate_diagnosis(
         if not evidence_refs:
             errors.append(f"{prefix} missing evidence_refs")
         else:
-            _collect_evidence_refs(
+            evidence_keys = _collect_evidence_refs(
                 index_entries,
                 evidence_refs,
                 f"fault_hypothesis:{hypothesis.get('fault_id', hypothesis.get('id', index))}",
                 errors,
                 prefix,
             )
+            collected_keys.update(evidence_keys)
+            _validate_traceable_evidence(prefix, evidence_keys, traceable_keys, errors, "anomaly or summary evidence")
         if str(hypothesis.get("severity", "")).upper() in HIGH_SEVERITIES and hypothesis.get("human_review_required") is not True:
             errors.append(f"{prefix} severity={hypothesis.get('severity')} requires human_review_required=true")
+    return collected_keys
 
 
 def _validate_maintenance(
     recommendations: list[dict[str, Any]],
     errors: list[str],
     index_entries: dict[str, EvidenceIndexEntry],
+    traceable_keys: set[str],
 ) -> None:
     required = ["component", "action", "priority", "reason", "required_approval", "human_review_required"]
     for index, recommendation in enumerate(recommendations):
@@ -171,13 +197,14 @@ def _validate_maintenance(
         if not evidence_refs:
             errors.append(f"{prefix} missing evidence_refs")
         else:
-            _collect_evidence_refs(
+            evidence_keys = _collect_evidence_refs(
                 index_entries,
                 evidence_refs,
                 f"maintenance_recommendation:{recommendation.get('recommendation_id', recommendation.get('id', index))}",
                 errors,
                 prefix,
             )
+            _validate_traceable_evidence(prefix, evidence_keys, traceable_keys, errors, "anomaly, diagnosis, or summary evidence")
         priority = str(recommendation.get("priority", "")).upper()
         if priority in GROUNDING_PRIORITIES and recommendation.get("human_review_required") is not True:
             errors.append(f"{prefix} priority={priority} requires human_review_required=true")
@@ -189,10 +216,11 @@ def _collect_evidence_refs(
     referenced_by: str,
     errors: list[str],
     owner_prefix: str = "evidence_refs",
-) -> None:
+) -> list[str]:
+    collected_keys: list[str] = []
     if not isinstance(evidence_refs, list):
         errors.append(f"{owner_prefix} evidence_refs must be a list")
-        return
+        return collected_keys
     for ref_index, ref in enumerate(evidence_refs):
         prefix = f"{owner_prefix}.evidence_refs[{ref_index}]"
         if not isinstance(ref, dict):
@@ -202,6 +230,7 @@ def _collect_evidence_refs(
         if not all(ref.get(field) not in (None, "") for field in REQUIRED_EVIDENCE_FIELDS):
             continue
         key = _evidence_key(ref)
+        collected_keys.append(key)
         if key not in index_entries:
             index_entries[key] = EvidenceIndexEntry(
                 key=key,
@@ -217,6 +246,19 @@ def _collect_evidence_refs(
             )
         if referenced_by not in index_entries[key].referenced_by:
             index_entries[key].referenced_by.append(referenced_by)
+    return collected_keys
+
+
+def _validate_traceable_evidence(
+    owner_prefix: str,
+    evidence_keys: list[str],
+    traceable_keys: set[str],
+    errors: list[str],
+    traceable_label: str,
+) -> None:
+    for ref_index, key in enumerate(evidence_keys):
+        if key not in traceable_keys:
+            errors.append(f"{owner_prefix} evidence_refs[{ref_index}] is not traceable to {traceable_label}: {key}")
 
 
 def _evidence_key(ref: dict[str, Any]) -> str:
@@ -275,11 +317,25 @@ def _validate_report_markdown(report_path: Path, errors: list[str], warnings: li
         errors.append(f"ops_report.md missing: {report_path}")
         return
 
-    for marker in ["## 1.", "## 5.", "## 6.", "## 7.", "## 10.", "## 11."]:
-        if marker not in report:
+    required_sections = {
+        "## 1.": ["执行摘要", "summary"],
+        "## 5.": ["异常", "anomaly"],
+        "## 6.": ["故障", "fault"],
+        "## 7.": ["维护", "maintenance"],
+        "## 10.": ["审计", "audit"],
+        "## 11.": ["证据", "evidence"],
+    }
+    headings = [line.strip() for line in report.splitlines() if line.startswith("## ")]
+    for marker, terms in required_sections.items():
+        if not any(heading.startswith(marker) and _contains_any_term(heading, terms) for heading in headings):
             errors.append(f"ops_report.md missing section marker {marker}")
     if not any(token in report for token in ["evidence", "Evidence", "rule", "source", "证据", "规则", "来源"]):
         warnings.append("ops_report.md has no obvious evidence/rule/source reference tokens")
+
+
+def _contains_any_term(text: str, terms: list[str]) -> bool:
+    lowered = text.lower()
+    return any(term.lower() in lowered for term in terms)
 
 
 def _write_validation_outputs(paths: ReportValidationPaths, result: ReportValidationResult) -> None:

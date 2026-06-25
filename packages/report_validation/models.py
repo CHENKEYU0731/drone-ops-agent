@@ -7,6 +7,9 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 
+DETERMINISTIC_VALIDATION_CREATED_AT = datetime(1970, 1, 1, tzinfo=UTC)
+
+
 class EvidenceIndexEntry(BaseModel):
     key: str
     source_type: str
@@ -78,7 +81,7 @@ class ReportValidationResult(BaseModel):
     warnings: list[str] = Field(default_factory=list)
     counts: ReportValidationCounts = Field(default_factory=ReportValidationCounts)
     checked_files: dict[str, str] = Field(default_factory=dict)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = DETERMINISTIC_VALIDATION_CREATED_AT
     evidence_index: EvidenceIndex = Field(default_factory=EvidenceIndex)
 
     def serializable_payload(self) -> dict[str, Any]:

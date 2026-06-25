@@ -101,7 +101,7 @@ drone-ops validate-report \
 drone-ops validate-report --report-dir data/sample_reports/ --write-index
 ```
 
-该命令会生成 `evidence_index.json` 和 `report_validation.json`。验证内容包括 anomaly、fault hypothesis、maintenance recommendation 的 `evidence_refs`，高风险输出的 `human_review_required=true`，关键 audit JSON 是否存在，以及 `ops_report.md` 是否包含主要章节和证据引用线索。任何维护或飞行安全建议仍必须由合格人员人工复核。
+该命令会生成确定性的 `evidence_index.json` 和 `report_validation.json`。验证内容包括 anomaly、fault hypothesis、maintenance recommendation 的 `evidence_refs`，diagnosis/maintenance 是否能追溯到上游 anomaly、summary 或 diagnosis 证据，高风险输出的 `human_review_required=true`，关键 audit JSON 是否存在，以及 `ops_report.md` 是否包含主要章节和证据引用线索。缺失引用、断裂引用或无法追溯的证据链会作为 validation finding 暴露出来。任何维护或飞行安全建议仍必须由合格人员人工复核。
 
 ## 飞行前检查
 

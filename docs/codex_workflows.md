@@ -22,6 +22,8 @@
 - `validate-report` 必须保持离线，只读取本地 `flight_summary.json`、`anomalies.json`、`diagnosis.json`、`maintenance_recommendations.json`、`ops_report.md` 和 `audit/*.json`。
 - 不得连接真实无人机，不得执行 MAVLink command、arm/disarm、takeoff、land、RTL、mission execution、firmware upload 或 parameter write。
 - 验证规则只能加强维护/飞行安全输出的 `human_review_required=true` 要求，不得静默放宽。
+- diagnosis evidence 必须能追溯到 summary 或 anomaly evidence；maintenance evidence 必须能追溯到 summary、anomaly 或 diagnosis evidence。
+- `--write-index` 输出应保持确定性，便于 golden/snapshot 风格测试。
 - CLI 失败时必须输出清晰错误并返回非 0 exit code，不显示 traceback。
 
 PX4 ULog 工作流约束：

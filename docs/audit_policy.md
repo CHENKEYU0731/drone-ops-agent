@@ -33,10 +33,12 @@
 - `maintenance_recommendations.json` 中每条建议的证据、component、action、priority、reason、required approval 和人工复核要求
 - `audit/*.json` 中关键 skill run 的输入、输出、工具、规则、时间戳、状态和人工复核标记
 - `ops_report.md` 是否存在、是否包含主要章节和证据线索
+- diagnosis evidence 是否能追溯到 summary 或 anomaly evidence
+- maintenance evidence 是否能追溯到 summary、anomaly 或 diagnosis evidence
 
 使用 `--write-index` 时，命令会写出：
 
 - `evidence_index.json`
 - `report_validation.json`
 
-`evidence_index.json` 使用稳定 key 汇总证据引用，并记录每条 evidence 被 anomaly、fault hypothesis 或 maintenance recommendation 引用的位置。该索引用于审计、回归测试和人工复核辅助，不代表真实飞行安全许可。
+`evidence_index.json` 使用稳定 key 汇总证据引用，并记录每条 evidence 被 anomaly、fault hypothesis 或 maintenance recommendation 引用的位置。`report_validation.json` 使用确定性结构，便于 golden/snapshot 风格测试。该索引用于审计、回归测试和人工复核辅助，不代表真实飞行安全许可。

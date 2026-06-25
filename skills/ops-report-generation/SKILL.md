@@ -53,6 +53,7 @@
 - 报告的证据附录必须汇总 anomaly、diagnosis 和 maintenance 的 EvidenceRef。
 - 正文条目必须提供简短证据引用，便于快速追溯。
 - Report validation 必须确认 anomaly、fault hypothesis 和 maintenance recommendation 的 evidence refs 非空，并能构建稳定 evidence index key。
+- Report validation 必须暴露断裂引用：diagnosis evidence 应能追溯到 summary 或 anomaly evidence；maintenance evidence 应能追溯到 summary、anomaly 或 diagnosis evidence。
 
 ## Audit Requirements
 
@@ -71,7 +72,9 @@
 - `generate-report --pdf` 可同步写出 Markdown 和 PDF。
 - `validate-report --report-dir <dir>` 可以验证 `run-mvp` 输出。
 - `validate-report --write-index` 可以写出 `evidence_index.json` 和 `report_validation.json`。
+- `evidence_index.json` 和 `report_validation.json` 输出结构必须确定，便于 golden/snapshot 风格测试。
 - 缺失 evidence refs、关键 audit 文件或 `ops_report.md` 时必须返回清晰错误且不显示 traceback。
+- 断裂 evidence reference 和缺失报告章节必须作为 validation finding 暴露。
 - 如本机存在 Poppler，渲染第一页不得出现 `Missing language pack` 或 `Unknown font tag`。
 
 ## Known Limitations
