@@ -32,6 +32,21 @@ The matrix reuses existing `validate-simulation` statuses where possible:
 
 `INVALID_INPUT` is a matrix expectation, not a new `SimulationRun.status`.
 
+The degraded `FAIL` cases are intentionally severe mock scenarios. Battery sag
+and GPS degradation cross configured fail thresholds, while motor vibration and
+temperature cases import explicit failure events. Lighter degradation without a
+threshold violation should be modeled as `REVIEW_REQUIRED` only when the result
+is parseable but validation confidence is incomplete.
+
+The three incomplete-input cases are distinct:
+
+- `missing-constraint-review`: the result payload is readable, but a validation
+  constraint is absent, so the run is produced as `REVIEW_REQUIRED`.
+- `missing-telemetry-fields`: required result telemetry is absent, so the matrix
+  expects `INVALID_INPUT` before a `SimulationRun` is produced.
+- `inconsistent-simulation-metadata`: scenario/result metadata is contradictory,
+  so the matrix expects `INVALID_INPUT` before a `SimulationRun` is produced.
+
 ## Scenario Coverage
 
 | Case ID | Scenario | Expected result | Validation intent |
