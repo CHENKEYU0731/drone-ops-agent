@@ -1,0 +1,306 @@
+{
+  "schema_version": "1.0.0",
+  "description": "Deterministic offline/mock simulation validation matrix. These cases are import-only fixtures and never start or connect to PX4, ArduPilot, Gazebo, SITL, or real drone hardware.",
+  "cases": [
+    {
+      "case_id": "nominal-flight",
+      "description": "Nominal offline mock flight export remains within all declared constraints.",
+      "expected_result": "PASS",
+      "mode": "offline_mock_import",
+      "safety_boundary": "advisory_only",
+      "scenario": {
+        "scenario_id": "SIM-MATRIX-NOMINAL",
+        "drone_id": "UAV-001",
+        "description": "Nominal offline mock flight.",
+        "input_refs": [
+          "data/sample_simulation/scenario_matrix.json#nominal-flight"
+        ]
+      },
+      "result": {
+        "result_id": "SIM-MATRIX-RESULT-NOMINAL",
+        "scenario_id": "SIM-MATRIX-NOMINAL",
+        "mission_id": "MISSION-MATRIX-001",
+        "source": "offline_mock_export",
+        "duration_s": 480,
+        "completed": true,
+        "max_altitude_m": 58,
+        "max_cross_track_error_m": 2.5,
+        "max_altitude_error_m": 1.8,
+        "failsafe_events": [],
+        "failure_events": [],
+        "energy_remaining_pct": 42,
+        "timeout": false,
+        "constraints": {
+          "max_duration_s": 600,
+          "max_altitude_m": 60,
+          "max_cross_track_error_m": 5,
+          "max_altitude_error_m": 4,
+          "min_energy_remaining_pct": 30
+        }
+      }
+    },
+    {
+      "case_id": "battery-sag-low-reserve",
+      "description": "Battery degradation leaves the offline result below the configured reserve.",
+      "expected_result": "FAIL",
+      "mode": "offline_mock_import",
+      "safety_boundary": "advisory_only",
+      "scenario": {
+        "scenario_id": "SIM-MATRIX-BATTERY-SAG",
+        "drone_id": "UAV-001",
+        "description": "Battery sag / low reserve offline mock flight.",
+        "input_refs": [
+          "data/sample_simulation/scenario_matrix.json#battery-sag-low-reserve"
+        ]
+      },
+      "result": {
+        "result_id": "SIM-MATRIX-RESULT-BATTERY-SAG",
+        "scenario_id": "SIM-MATRIX-BATTERY-SAG",
+        "mission_id": "MISSION-MATRIX-002",
+        "source": "offline_mock_export",
+        "duration_s": 510,
+        "completed": true,
+        "max_altitude_m": 57,
+        "max_cross_track_error_m": 3.5,
+        "max_altitude_error_m": 2,
+        "failsafe_events": [],
+        "failure_events": [],
+        "energy_remaining_pct": 18,
+        "timeout": false,
+        "constraints": {
+          "max_duration_s": 600,
+          "max_altitude_m": 60,
+          "max_cross_track_error_m": 5,
+          "max_altitude_error_m": 4,
+          "min_energy_remaining_pct": 30
+        }
+      }
+    },
+    {
+      "case_id": "gps-degradation",
+      "description": "GPS degradation produces excessive cross-track error in the offline export.",
+      "expected_result": "FAIL",
+      "mode": "offline_mock_import",
+      "safety_boundary": "advisory_only",
+      "scenario": {
+        "scenario_id": "SIM-MATRIX-GPS-DEGRADATION",
+        "drone_id": "UAV-001",
+        "description": "GPS degradation offline mock flight.",
+        "input_refs": [
+          "data/sample_simulation/scenario_matrix.json#gps-degradation"
+        ]
+      },
+      "result": {
+        "result_id": "SIM-MATRIX-RESULT-GPS-DEGRADATION",
+        "scenario_id": "SIM-MATRIX-GPS-DEGRADATION",
+        "mission_id": "MISSION-MATRIX-003",
+        "source": "offline_mock_export",
+        "duration_s": 500,
+        "completed": true,
+        "max_altitude_m": 56,
+        "max_cross_track_error_m": 12,
+        "max_altitude_error_m": 2.2,
+        "failsafe_events": [],
+        "failure_events": [],
+        "energy_remaining_pct": 36,
+        "timeout": false,
+        "constraints": {
+          "max_duration_s": 600,
+          "max_altitude_m": 60,
+          "max_cross_track_error_m": 5,
+          "max_altitude_error_m": 4,
+          "min_energy_remaining_pct": 30
+        }
+      }
+    },
+    {
+      "case_id": "motor-vibration-anomaly",
+      "description": "Motor vibration anomaly is represented as an imported offline failure event.",
+      "expected_result": "FAIL",
+      "mode": "offline_mock_import",
+      "safety_boundary": "advisory_only",
+      "scenario": {
+        "scenario_id": "SIM-MATRIX-MOTOR-VIBRATION",
+        "drone_id": "UAV-001",
+        "description": "Motor vibration offline mock flight.",
+        "input_refs": [
+          "data/sample_simulation/scenario_matrix.json#motor-vibration-anomaly"
+        ]
+      },
+      "result": {
+        "result_id": "SIM-MATRIX-RESULT-MOTOR-VIBRATION",
+        "scenario_id": "SIM-MATRIX-MOTOR-VIBRATION",
+        "mission_id": "MISSION-MATRIX-004",
+        "source": "offline_mock_export",
+        "duration_s": 430,
+        "completed": true,
+        "max_altitude_m": 54,
+        "max_cross_track_error_m": 3,
+        "max_altitude_error_m": 2.1,
+        "failsafe_events": [],
+        "failure_events": [
+          "motor_vibration_anomaly"
+        ],
+        "energy_remaining_pct": 38,
+        "timeout": false,
+        "constraints": {
+          "max_duration_s": 600,
+          "max_altitude_m": 60,
+          "max_cross_track_error_m": 5,
+          "max_altitude_error_m": 4,
+          "min_energy_remaining_pct": 30
+        }
+      }
+    },
+    {
+      "case_id": "severe-temperature-issue",
+      "description": "Severe temperature issue is represented as an imported offline failure event.",
+      "expected_result": "FAIL",
+      "mode": "offline_mock_import",
+      "safety_boundary": "advisory_only",
+      "scenario": {
+        "scenario_id": "SIM-MATRIX-TEMPERATURE",
+        "drone_id": "UAV-001",
+        "description": "Severe temperature offline mock flight.",
+        "input_refs": [
+          "data/sample_simulation/scenario_matrix.json#severe-temperature-issue"
+        ]
+      },
+      "result": {
+        "result_id": "SIM-MATRIX-RESULT-TEMPERATURE",
+        "scenario_id": "SIM-MATRIX-TEMPERATURE",
+        "mission_id": "MISSION-MATRIX-005",
+        "source": "offline_mock_export",
+        "duration_s": 445,
+        "completed": true,
+        "max_altitude_m": 55,
+        "max_cross_track_error_m": 3.1,
+        "max_altitude_error_m": 2,
+        "failsafe_events": [],
+        "failure_events": [
+          "severe_temperature_issue"
+        ],
+        "energy_remaining_pct": 39,
+        "timeout": false,
+        "constraints": {
+          "max_duration_s": 600,
+          "max_altitude_m": 60,
+          "max_cross_track_error_m": 5,
+          "max_altitude_error_m": 4,
+          "min_energy_remaining_pct": 30
+        }
+      }
+    },
+    {
+      "case_id": "missing-constraint-review",
+      "description": "Missing validation constraint keeps the offline result reviewable without declaring pass confidence.",
+      "expected_result": "REVIEW_REQUIRED",
+      "mode": "offline_mock_import",
+      "safety_boundary": "advisory_only",
+      "scenario": {
+        "scenario_id": "SIM-MATRIX-MISSING-CONSTRAINT",
+        "drone_id": "UAV-001",
+        "description": "Missing constraint offline mock flight.",
+        "input_refs": [
+          "data/sample_simulation/scenario_matrix.json#missing-constraint-review"
+        ]
+      },
+      "result": {
+        "result_id": "SIM-MATRIX-RESULT-MISSING-CONSTRAINT",
+        "scenario_id": "SIM-MATRIX-MISSING-CONSTRAINT",
+        "mission_id": "MISSION-MATRIX-006",
+        "source": "offline_mock_export",
+        "duration_s": 470,
+        "completed": true,
+        "max_altitude_m": 55,
+        "max_cross_track_error_m": 3,
+        "max_altitude_error_m": 1.9,
+        "failsafe_events": [],
+        "failure_events": [],
+        "energy_remaining_pct": 35,
+        "timeout": false,
+        "constraints": {
+          "max_duration_s": 600,
+          "max_altitude_m": 60,
+          "max_cross_track_error_m": 5,
+          "max_altitude_error_m": 4
+        }
+      }
+    },
+    {
+      "case_id": "missing-telemetry-fields",
+      "description": "Required telemetry field is absent from the imported offline result payload.",
+      "expected_result": "INVALID_INPUT",
+      "mode": "offline_mock_import",
+      "safety_boundary": "advisory_only",
+      "expected_error_contains": "missing required telemetry field",
+      "scenario": {
+        "scenario_id": "SIM-MATRIX-MISSING-TELEMETRY",
+        "drone_id": "UAV-001",
+        "description": "Missing telemetry field offline mock flight.",
+        "input_refs": [
+          "data/sample_simulation/scenario_matrix.json#missing-telemetry-fields"
+        ]
+      },
+      "result": {
+        "result_id": "SIM-MATRIX-RESULT-MISSING-TELEMETRY",
+        "scenario_id": "SIM-MATRIX-MISSING-TELEMETRY",
+        "mission_id": "MISSION-MATRIX-007",
+        "source": "offline_mock_export",
+        "duration_s": 460,
+        "completed": true,
+        "max_altitude_m": 55,
+        "max_cross_track_error_m": 3,
+        "max_altitude_error_m": 1.9,
+        "failsafe_events": [],
+        "failure_events": [],
+        "timeout": false,
+        "constraints": {
+          "max_duration_s": 600,
+          "max_altitude_m": 60,
+          "max_cross_track_error_m": 5,
+          "max_altitude_error_m": 4,
+          "min_energy_remaining_pct": 30
+        }
+      }
+    },
+    {
+      "case_id": "inconsistent-simulation-metadata",
+      "description": "Scenario and result metadata disagree on scenario_id.",
+      "expected_result": "INVALID_INPUT",
+      "mode": "offline_mock_import",
+      "safety_boundary": "advisory_only",
+      "expected_error_contains": "scenario_id mismatch",
+      "scenario": {
+        "scenario_id": "SIM-MATRIX-METADATA-A",
+        "drone_id": "UAV-001",
+        "description": "Inconsistent metadata offline mock flight.",
+        "input_refs": [
+          "data/sample_simulation/scenario_matrix.json#inconsistent-simulation-metadata"
+        ]
+      },
+      "result": {
+        "result_id": "SIM-MATRIX-RESULT-METADATA",
+        "scenario_id": "SIM-MATRIX-METADATA-B",
+        "mission_id": "MISSION-MATRIX-008",
+        "source": "offline_mock_export",
+        "duration_s": 460,
+        "completed": true,
+        "max_altitude_m": 55,
+        "max_cross_track_error_m": 3,
+        "max_altitude_error_m": 1.9,
+        "failsafe_events": [],
+        "failure_events": [],
+        "energy_remaining_pct": 35,
+        "timeout": false,
+        "constraints": {
+          "max_duration_s": 600,
+          "max_altitude_m": 60,
+          "max_cross_track_error_m": 5,
+          "max_altitude_error_m": 4,
+          "min_energy_remaining_pct": 30
+        }
+      }
+    }
+  ]
+}

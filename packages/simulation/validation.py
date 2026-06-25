@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from pathlib import Path
 
 from packages.drone_schemas import EvidenceRef, SimulationRun, SimulationScenario
@@ -151,7 +152,11 @@ def validate_simulation_result(
         "arm/disarm, takeoff, landing, RTL, mission execution, firmware upload, or parameter changes."
     )
 
+    refs = sorted(refs, key=lambda ref: (ref.rule_id, ref.field, ref.source_id))
+
     return SimulationRun(
+        id=f"SIM-{scenario.scenario_id}-{result.result_id}",
+        timestamp=datetime(1970, 1, 1, tzinfo=UTC),
         scenario_id=scenario.scenario_id,
         status=status,
         evidence_refs=refs,

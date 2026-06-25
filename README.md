@@ -177,6 +177,13 @@ drone-ops validate-simulation --scenario data/sample_simulation/example_scenario
 
 输出文件为 `simulation_run.json` 和 `audit/simulation-validation-*.json`。所有仿真验证输出都包含 `evidence_refs`，并固定要求 `human_review_required=true`。`PASS` 只表示离线仿真导入结果未发现阻断项，不代表真实飞行授权。
 
+v0.7.0 增加了离线/mock simulation scenario matrix 基线：
+
+- 文档：`docs/simulation_scenario_matrix.md`
+- 机器可读 fixture：`data/sample_simulation/scenario_matrix.json`
+
+该 matrix 覆盖 nominal flight、battery sag、GPS degradation、motor vibration anomaly、severe temperature issue、missing telemetry fields 和 inconsistent simulation metadata 等场景。它只用于确定性测试和离线导入验证，不会启动或连接任何真实仿真器。
+
 ## 输出文件
 
 运行后会生成：
