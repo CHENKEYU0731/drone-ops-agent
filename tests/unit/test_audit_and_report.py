@@ -1,12 +1,13 @@
 from pathlib import Path
 
 from packages.audit_logger import write_audit_record
-from packages.drone_schemas import DroneAsset, SimulationRun, load_model
+from packages.drone_schemas import DroneAsset, SimulationScenario, load_model
 from packages.anomaly_detection import detect_anomalies
 from packages.diagnosis_rules import generate_fault_hypotheses
 from packages.log_parsers import parse_flight_log
 from packages.maintenance_rules import generate_maintenance_recommendations
 from packages.report_templates import render_ops_report
+from packages.simulation import parse_simulation_result, validate_simulation_result
 from packages.telemetry_rules import summarize_flight
 
 
@@ -69,7 +70,11 @@ def test_report_can_include_simulation_validation_section() -> None:
     anomalies = detect_anomalies(records, drone_id=asset.drone_id, source_log_id="example_flight.csv")
     diagnosis = generate_fault_hypotheses(summary, anomalies, asset)
     maintenance = generate_maintenance_recommendations(diagnosis, asset, summary)
-    simulation = load_model(Path("data/sample_reports/simulation_run.json"), SimulationRun)
+    scenario_path = Path("data/sample_simulation/example_scenario.json")
+    result_path = Path("data/sample_simulation/example_simulation_result.json")
+    scenario = load_model(scenario_path, SimulationScenario)
+    result = parse_simulation_result(result_path)
+    simulation = validate_simulation_result(scenario, result, scenario_path=scenario_path, result_path=result_path)
 
     report = render_ops_report(
         summary=summary,
