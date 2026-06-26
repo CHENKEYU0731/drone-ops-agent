@@ -192,6 +192,243 @@
       }
     },
     {
+      "case_id": "return-home-altitude-breach",
+      "description": "Return-home altitude is below the declared offline validation threshold.",
+      "expected_result": "FAIL",
+      "mode": "offline_mock_import",
+      "safety_boundary": "advisory_only",
+      "scenario": {
+        "scenario_id": "SIM-MATRIX-RTH-ALTITUDE",
+        "drone_id": "UAV-001",
+        "description": "Return-home altitude offline mock validation.",
+        "input_refs": [
+          "data/sample_simulation/scenario_matrix.json#return-home-altitude-breach"
+        ]
+      },
+      "result": {
+        "result_id": "SIM-MATRIX-RESULT-RTH-ALTITUDE",
+        "scenario_id": "SIM-MATRIX-RTH-ALTITUDE",
+        "mission_id": "MISSION-MATRIX-009",
+        "source": "offline_mock_export",
+        "duration_s": 470,
+        "completed": true,
+        "max_altitude_m": 56,
+        "max_cross_track_error_m": 3,
+        "max_altitude_error_m": 2,
+        "failsafe_events": [],
+        "failure_events": [],
+        "energy_remaining_pct": 34,
+        "return_home_altitude_m": 32,
+        "timeout": false,
+        "constraints": {
+          "max_duration_s": 600,
+          "max_altitude_m": 60,
+          "max_cross_track_error_m": 5,
+          "max_altitude_error_m": 4,
+          "min_energy_remaining_pct": 30,
+          "min_return_home_altitude_m": 45
+        }
+      }
+    },
+    {
+      "case_id": "low-battery-return-not-triggered",
+      "description": "Energy reserve is below the low-battery threshold, but the mock return strategy did not trigger.",
+      "expected_result": "FAIL",
+      "mode": "offline_mock_import",
+      "safety_boundary": "advisory_only",
+      "scenario": {
+        "scenario_id": "SIM-MATRIX-LOW-BATTERY-RTH",
+        "drone_id": "UAV-001",
+        "description": "Low-battery return strategy offline mock validation.",
+        "input_refs": [
+          "data/sample_simulation/scenario_matrix.json#low-battery-return-not-triggered"
+        ]
+      },
+      "result": {
+        "result_id": "SIM-MATRIX-RESULT-LOW-BATTERY-RTH",
+        "scenario_id": "SIM-MATRIX-LOW-BATTERY-RTH",
+        "mission_id": "MISSION-MATRIX-010",
+        "source": "offline_mock_export",
+        "duration_s": 500,
+        "completed": true,
+        "max_altitude_m": 56,
+        "max_cross_track_error_m": 3,
+        "max_altitude_error_m": 2,
+        "failsafe_events": [],
+        "failure_events": [],
+        "energy_remaining_pct": 19,
+        "low_battery_return_triggered": false,
+        "timeout": false,
+        "constraints": {
+          "max_duration_s": 600,
+          "max_altitude_m": 60,
+          "max_cross_track_error_m": 5,
+          "max_altitude_error_m": 4,
+          "min_energy_remaining_pct": 15,
+          "low_battery_return_trigger_pct": 25
+        }
+      }
+    },
+    {
+      "case_id": "communication-link-loss",
+      "description": "Communication link loss duration exceeds the offline validation threshold.",
+      "expected_result": "FAIL",
+      "mode": "offline_mock_import",
+      "safety_boundary": "advisory_only",
+      "scenario": {
+        "scenario_id": "SIM-MATRIX-LINK-LOSS",
+        "drone_id": "UAV-001",
+        "description": "Communication link loss offline mock validation.",
+        "input_refs": [
+          "data/sample_simulation/scenario_matrix.json#communication-link-loss"
+        ]
+      },
+      "result": {
+        "result_id": "SIM-MATRIX-RESULT-LINK-LOSS",
+        "scenario_id": "SIM-MATRIX-LINK-LOSS",
+        "mission_id": "MISSION-MATRIX-011",
+        "source": "offline_mock_export",
+        "duration_s": 500,
+        "completed": true,
+        "max_altitude_m": 56,
+        "max_cross_track_error_m": 3,
+        "max_altitude_error_m": 2,
+        "failsafe_events": [],
+        "failure_events": [],
+        "energy_remaining_pct": 36,
+        "max_link_loss_duration_s": 12,
+        "timeout": false,
+        "constraints": {
+          "max_duration_s": 600,
+          "max_altitude_m": 60,
+          "max_cross_track_error_m": 5,
+          "max_altitude_error_m": 4,
+          "min_energy_remaining_pct": 30,
+          "max_link_loss_duration_s": 5
+        }
+      }
+    },
+    {
+      "case_id": "geofence-margin-risk",
+      "description": "Geofence margin is below the declared offline safety margin.",
+      "expected_result": "FAIL",
+      "mode": "offline_mock_import",
+      "safety_boundary": "advisory_only",
+      "scenario": {
+        "scenario_id": "SIM-MATRIX-GEOFENCE",
+        "drone_id": "UAV-001",
+        "description": "Geofence margin offline mock validation.",
+        "input_refs": [
+          "data/sample_simulation/scenario_matrix.json#geofence-margin-risk"
+        ]
+      },
+      "result": {
+        "result_id": "SIM-MATRIX-RESULT-GEOFENCE",
+        "scenario_id": "SIM-MATRIX-GEOFENCE",
+        "mission_id": "MISSION-MATRIX-012",
+        "source": "offline_mock_export",
+        "duration_s": 500,
+        "completed": true,
+        "max_altitude_m": 56,
+        "max_cross_track_error_m": 3,
+        "max_altitude_error_m": 2,
+        "failsafe_events": [],
+        "failure_events": [],
+        "energy_remaining_pct": 36,
+        "geofence_margin_m": -1,
+        "timeout": false,
+        "constraints": {
+          "max_duration_s": 600,
+          "max_altitude_m": 60,
+          "max_cross_track_error_m": 5,
+          "max_altitude_error_m": 4,
+          "min_energy_remaining_pct": 30,
+          "min_geofence_margin_m": 10
+        }
+      }
+    },
+    {
+      "case_id": "wind-disturbance-low-completion",
+      "description": "Wind disturbance is above the threshold and mission completion falls below the declared minimum.",
+      "expected_result": "FAIL",
+      "mode": "offline_mock_import",
+      "safety_boundary": "advisory_only",
+      "scenario": {
+        "scenario_id": "SIM-MATRIX-WIND",
+        "drone_id": "UAV-001",
+        "description": "Wind disturbance offline mock validation.",
+        "input_refs": [
+          "data/sample_simulation/scenario_matrix.json#wind-disturbance-low-completion"
+        ]
+      },
+      "result": {
+        "result_id": "SIM-MATRIX-RESULT-WIND",
+        "scenario_id": "SIM-MATRIX-WIND",
+        "mission_id": "MISSION-MATRIX-013",
+        "source": "offline_mock_export",
+        "duration_s": 500,
+        "completed": true,
+        "max_altitude_m": 56,
+        "max_cross_track_error_m": 3,
+        "max_altitude_error_m": 2,
+        "failsafe_events": [],
+        "failure_events": [],
+        "energy_remaining_pct": 36,
+        "wind_speed_mps": 14,
+        "mission_completion_pct": 82,
+        "timeout": false,
+        "constraints": {
+          "max_duration_s": 600,
+          "max_altitude_m": 60,
+          "max_cross_track_error_m": 5,
+          "max_altitude_error_m": 4,
+          "min_energy_remaining_pct": 30,
+          "max_wind_speed_mps": 10,
+          "min_wind_mission_completion_pct": 90
+        }
+      }
+    },
+    {
+      "case_id": "payload-endurance-margin",
+      "description": "Payload context leaves the offline result below the declared endurance margin.",
+      "expected_result": "FAIL",
+      "mode": "offline_mock_import",
+      "safety_boundary": "advisory_only",
+      "scenario": {
+        "scenario_id": "SIM-MATRIX-PAYLOAD-ENDURANCE",
+        "drone_id": "UAV-001",
+        "description": "Payload/endurance offline mock validation.",
+        "input_refs": [
+          "data/sample_simulation/scenario_matrix.json#payload-endurance-margin"
+        ]
+      },
+      "result": {
+        "result_id": "SIM-MATRIX-RESULT-PAYLOAD-ENDURANCE",
+        "scenario_id": "SIM-MATRIX-PAYLOAD-ENDURANCE",
+        "mission_id": "MISSION-MATRIX-014",
+        "source": "offline_mock_export",
+        "duration_s": 500,
+        "completed": true,
+        "max_altitude_m": 56,
+        "max_cross_track_error_m": 3,
+        "max_altitude_error_m": 2,
+        "failsafe_events": [],
+        "failure_events": [],
+        "energy_remaining_pct": 36,
+        "payload_mass_kg": 2.6,
+        "endurance_margin_pct": 8,
+        "timeout": false,
+        "constraints": {
+          "max_duration_s": 600,
+          "max_altitude_m": 60,
+          "max_cross_track_error_m": 5,
+          "max_altitude_error_m": 4,
+          "min_energy_remaining_pct": 30,
+          "min_endurance_margin_pct": 15
+        }
+      }
+    },
+    {
       "case_id": "missing-constraint-review",
       "description": "Missing validation constraint keeps the offline result reviewable without declaring pass confidence.",
       "expected_result": "REVIEW_REQUIRED",

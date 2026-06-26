@@ -247,11 +247,23 @@ class SimulationScenario(BaseModel):
     input_refs: list[str] = Field(default_factory=list)
 
 
+class SimulationRuleResult(BaseModel):
+    rule_id: str
+    status: str
+    field: str
+    measured_value: float | int | str
+    threshold: float | int | str
+    message: str
+    evidence_refs: list[EvidenceRef] = Field(default_factory=list)
+    human_review_required: bool = True
+
+
 class SimulationRun(ReviewableOutput):
     id: str = Field(default_factory=lambda: new_id("SIM"))
     scenario_id: str
     status: str
     evidence_refs: list[EvidenceRef] = Field(default_factory=list)
+    rule_results: list[SimulationRuleResult] = Field(default_factory=list)
     result_summary: str
 
 

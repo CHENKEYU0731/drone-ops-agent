@@ -17,6 +17,12 @@ EXPECTED_RESULTS = {
     "gps-degradation": FAIL,
     "motor-vibration-anomaly": FAIL,
     "severe-temperature-issue": FAIL,
+    "return-home-altitude-breach": FAIL,
+    "low-battery-return-not-triggered": FAIL,
+    "communication-link-loss": FAIL,
+    "geofence-margin-risk": FAIL,
+    "wind-disturbance-low-completion": FAIL,
+    "payload-endurance-margin": FAIL,
     "missing-constraint-review": REVIEW_REQUIRED,
     "missing-telemetry-fields": INVALID_INPUT,
     "inconsistent-simulation-metadata": INVALID_INPUT,
@@ -51,9 +57,11 @@ def test_simulation_scenario_matrix_cases_are_deterministic(case_id: str, expect
     assert run.status == expected_result
     assert run.human_review_required is True
     assert run.evidence_refs
+    assert run.rule_results
     assert run.id == f"SIM-{scenario.scenario_id}-{result.result_id}"
     assert run.timestamp.isoformat() == "1970-01-01T00:00:00+00:00"
     assert [ref.rule_id for ref in run.evidence_refs] == sorted(ref.rule_id for ref in run.evidence_refs)
+    assert [item.rule_id for item in run.rule_results] == sorted(item.rule_id for item in run.rule_results)
 
 
 def test_simulation_scenario_matrix_rejects_unknown_case_id() -> None:
