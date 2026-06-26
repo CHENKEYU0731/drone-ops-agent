@@ -20,6 +20,7 @@ from packages.drone_schemas import (
     PreflightCheckResult,
     SimulationRun,
     SimulationScenario,
+    WorkOrderDraft,
     load_model,
     load_model_list,
     read_json_file,
@@ -35,6 +36,7 @@ from packages.report_templates import export_markdown_to_pdf, render_ops_report
 from packages.simulation import parse_simulation_result, validate_simulation_result
 from packages.state_monitoring import run_monitoring_replay
 from packages.telemetry_rules import summarize_flight
+from packages.work_orders import generate_work_order_drafts, render_work_order_drafts_markdown
 
 
 app = typer.Typer(help="无人机运维 Agent 离线 MVP CLI。")
@@ -82,6 +84,16 @@ def generate_report_command(
 ) -> None:
     _run_cli(lambda: _run_generate_report(summary, diagnosis, maintenance, out, asset, pdf, anomalies, simulation))
     typer.echo(f"报告生成完成: {out}")
+
+
+@app.command("generate-work-orders")
+def generate_work_orders_command(
+    maintenance: Path = typer.Option(..., "--maintenance", help="maintenance_recommendations.json 路径。"),
+    asset: Path = typer.Option(..., "--asset", help="无人机资产 JSON 路径。"),
+    out: Path = typer.Option(..., "--out", help="输出目录。"),
+) -> None:
+    _run_cli(lambda: _run_generate_work_orders(maintenance, asset, out))
+    typer.echo(f"工单草稿生成完成: {out}")
 
 
 @app.command("run-mvp")
@@ -472,6 +484,37 @@ def _load_report_audits(report_dir: Path) -> list[SkillRunAudit]:
             continue
         audits.append(audit)
     return sorted(audits, key=lambda item: (item.created_at.isoformat(), item.skill_name, item.run_id))
+
+
+def _run_generate_work_orders(
+    maintenance_path: Path,
+    asset_path: Path,
+    out: Path,
+) -> list[WorkOrderDraft]:
+    out.mkdir(parents=True, exist_ok=True)
+    recommendations = load_model_list(maintenance_path, MaintenanceRecommendation)
+    asset = load_model(asset_path, DroneAsset)
+    drafts = generate_work_order_drafts(recommendations, asset)
+    drafts_path = out / "work_order_drafts.json"
+    markdown_path = out / "work_order_drafts.md"
+    write_model_list(drafts_path, drafts)
+    markdown_path.write_text(render_work_order_drafts_markdown(drafts), encoding="utf-8")
+    write_audit_record(
+        out_dir=out,
+        skill_name="work-order-drafting",
+        skill_version="1.0.0",
+        input_refs=[str(maintenance_path), str(asset_path)],
+        output_refs=[str(drafts_path), str(markdown_path)],
+        tools_called=["generate_work_order_drafts", "render_work_order_drafts_markdown"],
+        rules_triggered=[draft.priority.value for draft in drafts],
+        human_review_required=True,
+        status="success",
+        metadata={
+            "draft_count": len(drafts),
+            "safety_boundary": "offline-draft-only",
+        },
+    )
+    return drafts
 
 
 if __name__ == "__main__":

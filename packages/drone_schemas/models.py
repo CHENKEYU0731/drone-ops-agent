@@ -240,6 +240,22 @@ class MaintenanceRecommendation(ReviewableOutput):
     estimated_effort: str
 
 
+class WorkOrderDraft(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("WOD"))
+    work_order_id: str
+    asset_id: str
+    component: str
+    priority: MaintenancePriority
+    action: str
+    reason: str
+    evidence_refs: list[EvidenceRef]
+    required_approval: str
+    estimated_effort: str
+    reviewer: str | None = None
+    status: str = "DRAFT"
+    source_recommendation_id: str
+
+
 class SimulationScenario(BaseModel):
     scenario_id: str
     drone_id: str

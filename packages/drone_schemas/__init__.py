@@ -29,6 +29,7 @@ from packages.drone_schemas.models import (
     SimulationScenario,
     SkillRunAudit,
     TelemetrySnapshot,
+    WorkOrderDraft,
     new_id,
     utc_now,
 )
@@ -56,6 +57,7 @@ __all__ = [
     "SimulationScenario",
     "SkillRunAudit",
     "TelemetrySnapshot",
+    "WorkOrderDraft",
     "load_model",
     "load_model_list",
     "new_id",
