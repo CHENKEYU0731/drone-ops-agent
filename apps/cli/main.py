@@ -24,6 +24,7 @@ from packages.drone_schemas import (
     load_model,
     load_model_list,
     read_json_file,
+    write_json,
     write_model,
     write_model_list,
     SkillRunAudit,
@@ -37,6 +38,8 @@ from packages.simulation import parse_simulation_result, validate_simulation_res
 from packages.state_monitoring import run_monitoring_replay
 from packages.telemetry_rules import summarize_flight
 from packages.work_orders import generate_work_order_drafts, render_work_order_drafts_markdown
+from packages.work_orders import WorkOrderValidationError, validate_work_order_drafts
+from packages.work_orders.validation import WorkOrderValidationResult
 
 
 app = typer.Typer(help="无人机运维 Agent 离线 MVP CLI。")
@@ -78,11 +81,30 @@ def generate_report_command(
     diagnosis: Path = typer.Option(..., "--diagnosis", help="diagnosis.json 路径。"),
     maintenance: Path = typer.Option(..., "--maintenance", help="maintenance_recommendations.json 路径。"),
     simulation: Path | None = typer.Option(None, "--simulation", help="simulation_run.json 路径。"),
+    work_orders: Path | None = typer.Option(None, "--work-orders", help="work_order_drafts.json 路径。"),
+    work_order_validation: Path | None = typer.Option(
+        None,
+        "--work-order-validation",
+        help="work_order_validation.json 路径。",
+    ),
     out: Path = typer.Option(..., "--out", help="Markdown 报告输出路径。"),
     pdf: Path | None = typer.Option(None, "--pdf", help="PDF 报告输出路径。"),
     asset: Path = typer.Option(Path("data/sample_assets/uav_001.json"), "--asset", help="无人机资产 JSON 路径。"),
 ) -> None:
-    _run_cli(lambda: _run_generate_report(summary, diagnosis, maintenance, out, asset, pdf, anomalies, simulation))
+    _run_cli(
+        lambda: _run_generate_report(
+            summary,
+            diagnosis,
+            maintenance,
+            out,
+            asset,
+            pdf,
+            anomalies,
+            simulation,
+            work_orders,
+            work_order_validation,
+        )
+    )
     typer.echo(f"报告生成完成: {out}")
 
 
@@ -94,6 +116,27 @@ def generate_work_orders_command(
 ) -> None:
     _run_cli(lambda: _run_generate_work_orders(maintenance, asset, out))
     typer.echo(f"工单草稿生成完成: {out}")
+
+
+@app.command("validate-work-orders")
+def validate_work_orders_command(
+    drafts: Path = typer.Option(..., "--drafts", help="work_order_drafts.json 路径。"),
+    out: Path = typer.Option(..., "--out", help="输出目录。"),
+) -> None:
+    try:
+        result = _run_validate_work_orders(drafts, out)
+    except WorkOrderValidationError as exc:
+        typer.echo("Error: work order validation failed", err=True)
+        for error in exc.errors:
+            typer.echo(f"- {error}", err=True)
+        raise typer.Exit(code=1) from exc
+    except (FileNotFoundError, ValueError) as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo("Work order validation passed")
+    typer.echo(f"validated drafts: {result.counts.validated_drafts}")
+    typer.echo(f"evidence refs: {result.counts.evidence_refs}")
 
 
 @app.command("run-mvp")
@@ -430,6 +473,8 @@ def _run_generate_report(
     pdf_path: Path | None = None,
     anomalies_path: Path | None = None,
     simulation_path: Path | None = None,
+    work_orders_path: Path | None = None,
+    work_order_validation_path: Path | None = None,
 ) -> str:
     out.parent.mkdir(parents=True, exist_ok=True)
     summary = load_model(summary_path, FlightLogSummary)
@@ -439,6 +484,12 @@ def _run_generate_report(
     maintenance = load_model_list(maintenance_path, MaintenanceRecommendation)
     asset = load_model(asset_path, DroneAsset)
     simulation = load_model(simulation_path, SimulationRun) if simulation_path is not None else None
+    work_orders = load_model_list(work_orders_path, WorkOrderDraft) if work_orders_path is not None else None
+    work_order_validation = (
+        load_model(work_order_validation_path, WorkOrderValidationResult)
+        if work_order_validation_path is not None
+        else None
+    )
     previous_audits = _load_report_audits(out.parent)
     audit = write_audit_record(
         out_dir=out.parent,
@@ -451,6 +502,8 @@ def _run_generate_report(
             str(resolved_anomalies_path),
             str(asset_path),
             *([str(simulation_path)] if simulation_path is not None else []),
+            *([str(work_orders_path)] if work_orders_path is not None else []),
+            *([str(work_order_validation_path)] if work_order_validation_path is not None else []),
         ],
         output_refs=[str(out)],
         tools_called=["render_ops_report"],
@@ -466,6 +519,8 @@ def _run_generate_report(
         asset=asset,
         audits=[*previous_audits, audit],
         simulation=simulation,
+        work_orders=work_orders,
+        work_order_validation=work_order_validation,
     )
     out.write_text(report, encoding="utf-8")
     if pdf_path is not None:
@@ -515,6 +570,38 @@ def _run_generate_work_orders(
         },
     )
     return drafts
+
+
+def _run_validate_work_orders(
+    drafts_path: Path,
+    out: Path,
+):
+    out.mkdir(parents=True, exist_ok=True)
+    payload = read_json_file(drafts_path)
+    if not isinstance(payload, list):
+        raise ValueError(f"work_order_drafts.json 必须是列表: {drafts_path}")
+    drafts = [item for item in payload if isinstance(item, dict)]
+    if len(drafts) != len(payload):
+        raise ValueError(f"work_order_drafts.json 中的每一项都必须是对象: {drafts_path}")
+    result = validate_work_order_drafts(drafts, checked_files={"drafts": str(drafts_path)})
+    validation_path = out / "work_order_validation.json"
+    write_json(validation_path, result.serializable_payload())
+    write_audit_record(
+        out_dir=out,
+        skill_name="work-order-validation",
+        skill_version="1.0.0",
+        input_refs=[str(drafts_path)],
+        output_refs=[str(validation_path)],
+        tools_called=["validate_work_order_drafts"],
+        rules_triggered=[],
+        human_review_required=True,
+        status="success",
+        metadata={
+            "validated_drafts": result.counts.validated_drafts,
+            "safety_boundary": "offline-validation-only",
+        },
+    )
+    return result
 
 
 if __name__ == "__main__":

@@ -224,6 +224,39 @@ python -m apps.cli.main generate-work-orders \
 
 输出文件为 `work_order_drafts.json`、`work_order_drafts.md` 和 `audit/work-order-drafting-*.json`。每条工单草稿都会保留来源维护建议、`evidence_refs`、审批要求、预计工作量、`status=DRAFT` 和 `human_review_required=true`。这些输出只代表离线建议草稿，必须由合格人员人工确认后才能进入真实维护流程。
 
+`validate-work-orders` 可以对本地工单草稿做离线质量门禁，检查草稿是否保留证据、来源维护建议、人工审批字段和 `DRAFT` 状态。
+
+```bash
+drone-ops validate-work-orders \
+  --drafts data/sample_reports/work_order_drafts.json \
+  --out data/sample_reports/
+```
+
+未安装 CLI 入口时，可以使用：
+
+```bash
+python -m apps.cli.main validate-work-orders \
+  --drafts data/sample_reports/work_order_drafts.json \
+  --out data/sample_reports/
+```
+
+输出文件为 `work_order_validation.json` 和 `audit/work-order-validation-*.json`。验证通过只代表草稿结构和证据链满足离线质量门禁，不代表真实派单或维护授权。
+
+`generate-report` 可以可选纳入工单草稿和工单验证结果，在 `ops_report.md` 中展示 `## 7.9 工单草稿` 和 `## 7.10 工单验证` 章节。
+
+```bash
+drone-ops generate-report \
+  --summary data/sample_reports/flight_summary.json \
+  --anomalies data/sample_reports/anomalies.json \
+  --diagnosis data/sample_reports/diagnosis.json \
+  --maintenance data/sample_reports/maintenance_recommendations.json \
+  --work-orders data/sample_reports/work_order_drafts.json \
+  --work-order-validation data/sample_reports/work_order_validation.json \
+  --out data/sample_reports/ops_report.md
+```
+
+这些报告章节仍然只是离线复核材料，不会连接真实维修系统，不会自动派单，也不会执行维护动作。
+
 ## 输出文件
 
 运行后会生成：
@@ -238,6 +271,7 @@ python -m apps.cli.main generate-work-orders \
 - `monitoring_summary.json` 和 `monitoring_events.json`，仅在运行 `monitor-replay` 时生成
 - `simulation_run.json`，仅在运行 `validate-simulation` 时生成
 - `work_order_drafts.json` 和 `work_order_drafts.md`，仅在运行 `generate-work-orders` 时生成
+- `work_order_validation.json`，仅在运行 `validate-work-orders` 时生成
 - `audit/*.json`
 
 ## 运行测试
@@ -251,6 +285,13 @@ v0.7.0 release readiness checklist:
 - `docs/v0.7.0_release_readiness.md`
 - `python -m apps.cli.main validate-report --report-dir <tmp-report-dir> --write-index`
 - `python -m apps.cli.main validate-simulation --scenario data/sample_simulation/example_scenario.json --result data/sample_simulation/example_simulation_result.json --out <tmp-simulation-dir>`
+
+v0.9.0 release readiness checklist:
+
+- `docs/v0.9.0_release_readiness.md`
+- `python -m apps.cli.main generate-work-orders --maintenance <tmp-report-dir>/maintenance_recommendations.json --asset data/sample_assets/uav_001.json --out <tmp-report-dir>`
+- `python -m apps.cli.main validate-work-orders --drafts <tmp-report-dir>/work_order_drafts.json --out <tmp-report-dir>`
+- `python -m apps.cli.main generate-report --summary <tmp-report-dir>/flight_summary.json --anomalies <tmp-report-dir>/anomalies.json --diagnosis <tmp-report-dir>/diagnosis.json --maintenance <tmp-report-dir>/maintenance_recommendations.json --work-orders <tmp-report-dir>/work_order_drafts.json --work-order-validation <tmp-report-dir>/work_order_validation.json --out <tmp-report-dir>/ops_report.md`
 
 ## 添加新的 skill
 

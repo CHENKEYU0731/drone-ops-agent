@@ -8,7 +8,9 @@ from packages.drone_schemas import (
     MaintenanceRecommendation,
     SimulationRun,
     SkillRunAudit,
+    WorkOrderDraft,
 )
+from packages.work_orders.validation import WorkOrderValidationResult
 
 
 SKILL_NAME = "ops-report-generation"
@@ -23,6 +25,8 @@ def render_ops_report(
     asset: DroneAsset,
     audits: list[SkillRunAudit],
     simulation: SimulationRun | None = None,
+    work_orders: list[WorkOrderDraft] | None = None,
+    work_order_validation: WorkOrderValidationResult | None = None,
 ) -> str:
     lines: list[str] = [
         "# 无人机运维报告",
@@ -104,6 +108,10 @@ def render_ops_report(
     lines.extend(_audit_summary_section(audits))
     lines.extend(_parser_metadata_section(audits))
     lines.extend(_human_review_checklist(anomalies, diagnosis, maintenance, simulation))
+    if work_orders is not None:
+        lines.extend(_work_order_section(work_orders))
+    if work_order_validation is not None:
+        lines.extend(_work_order_validation_section(work_order_validation))
 
     lines.extend(
         [
@@ -153,6 +161,44 @@ def _simulation_section(simulation: SimulationRun) -> list[str]:
     if len(simulation.rule_results) > 8:
         lines.append(f"  - 另有 {len(simulation.rule_results) - 8} 条规则结果未在摘要中展开。")
     lines.append(f"- 仿真证据：{_brief_refs(simulation.evidence_refs)}")
+    return lines
+
+
+def _work_order_section(work_orders: list[WorkOrderDraft]) -> list[str]:
+    lines = [
+        "",
+        "## 7.9 工单草稿",
+        "- 说明：本章节只展示离线工单草稿，不会自动派单，不会连接真实 CMMS/Jira/飞书/企业微信，也不会执行维护动作。",
+    ]
+    if not work_orders:
+        lines.append("- 暂无工单草稿。")
+        return lines
+    for draft in work_orders:
+        lines.extend(
+            [
+                f"- `{draft.work_order_id}` `{draft.status}` [{draft.priority.value}] {draft.component}：{draft.action}",
+                f"  - 来源维护建议：`{draft.source_recommendation_id}`",
+                f"  - 审批要求：{draft.required_approval}；预计工作量：{draft.estimated_effort}",
+                f"  - 人工复核：`{str(draft.human_review_required).lower()}`",
+                f"  - 证据：{_brief_refs(draft.evidence_refs)}",
+            ]
+        )
+    return lines
+
+
+def _work_order_validation_section(validation: WorkOrderValidationResult) -> list[str]:
+    lines = [
+        "",
+        "## 7.10 工单验证",
+        f"- 验证状态：`{validation.status}`",
+        f"- 已验证草稿：{validation.counts.validated_drafts}",
+        f"- 证据引用：{validation.counts.evidence_refs}",
+        "- 说明：验证通过只表示草稿结构和证据链满足离线质量门禁，不代表真实派单或维护授权。",
+    ]
+    for error in validation.errors:
+        lines.append(f"- 错误：{error}")
+    for warning in validation.warnings:
+        lines.append(f"- 警告：{warning}")
     return lines
 
 

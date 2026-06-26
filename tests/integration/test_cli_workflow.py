@@ -135,6 +135,75 @@ def test_generate_report_cli_accepts_simulation_run(tmp_path: Path) -> None:
     assert "SIM_RESULT_COMPLETED" in report
 
 
+def test_generate_report_cli_accepts_work_order_outputs(tmp_path: Path) -> None:
+    out_dir = tmp_path / "reports"
+    result = runner.invoke(
+        app,
+        [
+            "run-mvp",
+            "--log",
+            "data/sample_logs/example_flight.csv",
+            "--asset",
+            "data/sample_assets/uav_001.json",
+            "--out",
+            str(out_dir),
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    result = runner.invoke(
+        app,
+        [
+            "generate-work-orders",
+            "--maintenance",
+            str(out_dir / "maintenance_recommendations.json"),
+            "--asset",
+            "data/sample_assets/uav_001.json",
+            "--out",
+            str(out_dir),
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    result = runner.invoke(
+        app,
+        [
+            "validate-work-orders",
+            "--drafts",
+            str(out_dir / "work_order_drafts.json"),
+            "--out",
+            str(out_dir),
+        ],
+    )
+    assert result.exit_code == 0, result.output
+
+    result = runner.invoke(
+        app,
+        [
+            "generate-report",
+            "--summary",
+            str(out_dir / "flight_summary.json"),
+            "--anomalies",
+            str(out_dir / "anomalies.json"),
+            "--diagnosis",
+            str(out_dir / "diagnosis.json"),
+            "--maintenance",
+            str(out_dir / "maintenance_recommendations.json"),
+            "--work-orders",
+            str(out_dir / "work_order_drafts.json"),
+            "--work-order-validation",
+            str(out_dir / "work_order_validation.json"),
+            "--out",
+            str(out_dir / "ops_report.md"),
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    report = (out_dir / "ops_report.md").read_text(encoding="utf-8")
+    assert "## 7.9 工单草稿" in report
+    assert "## 7.10 工单验证" in report
+    assert "验证状态：`passed`" in report
+    assert "不会自动派单" in report
+
+
 def test_cli_reports_clear_missing_file_errors(tmp_path: Path) -> None:
     result = runner.invoke(
         app,
