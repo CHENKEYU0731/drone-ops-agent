@@ -49,3 +49,14 @@ v0.6.0 real sample log validation 工作流：
 - 如果无法确认授权、脱敏或文件大小，不要提交真实日志；使用 mock fixture、fake real-path tests 或 documented placeholder。
 - 默认测试必须能在没有真实 `.ulg` / `.bin` 的情况下通过；真实 fixture 测试应 skip 并提示 README。
 - 可选依赖仍只能通过 `pip install -e .[px4]` 或 `pip install -e .[ardupilot]` 安装，不得加入默认或 dev 依赖。
+
+v0.7.0 release readiness 工作流：
+
+- 使用 `docs/v0.7.0_release_readiness.md` 作为发布前质量门禁清单。
+- 运行 `pytest`。
+- 使用 `python -m apps.cli.main run-mvp --log data/sample_logs/example_flight.csv --asset data/sample_assets/uav_001.json --out <tmp-report-dir>` 生成临时报表目录。
+- 运行 `python -m apps.cli.main validate-report --report-dir <tmp-report-dir> --write-index`。
+- 确认 `<tmp-report-dir>/evidence_index.json` 和 `<tmp-report-dir>/report_validation.json` 已生成。
+- 运行 `python -m apps.cli.main validate-simulation --scenario data/sample_simulation/example_scenario.json --result data/sample_simulation/example_simulation_result.json --out <tmp-simulation-dir>`。
+- 确认最新 `main` GitHub Actions 在 Python 3.11 和 Python 3.12 上均为 success。
+- 保持 offline-only 和 advisory-only；不得添加真实无人机控制、MAVLink command execution、真实仿真器启动或敏感/二进制飞行日志。
