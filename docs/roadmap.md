@@ -1,6 +1,6 @@
 # 路线图
 
-项目当前已发布到 `v0.7.0 - Quality Gate Baselines`。
+项目当前已发布到 `v0.9.0 - Work Order Drafts`。
 
 详细规划见：
 
@@ -15,18 +15,22 @@
   - 增强 `validate-report`、`evidence_index.json` 和 `report_validation.json`。
   - 增加 offline/mock simulation scenario matrix。
   - 增加 `validate-simulation` operational rules 和 `rule_results`。
+- `v0.8.0 - Report Integration Plus`
+  - 将仿真验证、审计摘要、parser metadata 和人工复核清单纳入 Markdown/PDF 报告。
+- `v0.9.0 - Work Order Drafts`
+  - 增加工单草稿生成、工单草稿验证和报告中的工单章节。
 
 ## 下一阶段
 
-### v0.8.0：Report Integration Plus
+### v1.0.0：Stable Offline Ops Agent
 
-目标：让报告成为单次运维复盘材料，逐步纳入仿真结果、审计摘要、parser metadata、人工复核清单和 PDF 验证。
+目标：冻结并稳定从 `v0.1.0` 到 `v0.9.0` 的完整离线能力，形成第一个可靠主版本。
 
 建议拆成小 PR：
 
-1. `generate-report --simulation <simulation_run.json>`，Markdown 报告增加仿真验证章节。
-2. 报告增加 audit summary、parser metadata 和 human review checklist。
-3. PDF 输出同步验证新增章节。
+1. 稳定合同盘点：CLI、JSON 输出、schema、audit 和安全边界。
+2. 安全边界回归测试：集中验证没有真实飞控、仿真器或维修系统接入。
+3. v1.0.0 release readiness：完整 CLI / 报告 / 验证 / GitHub Actions 收口。
 
 ## 长期方向
 
