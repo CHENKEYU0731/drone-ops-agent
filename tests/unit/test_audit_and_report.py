@@ -9,6 +9,7 @@ from packages.maintenance_rules import generate_maintenance_recommendations
 from packages.report_templates import render_ops_report
 from packages.simulation import parse_simulation_result, validate_simulation_result
 from packages.telemetry_rules import summarize_flight
+from packages.work_orders import generate_work_order_drafts, validate_work_order_drafts
 
 
 def test_audit_record_is_written(tmp_path: Path) -> None:
@@ -141,3 +142,33 @@ def test_report_includes_audit_summary_parser_metadata_and_review_checklist(tmp_
     assert "## 7.8 人工复核清单" in report
     assert "- [ ] 复核异常事件证据链：27 条异常。" in report
     assert "- [ ] 复核维护建议审批要求：7 条建议。" in report
+
+
+def test_report_can_include_work_order_drafts_and_validation() -> None:
+    asset = load_model(Path("data/sample_assets/uav_001.json"), DroneAsset)
+    records = parse_flight_log(Path("data/sample_logs/example_flight.csv"))
+    summary = summarize_flight(records, drone_id=asset.drone_id, source_log_id="example_flight.csv")
+    anomalies = detect_anomalies(records, drone_id=asset.drone_id, source_log_id="example_flight.csv")
+    diagnosis = generate_fault_hypotheses(summary, anomalies, asset)
+    maintenance = generate_maintenance_recommendations(diagnosis, asset, summary)
+    work_orders = generate_work_order_drafts(maintenance, asset)
+    validation = validate_work_order_drafts([draft.model_dump(mode="json") for draft in work_orders])
+
+    report = render_ops_report(
+        summary=summary,
+        anomalies=anomalies,
+        diagnosis=diagnosis,
+        maintenance=maintenance,
+        asset=asset,
+        audits=[],
+        work_orders=work_orders,
+        work_order_validation=validation,
+    )
+
+    assert "## 7.9 工单草稿" in report
+    assert work_orders[0].work_order_id in report
+    assert work_orders[0].source_recommendation_id in report
+    assert "不会自动派单" in report
+    assert "## 7.10 工单验证" in report
+    assert "验证状态：`passed`" in report
+    assert "已验证草稿：7" in report

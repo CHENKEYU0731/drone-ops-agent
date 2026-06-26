@@ -242,6 +242,21 @@ python -m apps.cli.main validate-work-orders \
 
 输出文件为 `work_order_validation.json` 和 `audit/work-order-validation-*.json`。验证通过只代表草稿结构和证据链满足离线质量门禁，不代表真实派单或维护授权。
 
+`generate-report` 可以可选纳入工单草稿和工单验证结果，在 `ops_report.md` 中展示 `## 7.9 工单草稿` 和 `## 7.10 工单验证` 章节。
+
+```bash
+drone-ops generate-report \
+  --summary data/sample_reports/flight_summary.json \
+  --anomalies data/sample_reports/anomalies.json \
+  --diagnosis data/sample_reports/diagnosis.json \
+  --maintenance data/sample_reports/maintenance_recommendations.json \
+  --work-orders data/sample_reports/work_order_drafts.json \
+  --work-order-validation data/sample_reports/work_order_validation.json \
+  --out data/sample_reports/ops_report.md
+```
+
+这些报告章节仍然只是离线复核材料，不会连接真实维修系统，不会自动派单，也不会执行维护动作。
+
 ## 输出文件
 
 运行后会生成：
