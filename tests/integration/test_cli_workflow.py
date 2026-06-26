@@ -58,6 +58,11 @@ def test_cli_commands_generate_expected_artifacts(tmp_path: Path) -> None:
     )
     assert result.exit_code == 0, result.output
     assert (out_dir / "ops_report.md").exists()
+    report = (out_dir / "ops_report.md").read_text(encoding="utf-8")
+    assert "## 7.6 审计摘要" in report
+    assert "## 7.7 日志解析元数据" in report
+    assert "解析器：`csv-json-flight-log@1.1.0`" in report
+    assert "## 7.8 人工复核清单" in report
 
 
 def test_generate_report_cli_accepts_simulation_run(tmp_path: Path) -> None:

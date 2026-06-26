@@ -198,6 +198,8 @@ drone-ops generate-report \
 
 该报告章节只展示离线/mock 仿真导入结果、规则命中详情和证据引用，不代表真实飞行授权。
 
+报告还会汇总同一输出目录下的 audit JSON，展示审计摘要、日志解析元数据和人工复核清单。解析元数据来自 `flight-log-analysis` audit，包括 requested format、actual format、parser name、parser version、warnings 和 parser metadata；人工复核清单用于提醒运维人员复核异常、诊断、维护建议和离线仿真结论。
+
 ## 输出文件
 
 运行后会生成：

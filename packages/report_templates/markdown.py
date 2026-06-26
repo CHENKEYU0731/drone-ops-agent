@@ -101,6 +101,10 @@ def render_ops_report(
     if simulation is not None:
         lines.extend(_simulation_section(simulation))
 
+    lines.extend(_audit_summary_section(audits))
+    lines.extend(_parser_metadata_section(audits))
+    lines.extend(_human_review_checklist(anomalies, diagnosis, maintenance, simulation))
+
     lines.extend(
         [
             "",
@@ -150,6 +154,91 @@ def _simulation_section(simulation: SimulationRun) -> list[str]:
         lines.append(f"  - 另有 {len(simulation.rule_results) - 8} 条规则结果未在摘要中展开。")
     lines.append(f"- 仿真证据：{_brief_refs(simulation.evidence_refs)}")
     return lines
+
+
+def _audit_summary_section(audits: list[SkillRunAudit]) -> list[str]:
+    lines = ["", "## 7.6 审计摘要"]
+    if not audits:
+        lines.append("- 本次报告未传入可汇总的审计记录。")
+        return lines
+    for audit in _sorted_audits(audits):
+        triggered = ", ".join(audit.rules_triggered) if audit.rules_triggered else "无"
+        lines.append(
+            f"- `{audit.skill_name}@{audit.skill_version}`：状态 `{audit.status}`，"
+            f"人工复核 `{str(audit.human_review_required).lower()}`，触发规则：{triggered}。"
+        )
+    return lines
+
+
+def _parser_metadata_section(audits: list[SkillRunAudit]) -> list[str]:
+    lines = ["", "## 7.7 日志解析元数据"]
+    parser_audits = [audit for audit in _sorted_audits(audits) if _parser_metadata(audit)]
+    if not parser_audits:
+        lines.append("- 未找到 flight-log-analysis 解析元数据。")
+        return lines
+    for audit in parser_audits:
+        metadata = audit.metadata
+        parser_name = metadata.get("parser_name", "unknown")
+        parser_version = metadata.get("parser_version", "unknown")
+        lines.append(
+            f"- `{audit.run_id}` 请求格式：`{metadata.get('requested_format', 'unknown')}`；"
+            f"实际格式：`{metadata.get('actual_format', 'unknown')}`；"
+            f"解析器：`{parser_name}@{parser_version}`。"
+        )
+        warnings = metadata.get("warnings") or []
+        lines.append(f"  - warnings：{', '.join(str(item) for item in warnings) if warnings else '无'}")
+        parser_metadata = metadata.get("parser_metadata") or {}
+        lines.append(f"  - parser metadata：{_format_metadata(parser_metadata)}")
+    return lines
+
+
+def _human_review_checklist(
+    anomalies: list[AnomalyEvent],
+    diagnosis: list[FaultHypothesis],
+    maintenance: list[MaintenanceRecommendation],
+    simulation: SimulationRun | None = None,
+) -> list[str]:
+    lines = ["", "## 7.8 人工复核清单"]
+    if anomalies:
+        lines.append(f"- [ ] 复核异常事件证据链：{len(anomalies)} 条异常。")
+    else:
+        lines.append("- [ ] 确认本次报告未检测到异常事件。")
+    if diagnosis:
+        lines.append(f"- [ ] 复核故障假设和反证：{len(diagnosis)} 条假设。")
+    else:
+        lines.append("- [ ] 确认本次报告未生成故障假设。")
+    if maintenance:
+        lines.append(f"- [ ] 复核维护建议审批要求：{len(maintenance)} 条建议。")
+    else:
+        lines.append("- [ ] 确认本次报告暂无维护建议。")
+    if simulation is not None:
+        lines.append(f"- [ ] 复核离线仿真结论：`{simulation.status}`。")
+    lines.append("- [ ] 确认本报告不代表真实飞行授权，所有安全相关动作必须在线下人工批准。")
+    return lines
+
+
+def _sorted_audits(audits: list[SkillRunAudit]) -> list[SkillRunAudit]:
+    return sorted(audits, key=lambda audit: (audit.created_at.isoformat(), audit.skill_name, audit.run_id))
+
+
+def _parser_metadata(audit: SkillRunAudit) -> bool:
+    return bool(audit.metadata.get("parser_name") or audit.metadata.get("parser_metadata"))
+
+
+def _format_metadata(metadata: object) -> str:
+    if not isinstance(metadata, dict) or not metadata:
+        return "无"
+    parts: list[str] = []
+    for key in sorted(metadata):
+        value = metadata[key]
+        if isinstance(value, list):
+            rendered = ", ".join(str(item) for item in value)
+        elif isinstance(value, dict):
+            rendered = ", ".join(f"{sub_key}={value[sub_key]}" for sub_key in sorted(value))
+        else:
+            rendered = str(value)
+        parts.append(f"{key}={rendered}")
+    return "；".join(parts)
 
 
 def _evidence_lines(

@@ -25,6 +25,7 @@ from packages.drone_schemas import (
     read_json_file,
     write_model,
     write_model_list,
+    SkillRunAudit,
 )
 from packages.log_parsers import SUPPORTED_LOG_FORMATS, ParsedFlightLog, parse_flight_log_details
 from packages.maintenance_rules import generate_maintenance_recommendations
@@ -426,6 +427,7 @@ def _run_generate_report(
     maintenance = load_model_list(maintenance_path, MaintenanceRecommendation)
     asset = load_model(asset_path, DroneAsset)
     simulation = load_model(simulation_path, SimulationRun) if simulation_path is not None else None
+    previous_audits = _load_report_audits(out.parent)
     audit = write_audit_record(
         out_dir=out.parent,
         skill_name="ops-report-generation",
@@ -450,13 +452,26 @@ def _run_generate_report(
         diagnosis=diagnosis,
         maintenance=maintenance,
         asset=asset,
-        audits=[audit],
+        audits=[*previous_audits, audit],
         simulation=simulation,
     )
     out.write_text(report, encoding="utf-8")
     if pdf_path is not None:
         export_markdown_to_pdf(out, pdf_path)
     return report
+
+
+def _load_report_audits(report_dir: Path) -> list[SkillRunAudit]:
+    audit_dir = report_dir / "audit"
+    if not audit_dir.exists():
+        return []
+    audits: list[SkillRunAudit] = []
+    for path in sorted(audit_dir.glob("*.json")):
+        audit = load_model(path, SkillRunAudit)
+        if audit.skill_name == "ops-report-generation":
+            continue
+        audits.append(audit)
+    return sorted(audits, key=lambda item: (item.created_at.isoformat(), item.skill_name, item.run_id))
 
 
 if __name__ == "__main__":
