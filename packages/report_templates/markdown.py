@@ -6,6 +6,7 @@ from packages.drone_schemas import (
     FaultHypothesis,
     FlightLogSummary,
     MaintenanceRecommendation,
+    SimulationRun,
     SkillRunAudit,
 )
 
@@ -21,6 +22,7 @@ def render_ops_report(
     maintenance: list[MaintenanceRecommendation],
     asset: DroneAsset,
     audits: list[SkillRunAudit],
+    simulation: SimulationRun | None = None,
 ) -> str:
     lines: list[str] = [
         "# 无人机运维报告",
@@ -96,6 +98,9 @@ def render_ops_report(
     if not maintenance:
         lines.append("- 暂无维护建议。")
 
+    if simulation is not None:
+        lines.extend(_simulation_section(simulation))
+
     lines.extend(
         [
             "",
@@ -120,16 +125,38 @@ def render_ops_report(
         lines.append("- 本次单元渲染未传入审计记录。")
 
     lines.extend(["", "## 11. 证据引用附录"])
-    evidence_lines = _evidence_lines(anomalies, diagnosis, maintenance)
+    evidence_lines = _evidence_lines(anomalies, diagnosis, maintenance, simulation)
     lines.extend(evidence_lines or ["- 无证据引用。"])
     lines.append("")
     return "\n".join(lines)
+
+
+def _simulation_section(simulation: SimulationRun) -> list[str]:
+    lines = [
+        "",
+        "## 7.5 仿真验证",
+        f"- 场景 ID：`{simulation.scenario_id}`",
+        f"- 仿真状态：`{simulation.status}`",
+        f"- 人工复核：`{str(simulation.human_review_required).lower()}`",
+        "- 说明：该结果只来自离线/mock 仿真结果导入，不代表真实飞行授权。",
+        "- 规则命中详情：",
+    ]
+    for rule in simulation.rule_results[:8]:
+        lines.append(
+            f"  - `{rule.rule_id}` `{rule.status}`：{rule.field}={rule.measured_value}，阈值 `{rule.threshold}`"
+        )
+        lines.append(f"    - 证据：{_brief_refs(rule.evidence_refs)}")
+    if len(simulation.rule_results) > 8:
+        lines.append(f"  - 另有 {len(simulation.rule_results) - 8} 条规则结果未在摘要中展开。")
+    lines.append(f"- 仿真证据：{_brief_refs(simulation.evidence_refs)}")
+    return lines
 
 
 def _evidence_lines(
     anomalies: list[AnomalyEvent],
     diagnosis: list[FaultHypothesis],
     maintenance: list[MaintenanceRecommendation],
+    simulation: SimulationRun | None = None,
 ) -> list[str]:
     refs = []
     for anomaly in anomalies:
@@ -138,6 +165,8 @@ def _evidence_lines(
         refs.extend(hypothesis.supporting_evidence)
     for recommendation in maintenance:
         refs.extend(recommendation.evidence_refs)
+    if simulation is not None:
+        refs.extend(simulation.evidence_refs)
 
     lines: list[str] = []
     seen: set[tuple[str, str, str]] = set()
@@ -158,5 +187,5 @@ def _brief_refs(refs) -> str:
         return "无"
     parts = [f"{ref.rule_id}@{ref.source_id}" for ref in refs[:3]]
     if len(refs) > 3:
-        parts.append(f"另 {len(refs) - 3} 条")
+        parts.append(f"另有 {len(refs) - 3} 条")
     return "；".join(parts)

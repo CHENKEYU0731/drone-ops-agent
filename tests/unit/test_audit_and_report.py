@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from packages.audit_logger import write_audit_record
-from packages.drone_schemas import DroneAsset, load_model
+from packages.drone_schemas import DroneAsset, SimulationRun, load_model
 from packages.anomaly_detection import detect_anomalies
 from packages.diagnosis_rules import generate_fault_hypotheses
 from packages.log_parsers import parse_flight_log
@@ -60,3 +60,30 @@ def test_report_contains_required_sections() -> None:
         assert heading in report
     assert "证据：" in report
     assert "LOW_BATTERY_SOC" in report
+
+
+def test_report_can_include_simulation_validation_section() -> None:
+    asset = load_model(Path("data/sample_assets/uav_001.json"), DroneAsset)
+    records = parse_flight_log(Path("data/sample_logs/example_flight.csv"))
+    summary = summarize_flight(records, drone_id=asset.drone_id, source_log_id="example_flight.csv")
+    anomalies = detect_anomalies(records, drone_id=asset.drone_id, source_log_id="example_flight.csv")
+    diagnosis = generate_fault_hypotheses(summary, anomalies, asset)
+    maintenance = generate_maintenance_recommendations(diagnosis, asset, summary)
+    simulation = load_model(Path("data/sample_reports/simulation_run.json"), SimulationRun)
+
+    report = render_ops_report(
+        summary=summary,
+        anomalies=anomalies,
+        diagnosis=diagnosis,
+        maintenance=maintenance,
+        asset=asset,
+        audits=[],
+        simulation=simulation,
+    )
+
+    assert "## 7.5 仿真验证" in report
+    assert "仿真状态：`PASS`" in report
+    assert "场景 ID：`SIM-SCENARIO-001`" in report
+    assert "人工复核：`true`" in report
+    assert "SIM_RESULT_COMPLETED" in report
+    assert "## 11. 证据引用附录" in report
