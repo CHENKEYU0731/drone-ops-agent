@@ -24,6 +24,7 @@ from packages.drone_schemas import (
     load_model,
     load_model_list,
     read_json_file,
+    write_json,
     write_model,
     write_model_list,
     SkillRunAudit,
@@ -37,6 +38,7 @@ from packages.simulation import parse_simulation_result, validate_simulation_res
 from packages.state_monitoring import run_monitoring_replay
 from packages.telemetry_rules import summarize_flight
 from packages.work_orders import generate_work_order_drafts, render_work_order_drafts_markdown
+from packages.work_orders import WorkOrderValidationError, validate_work_order_drafts
 
 
 app = typer.Typer(help="无人机运维 Agent 离线 MVP CLI。")
@@ -94,6 +96,27 @@ def generate_work_orders_command(
 ) -> None:
     _run_cli(lambda: _run_generate_work_orders(maintenance, asset, out))
     typer.echo(f"工单草稿生成完成: {out}")
+
+
+@app.command("validate-work-orders")
+def validate_work_orders_command(
+    drafts: Path = typer.Option(..., "--drafts", help="work_order_drafts.json 路径。"),
+    out: Path = typer.Option(..., "--out", help="输出目录。"),
+) -> None:
+    try:
+        result = _run_validate_work_orders(drafts, out)
+    except WorkOrderValidationError as exc:
+        typer.echo("Error: work order validation failed", err=True)
+        for error in exc.errors:
+            typer.echo(f"- {error}", err=True)
+        raise typer.Exit(code=1) from exc
+    except (FileNotFoundError, ValueError) as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+    typer.echo("Work order validation passed")
+    typer.echo(f"validated drafts: {result.counts.validated_drafts}")
+    typer.echo(f"evidence refs: {result.counts.evidence_refs}")
 
 
 @app.command("run-mvp")
@@ -515,6 +538,38 @@ def _run_generate_work_orders(
         },
     )
     return drafts
+
+
+def _run_validate_work_orders(
+    drafts_path: Path,
+    out: Path,
+):
+    out.mkdir(parents=True, exist_ok=True)
+    payload = read_json_file(drafts_path)
+    if not isinstance(payload, list):
+        raise ValueError(f"work_order_drafts.json 必须是列表: {drafts_path}")
+    drafts = [item for item in payload if isinstance(item, dict)]
+    if len(drafts) != len(payload):
+        raise ValueError(f"work_order_drafts.json 中的每一项都必须是对象: {drafts_path}")
+    result = validate_work_order_drafts(drafts, checked_files={"drafts": str(drafts_path)})
+    validation_path = out / "work_order_validation.json"
+    write_json(validation_path, result.serializable_payload())
+    write_audit_record(
+        out_dir=out,
+        skill_name="work-order-validation",
+        skill_version="1.0.0",
+        input_refs=[str(drafts_path)],
+        output_refs=[str(validation_path)],
+        tools_called=["validate_work_order_drafts"],
+        rules_triggered=[],
+        human_review_required=True,
+        status="success",
+        metadata={
+            "validated_drafts": result.counts.validated_drafts,
+            "safety_boundary": "offline-validation-only",
+        },
+    )
+    return result
 
 
 if __name__ == "__main__":

@@ -224,6 +224,24 @@ python -m apps.cli.main generate-work-orders \
 
 输出文件为 `work_order_drafts.json`、`work_order_drafts.md` 和 `audit/work-order-drafting-*.json`。每条工单草稿都会保留来源维护建议、`evidence_refs`、审批要求、预计工作量、`status=DRAFT` 和 `human_review_required=true`。这些输出只代表离线建议草稿，必须由合格人员人工确认后才能进入真实维护流程。
 
+`validate-work-orders` 可以对本地工单草稿做离线质量门禁，检查草稿是否保留证据、来源维护建议、人工审批字段和 `DRAFT` 状态。
+
+```bash
+drone-ops validate-work-orders \
+  --drafts data/sample_reports/work_order_drafts.json \
+  --out data/sample_reports/
+```
+
+未安装 CLI 入口时，可以使用：
+
+```bash
+python -m apps.cli.main validate-work-orders \
+  --drafts data/sample_reports/work_order_drafts.json \
+  --out data/sample_reports/
+```
+
+输出文件为 `work_order_validation.json` 和 `audit/work-order-validation-*.json`。验证通过只代表草稿结构和证据链满足离线质量门禁，不代表真实派单或维护授权。
+
 ## 输出文件
 
 运行后会生成：
@@ -238,6 +256,7 @@ python -m apps.cli.main generate-work-orders \
 - `monitoring_summary.json` 和 `monitoring_events.json`，仅在运行 `monitor-replay` 时生成
 - `simulation_run.json`，仅在运行 `validate-simulation` 时生成
 - `work_order_drafts.json` 和 `work_order_drafts.md`，仅在运行 `generate-work-orders` 时生成
+- `work_order_validation.json`，仅在运行 `validate-work-orders` 时生成
 - `audit/*.json`
 
 ## 运行测试
