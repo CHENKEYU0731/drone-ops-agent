@@ -286,6 +286,13 @@ v0.7.0 release readiness checklist:
 - `python -m apps.cli.main validate-report --report-dir <tmp-report-dir> --write-index`
 - `python -m apps.cli.main validate-simulation --scenario data/sample_simulation/example_scenario.json --result data/sample_simulation/example_simulation_result.json --out <tmp-simulation-dir>`
 
+v0.9.0 release readiness checklist:
+
+- `docs/v0.9.0_release_readiness.md`
+- `python -m apps.cli.main generate-work-orders --maintenance <tmp-report-dir>/maintenance_recommendations.json --asset data/sample_assets/uav_001.json --out <tmp-report-dir>`
+- `python -m apps.cli.main validate-work-orders --drafts <tmp-report-dir>/work_order_drafts.json --out <tmp-report-dir>`
+- `python -m apps.cli.main generate-report --summary <tmp-report-dir>/flight_summary.json --anomalies <tmp-report-dir>/anomalies.json --diagnosis <tmp-report-dir>/diagnosis.json --maintenance <tmp-report-dir>/maintenance_recommendations.json --work-orders <tmp-report-dir>/work_order_drafts.json --work-order-validation <tmp-report-dir>/work_order_validation.json --out <tmp-report-dir>/ops_report.md`
+
 ## 添加新的 skill
 
 1. 在 `skills/<skill-name>/` 下创建 `SKILL.md`、`schema.json`、`examples/` 和 `tests/`。
