@@ -20,6 +20,14 @@ class SimulationResult(BaseModel):
     failsafe_events: list[str] = Field(default_factory=list)
     failure_events: list[str] = Field(default_factory=list)
     energy_remaining_pct: float = Field(ge=0, le=100)
+    return_home_altitude_m: float | None = Field(default=None, ge=0)
+    low_battery_return_triggered: bool | None = None
+    max_link_loss_duration_s: float | None = Field(default=None, ge=0)
+    geofence_margin_m: float | None = None
+    wind_speed_mps: float | None = Field(default=None, ge=0)
+    mission_completion_pct: float | None = Field(default=None, ge=0, le=100)
+    payload_mass_kg: float | None = Field(default=None, ge=0)
+    endurance_margin_pct: float | None = Field(default=None, ge=0, le=100)
     timeout: bool = False
     constraints: dict[str, float] = Field(default_factory=dict)
 

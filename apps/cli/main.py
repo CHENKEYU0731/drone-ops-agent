@@ -354,7 +354,7 @@ def _run_validate_simulation(
         input_refs=[str(scenario_path), str(result_path)],
         output_refs=[str(output_path)],
         tools_called=["parse_simulation_result", "validate_simulation_result"],
-        rules_triggered=sorted({ref.rule_id for ref in run.evidence_refs}),
+        rules_triggered=sorted({ref.rule_id for ref in run.evidence_refs} | {item.rule_id for item in run.rule_results}),
         human_review_required=True,
         status="success",
         metadata={
