@@ -17,6 +17,7 @@ from packages.drone_schemas import (
     PreflightCheckResult,
     Severity,
     SkillRunAudit,
+    WorkOrderDraft,
 )
 
 
@@ -119,6 +120,32 @@ def test_output_models_carry_evidence_and_human_review() -> None:
     assert fault.evidence_refs[0].rule_id == "BATTERY_LOW_SOC"
     assert recommendation.human_review_required is True
     assert recommendation.evidence_refs[0].rule_id == "BATTERY_LOW_SOC"
+
+
+def test_work_order_draft_carries_evidence_and_human_review() -> None:
+    ref = evidence()
+    draft = WorkOrderDraft(
+        work_order_id="WO-UAV-001-001",
+        asset_id="UAV-001",
+        component="battery",
+        priority=MaintenancePriority.BEFORE_NEXT_FLIGHT,
+        action="Replace battery before the next flight.",
+        reason="Maintenance recommendation identified a high battery risk.",
+        evidence_refs=[ref],
+        required_approval="maintenance_lead",
+        estimated_effort="30 minutes",
+        reviewer=None,
+        status="DRAFT",
+        source_recommendation_id="MAINT-001",
+        drone_id="UAV-001",
+        generated_by_skill="work-order-drafting",
+        skill_version="1.0.0",
+    )
+
+    assert draft.human_review_required is True
+    assert draft.status == "DRAFT"
+    assert draft.source_recommendation_id == "MAINT-001"
+    assert draft.evidence_refs[0].rule_id == "BATTERY_LOW_SOC"
 
 
 def test_skill_run_audit_records_traceability() -> None:

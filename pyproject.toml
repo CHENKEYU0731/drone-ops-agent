@@ -48,6 +48,7 @@ packages = [
   "packages.report_templates",
   "packages.report_validation",
   "packages.audit_logger",
+  "packages.work_orders",
 ]
 
 [tool.pytest.ini_options]

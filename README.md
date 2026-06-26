@@ -202,6 +202,28 @@ drone-ops generate-report \
 
 使用 `--pdf` 同步导出 PDF 时，v0.8.0 新增的仿真验证、审计摘要、日志解析元数据和人工复核清单章节会随 Markdown 报告一起进入 PDF。PDF 仍只是本地离线报告，不代表真实飞行授权。
 
+## 工单草稿
+
+`generate-work-orders` 可以把 `maintenance_recommendations.json` 转换为本地工单草稿，用于人工复核和后续维护排程讨论。它只读取本地维护建议和资产 JSON，不会连接真实 CMMS、Jira、飞书或企业微信，不会自动派单，也不会执行任何维护动作。
+
+```bash
+drone-ops generate-work-orders \
+  --maintenance data/sample_reports/maintenance_recommendations.json \
+  --asset data/sample_assets/uav_001.json \
+  --out data/sample_reports/
+```
+
+未安装 CLI 入口时，可以使用：
+
+```bash
+python -m apps.cli.main generate-work-orders \
+  --maintenance data/sample_reports/maintenance_recommendations.json \
+  --asset data/sample_assets/uav_001.json \
+  --out data/sample_reports/
+```
+
+输出文件为 `work_order_drafts.json`、`work_order_drafts.md` 和 `audit/work-order-drafting-*.json`。每条工单草稿都会保留来源维护建议、`evidence_refs`、审批要求、预计工作量、`status=DRAFT` 和 `human_review_required=true`。这些输出只代表离线建议草稿，必须由合格人员人工确认后才能进入真实维护流程。
+
 ## 输出文件
 
 运行后会生成：
@@ -215,6 +237,7 @@ drone-ops generate-report \
 - `preflight_check_result.json`，仅在运行 `preflight-check` 时生成
 - `monitoring_summary.json` 和 `monitoring_events.json`，仅在运行 `monitor-replay` 时生成
 - `simulation_run.json`，仅在运行 `validate-simulation` 时生成
+- `work_order_drafts.json` 和 `work_order_drafts.md`，仅在运行 `generate-work-orders` 时生成
 - `audit/*.json`
 
 ## 运行测试
