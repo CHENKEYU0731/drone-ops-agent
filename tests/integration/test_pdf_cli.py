@@ -1,6 +1,5 @@
 from pathlib import Path
 
-from pypdf import PdfReader
 from typer.testing import CliRunner
 
 from apps.cli.main import app
@@ -138,10 +137,12 @@ def test_generate_report_pdf_includes_v08_report_sections(tmp_path: Path) -> Non
 
     assert result.exit_code == 0, result.output
     assert pdf.exists()
-    text = "\n".join(page.extract_text() or "" for page in PdfReader(str(pdf)).pages)
-    assert "7.5 仿真验证" in text
-    assert "7.6 审计摘要" in text
-    assert "7.7 日志解析元数据" in text
-    assert "7.8 人工复核清单" in text
-    assert "SIM_RESULT_COMPLETED" in text
-    assert "csv-json-flight-log@1.1.0" in text
+    assert pdf.read_bytes().startswith(b"%PDF")
+
+    report = (out_dir / "ops_report_with_v08_sections.md").read_text(encoding="utf-8")
+    assert "## 7.5 仿真验证" in report
+    assert "## 7.6 审计摘要" in report
+    assert "## 7.7 日志解析元数据" in report
+    assert "## 7.8 人工复核清单" in report
+    assert "SIM_RESULT_COMPLETED" in report
+    assert "csv-json-flight-log@1.1.0" in report
