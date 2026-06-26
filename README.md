@@ -184,6 +184,24 @@ v0.7.0 增加了离线/mock simulation scenario matrix 基线：
 
 该 matrix 覆盖 nominal flight、battery sag、GPS degradation、motor vibration anomaly、severe temperature issue、missing telemetry fields 和 inconsistent simulation metadata 等场景。它只用于确定性测试和离线导入验证，不会启动或连接任何真实仿真器。
 
+v0.8.0 起，`generate-report` 可以通过 `--simulation <simulation_run.json>` 将离线仿真验证结果纳入 Markdown 运维报告：
+
+```bash
+drone-ops generate-report \
+  --summary data/sample_reports/flight_summary.json \
+  --anomalies data/sample_reports/anomalies.json \
+  --diagnosis data/sample_reports/diagnosis.json \
+  --maintenance data/sample_reports/maintenance_recommendations.json \
+  --simulation data/sample_reports/simulation_run.json \
+  --out data/sample_reports/ops_report.md
+```
+
+该报告章节只展示离线/mock 仿真导入结果、规则命中详情和证据引用，不代表真实飞行授权。
+
+报告还会汇总同一输出目录下的 audit JSON，展示审计摘要、日志解析元数据和人工复核清单。解析元数据来自 `flight-log-analysis` audit，包括 requested format、actual format、parser name、parser version、warnings 和 parser metadata；人工复核清单用于提醒运维人员复核异常、诊断、维护建议和离线仿真结论。
+
+使用 `--pdf` 同步导出 PDF 时，v0.8.0 新增的仿真验证、审计摘要、日志解析元数据和人工复核清单章节会随 Markdown 报告一起进入 PDF。PDF 仍只是本地离线报告，不代表真实飞行授权。
+
 ## 输出文件
 
 运行后会生成：

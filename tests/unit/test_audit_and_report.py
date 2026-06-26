@@ -1,12 +1,13 @@
 from pathlib import Path
 
 from packages.audit_logger import write_audit_record
-from packages.drone_schemas import DroneAsset, load_model
+from packages.drone_schemas import DroneAsset, SimulationScenario, load_model
 from packages.anomaly_detection import detect_anomalies
 from packages.diagnosis_rules import generate_fault_hypotheses
 from packages.log_parsers import parse_flight_log
 from packages.maintenance_rules import generate_maintenance_recommendations
 from packages.report_templates import render_ops_report
+from packages.simulation import parse_simulation_result, validate_simulation_result
 from packages.telemetry_rules import summarize_flight
 
 
@@ -60,3 +61,83 @@ def test_report_contains_required_sections() -> None:
         assert heading in report
     assert "证据：" in report
     assert "LOW_BATTERY_SOC" in report
+
+
+def test_report_can_include_simulation_validation_section() -> None:
+    asset = load_model(Path("data/sample_assets/uav_001.json"), DroneAsset)
+    records = parse_flight_log(Path("data/sample_logs/example_flight.csv"))
+    summary = summarize_flight(records, drone_id=asset.drone_id, source_log_id="example_flight.csv")
+    anomalies = detect_anomalies(records, drone_id=asset.drone_id, source_log_id="example_flight.csv")
+    diagnosis = generate_fault_hypotheses(summary, anomalies, asset)
+    maintenance = generate_maintenance_recommendations(diagnosis, asset, summary)
+    scenario_path = Path("data/sample_simulation/example_scenario.json")
+    result_path = Path("data/sample_simulation/example_simulation_result.json")
+    scenario = load_model(scenario_path, SimulationScenario)
+    result = parse_simulation_result(result_path)
+    simulation = validate_simulation_result(scenario, result, scenario_path=scenario_path, result_path=result_path)
+
+    report = render_ops_report(
+        summary=summary,
+        anomalies=anomalies,
+        diagnosis=diagnosis,
+        maintenance=maintenance,
+        asset=asset,
+        audits=[],
+        simulation=simulation,
+    )
+
+    assert "## 7.5 仿真验证" in report
+    assert "仿真状态：`PASS`" in report
+    assert "场景 ID：`SIM-SCENARIO-001`" in report
+    assert "人工复核：`true`" in report
+    assert "SIM_RESULT_COMPLETED" in report
+    assert "## 11. 证据引用附录" in report
+
+
+def test_report_includes_audit_summary_parser_metadata_and_review_checklist(tmp_path: Path) -> None:
+    asset = load_model(Path("data/sample_assets/uav_001.json"), DroneAsset)
+    records = parse_flight_log(Path("data/sample_logs/example_flight.csv"))
+    summary = summarize_flight(records, drone_id=asset.drone_id, source_log_id="example_flight.csv")
+    anomalies = detect_anomalies(records, drone_id=asset.drone_id, source_log_id="example_flight.csv")
+    diagnosis = generate_fault_hypotheses(summary, anomalies, asset)
+    maintenance = generate_maintenance_recommendations(diagnosis, asset, summary)
+    audit = write_audit_record(
+        out_dir=tmp_path,
+        skill_name="flight-log-analysis",
+        skill_version="1.0.0",
+        input_refs=["data/sample_logs/example_flight.csv"],
+        output_refs=["flight_summary.json", "anomalies.json"],
+        tools_called=["parse_flight_log_with_metadata:csv-json-flight-log@0.1.0"],
+        rules_triggered=["LOW_BATTERY_SOC"],
+        human_review_required=True,
+        status="success",
+        metadata={
+            "requested_format": "auto",
+            "actual_format": "csv",
+            "parser_name": "csv-json-flight-log",
+            "parser_version": "0.1.0",
+            "parser_metadata": {"fields": ["altitude_m", "battery_soc_pct"]},
+            "warnings": [],
+        },
+    )
+
+    report = render_ops_report(
+        summary=summary,
+        anomalies=anomalies,
+        diagnosis=diagnosis,
+        maintenance=maintenance,
+        asset=asset,
+        audits=[audit],
+    )
+
+    assert "## 7.6 审计摘要" in report
+    assert "flight-log-analysis@1.0.0" in report
+    assert "LOW_BATTERY_SOC" in report
+    assert "## 7.7 日志解析元数据" in report
+    assert "请求格式：`auto`" in report
+    assert "实际格式：`csv`" in report
+    assert "解析器：`csv-json-flight-log@0.1.0`" in report
+    assert "fields=altitude_m, battery_soc_pct" in report
+    assert "## 7.8 人工复核清单" in report
+    assert "- [ ] 复核异常事件证据链：27 条异常。" in report
+    assert "- [ ] 复核维护建议审批要求：7 条建议。" in report

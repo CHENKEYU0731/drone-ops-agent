@@ -58,6 +58,81 @@ def test_cli_commands_generate_expected_artifacts(tmp_path: Path) -> None:
     )
     assert result.exit_code == 0, result.output
     assert (out_dir / "ops_report.md").exists()
+    report = (out_dir / "ops_report.md").read_text(encoding="utf-8")
+    assert "## 7.6 审计摘要" in report
+    assert "## 7.7 日志解析元数据" in report
+    assert "解析器：`csv-json-flight-log@1.1.0`" in report
+    assert "## 7.8 人工复核清单" in report
+
+
+def test_generate_report_cli_accepts_simulation_run(tmp_path: Path) -> None:
+    out_dir = tmp_path / "reports"
+    result = runner.invoke(
+        app,
+        [
+            "analyze-log",
+            "--log",
+            "data/sample_logs/example_flight.csv",
+            "--asset",
+            "data/sample_assets/uav_001.json",
+            "--out",
+            str(out_dir),
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    result = runner.invoke(
+        app,
+        [
+            "diagnose",
+            "--summary",
+            str(out_dir / "flight_summary.json"),
+            "--asset",
+            "data/sample_assets/uav_001.json",
+            "--out",
+            str(out_dir),
+        ],
+    )
+    assert result.exit_code == 0, result.output
+
+    simulation_dir = tmp_path / "simulation"
+    result = runner.invoke(
+        app,
+        [
+            "validate-simulation",
+            "--scenario",
+            "data/sample_simulation/example_scenario.json",
+            "--result",
+            "data/sample_simulation/example_simulation_result.json",
+            "--out",
+            str(simulation_dir),
+        ],
+    )
+    assert result.exit_code == 0, result.output
+
+    result = runner.invoke(
+        app,
+        [
+            "generate-report",
+            "--summary",
+            str(out_dir / "flight_summary.json"),
+            "--anomalies",
+            str(out_dir / "anomalies.json"),
+            "--diagnosis",
+            str(out_dir / "diagnosis.json"),
+            "--maintenance",
+            str(out_dir / "maintenance_recommendations.json"),
+            "--simulation",
+            str(simulation_dir / "simulation_run.json"),
+            "--out",
+            str(out_dir / "ops_report.md"),
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    report = (out_dir / "ops_report.md").read_text(encoding="utf-8")
+    assert "## 7.5 仿真验证" in report
+    assert "仿真状态：`PASS`" in report
+    assert "SIM_RESULT_COMPLETED" in report
 
 
 def test_cli_reports_clear_missing_file_errors(tmp_path: Path) -> None:

@@ -25,6 +25,7 @@ from packages.drone_schemas import (
     read_json_file,
     write_model,
     write_model_list,
+    SkillRunAudit,
 )
 from packages.log_parsers import SUPPORTED_LOG_FORMATS, ParsedFlightLog, parse_flight_log_details
 from packages.maintenance_rules import generate_maintenance_recommendations
@@ -74,11 +75,12 @@ def generate_report_command(
     anomalies: Path | None = typer.Option(None, "--anomalies", help="anomalies.json 路径。"),
     diagnosis: Path = typer.Option(..., "--diagnosis", help="diagnosis.json 路径。"),
     maintenance: Path = typer.Option(..., "--maintenance", help="maintenance_recommendations.json 路径。"),
+    simulation: Path | None = typer.Option(None, "--simulation", help="simulation_run.json 路径。"),
     out: Path = typer.Option(..., "--out", help="Markdown 报告输出路径。"),
     pdf: Path | None = typer.Option(None, "--pdf", help="PDF 报告输出路径。"),
     asset: Path = typer.Option(Path("data/sample_assets/uav_001.json"), "--asset", help="无人机资产 JSON 路径。"),
 ) -> None:
-    _run_cli(lambda: _run_generate_report(summary, diagnosis, maintenance, out, asset, pdf, anomalies))
+    _run_cli(lambda: _run_generate_report(summary, diagnosis, maintenance, out, asset, pdf, anomalies, simulation))
     typer.echo(f"报告生成完成: {out}")
 
 
@@ -415,6 +417,7 @@ def _run_generate_report(
     asset_path: Path,
     pdf_path: Path | None = None,
     anomalies_path: Path | None = None,
+    simulation_path: Path | None = None,
 ) -> str:
     out.parent.mkdir(parents=True, exist_ok=True)
     summary = load_model(summary_path, FlightLogSummary)
@@ -423,11 +426,20 @@ def _run_generate_report(
     diagnosis = load_model_list(diagnosis_path, FaultHypothesis)
     maintenance = load_model_list(maintenance_path, MaintenanceRecommendation)
     asset = load_model(asset_path, DroneAsset)
+    simulation = load_model(simulation_path, SimulationRun) if simulation_path is not None else None
+    previous_audits = _load_report_audits(out.parent)
     audit = write_audit_record(
         out_dir=out.parent,
         skill_name="ops-report-generation",
         skill_version="1.0.0",
-        input_refs=[str(summary_path), str(diagnosis_path), str(maintenance_path), str(resolved_anomalies_path), str(asset_path)],
+        input_refs=[
+            str(summary_path),
+            str(diagnosis_path),
+            str(maintenance_path),
+            str(resolved_anomalies_path),
+            str(asset_path),
+            *([str(simulation_path)] if simulation_path is not None else []),
+        ],
         output_refs=[str(out)],
         tools_called=["render_ops_report"],
         rules_triggered=[],
@@ -440,12 +452,26 @@ def _run_generate_report(
         diagnosis=diagnosis,
         maintenance=maintenance,
         asset=asset,
-        audits=[audit],
+        audits=[*previous_audits, audit],
+        simulation=simulation,
     )
     out.write_text(report, encoding="utf-8")
     if pdf_path is not None:
         export_markdown_to_pdf(out, pdf_path)
     return report
+
+
+def _load_report_audits(report_dir: Path) -> list[SkillRunAudit]:
+    audit_dir = report_dir / "audit"
+    if not audit_dir.exists():
+        return []
+    audits: list[SkillRunAudit] = []
+    for path in sorted(audit_dir.glob("*.json")):
+        audit = load_model(path, SkillRunAudit)
+        if audit.skill_name == "ops-report-generation":
+            continue
+        audits.append(audit)
+    return sorted(audits, key=lambda item: (item.created_at.isoformat(), item.skill_name, item.run_id))
 
 
 if __name__ == "__main__":
