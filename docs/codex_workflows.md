@@ -60,3 +60,17 @@ v0.7.0 release readiness 工作流：
 - 运行 `python -m apps.cli.main validate-simulation --scenario data/sample_simulation/example_scenario.json --result data/sample_simulation/example_simulation_result.json --out <tmp-simulation-dir>`。
 - 确认最新 `main` GitHub Actions 在 Python 3.11 和 Python 3.12 上均为 success。
 - 保持 offline-only 和 advisory-only；不得添加真实无人机控制、MAVLink command execution、真实仿真器启动或敏感/二进制飞行日志。
+
+v1.0.0 release readiness 工作流：
+
+- 使用 `docs/v1.0.0_release_readiness.md` 作为发布前主清单。
+- 运行 `pytest`。
+- 运行 `pytest tests/unit/test_v1_safety_regression_gate.py`。
+- 使用 `python -m apps.cli.main run-mvp --log data/sample_logs/example_flight.csv --asset data/sample_assets/uav_001.json --out <tmp-report-dir>` 生成临时报表目录。
+- 运行 `python -m apps.cli.main validate-report --report-dir <tmp-report-dir> --write-index`。
+- 运行 `python -m apps.cli.main validate-simulation --scenario data/sample_simulation/example_scenario.json --result data/sample_simulation/example_simulation_result.json --out <tmp-simulation-dir>`。
+- 运行 `python -m apps.cli.main generate-work-orders --maintenance <tmp-report-dir>/maintenance_recommendations.json --asset data/sample_assets/uav_001.json --out <tmp-report-dir>`。
+- 运行 `python -m apps.cli.main validate-work-orders --drafts <tmp-report-dir>/work_order_drafts.json --out <tmp-report-dir>`。
+- 可选运行 `python -m apps.cli.main export-pdf --markdown <tmp-report-dir>/ops_report.md --out <tmp-report-dir>/ops_report.pdf`。
+- 确认 GitHub Actions Python 3.11 和 Python 3.12 均为 success。
+- 保持 offline-only、mock-import-only 和 advisory-only；不得添加真实无人机连接、MAVLink command execution、真实仿真器启动、真实工单系统调用或自动派单。
