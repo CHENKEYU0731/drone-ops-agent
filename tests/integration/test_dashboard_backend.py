@@ -57,3 +57,18 @@ def test_dashboard_backend_rejects_write_methods(tmp_path: Path) -> None:
     response = client.post("/api/dashboard/bundle", json={"unsafe": True})
 
     assert response.status_code == 405
+
+
+def test_dashboard_backend_serves_minimal_dashboard_page(tmp_path: Path) -> None:
+    bundle_path = tmp_path / "dashboard_bundle.json"
+    bundle_path.write_text('{"bundle_id": "DASHBOARD-BUNDLE-OFFLINE"}', encoding="utf-8")
+
+    client = TestClient(create_dashboard_app(bundle_path=bundle_path))
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+    assert "无人机运维 Dashboard" in response.text
+    assert "offline-only" in response.text
+    assert "/api/dashboard/bundle" in response.text
