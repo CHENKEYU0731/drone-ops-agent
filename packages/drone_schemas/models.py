@@ -40,6 +40,13 @@ class FleetRiskLevel(str, Enum):
     CRITICAL = "CRITICAL"
 
 
+class EvalStatus(str, Enum):
+    PASS = "PASS"
+    REVIEW_REQUIRED = "REVIEW_REQUIRED"
+    FAIL = "FAIL"
+    INVALID_INPUT = "INVALID_INPUT"
+
+
 class RulePackScope(str, Enum):
     PREFLIGHT = "PREFLIGHT"
     MONITORING = "MONITORING"
@@ -351,6 +358,66 @@ class WorkOrderDraft(ReviewableOutput):
     reviewer: str | None = None
     status: str = "DRAFT"
     source_recommendation_id: str
+
+
+class EvalMetric(BaseModel):
+    metric_id: str
+    name: str
+    description: str
+    weight: float = Field(gt=0, le=1)
+    pass_threshold: float = Field(ge=0, le=1)
+    review_threshold: float = Field(ge=0, le=1)
+    required_evidence_refs: list[str] = Field(default_factory=list)
+
+
+class EvalExpectedOutput(BaseModel):
+    expected_status: EvalStatus
+    required_diagnosis_ids: list[str] = Field(default_factory=list)
+    required_recommendation_ids: list[str] = Field(default_factory=list)
+    required_report_sections: list[str] = Field(default_factory=list)
+    required_evidence_refs: list[str] = Field(default_factory=list)
+
+
+class EvalCase(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("EVALCASE"))
+    case_id: str
+    title: str
+    input_refs: dict[str, str]
+    metrics: list[EvalMetric]
+    expected_output: EvalExpectedOutput
+    safety_boundary: dict[str, bool] = Field(default_factory=dict)
+    generated_by_skill: str = "diagnosis-report-evaluation"
+    skill_version: str = "1.4.0"
+
+    def model_post_init(self, __context: Any) -> None:
+        metric_ids = [metric.metric_id for metric in self.metrics]
+        if len(metric_ids) != len(set(metric_ids)):
+            raise ValueError("EvalCase contains duplicate metric_id values")
+        self.metrics = sorted(self.metrics, key=lambda metric: metric.metric_id)
+        self.input_refs = dict(sorted(self.input_refs.items()))
+
+
+class EvalResult(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("EVAL"))
+    case_id: str
+    status: EvalStatus
+    score: float = Field(ge=0, le=1)
+    metric_results: list[dict[str, Any]] = Field(default_factory=list)
+    findings: list[dict[str, Any]] = Field(default_factory=list)
+    output_refs: list[str] = Field(default_factory=list)
+    generated_by_skill: str = "diagnosis-report-evaluation"
+    skill_version: str = "1.4.0"
+
+    def model_post_init(self, __context: Any) -> None:
+        self.metric_results = sorted(
+            self.metric_results,
+            key=lambda item: (str(item.get("metric_id", "")), str(item.get("status", ""))),
+        )
+        self.findings = sorted(
+            self.findings,
+            key=lambda item: (str(item.get("metric_id", "")), str(item.get("code", "")), str(item.get("message", ""))),
+        )
+        self.output_refs = sorted(self.output_refs)
 
 
 class SimulationScenario(BaseModel):
