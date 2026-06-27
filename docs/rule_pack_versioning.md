@@ -45,3 +45,26 @@
 - 启动或连接 PX4、ArduPilot、Gazebo、SITL
 - 调用真实 fleet platform、CMMS、Jira、飞书或企业微信 API
 - 自动派单或执行维护动作
+
+## Rule Pack Validation CLI
+
+第二阶段新增：
+
+```bash
+python -m apps.cli.main validate-rule-pack \
+  --rule-pack data/sample_rule_packs/offline_default_rules.json \
+  --out /tmp/rule_pack_validation.json
+```
+
+`rule_pack_validation.json` 是确定性输出，包含：
+
+- `status`
+- `rule_pack`
+- `counts`
+- `scopes`
+- `findings`
+- `safety_boundary`
+- `human_review_required`
+
+验证逻辑会暴露缺失 evidence fields、缺失 inputs 等可审计问题。当前验证只读取本地 JSON，
+不加载真实硬件、不连接外部平台，也不改变任何规则执行结果。

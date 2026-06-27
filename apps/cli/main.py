@@ -37,6 +37,7 @@ from packages.maintenance_rules import generate_maintenance_recommendations
 from packages.preflight_rules import run_preflight_check
 from packages.report_validation import ReportValidationError, ReportValidationPaths, validate_report_outputs
 from packages.report_templates import export_markdown_to_pdf, render_ops_report
+from packages.rule_packs import validate_rule_pack
 from packages.simulation import parse_simulation_result, validate_simulation_result
 from packages.state_monitoring import run_monitoring_replay
 from packages.telemetry_rules import summarize_flight
@@ -161,6 +162,15 @@ def dashboard_bundle_command(
 ) -> None:
     _run_cli(lambda: _run_dashboard_bundle(report_dir, out, fleet_summary, fleet_report))
     typer.echo(f"Dashboard 数据包生成完成: {out}")
+
+
+@app.command("validate-rule-pack")
+def validate_rule_pack_command(
+    rule_pack: Path = typer.Option(..., "--rule-pack", help="本地 rule pack JSON 路径。"),
+    out: Path = typer.Option(..., "--out", help="rule_pack_validation.json 输出路径。"),
+) -> None:
+    _run_cli(lambda: _run_validate_rule_pack(rule_pack, out))
+    typer.echo(f"规则包验证完成: {out}")
 
 
 @app.command("run-mvp")
@@ -677,6 +687,12 @@ def _run_dashboard_bundle(
     )
     write_json(out, bundle)
     return bundle
+
+
+def _run_validate_rule_pack(rule_pack_path: Path, out: Path) -> dict:
+    result = validate_rule_pack(rule_pack_path)
+    write_json(out, result)
+    return result
 
 
 if __name__ == "__main__":
