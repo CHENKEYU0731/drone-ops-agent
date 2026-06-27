@@ -85,8 +85,38 @@ v1.1.0 继续保持 offline-only 和 advisory-only。
 
 ## 后续阶段
 
+## Offline Fleet Aggregation Baseline
+
+`fleet-summary` CLI 可以读取本地 fleet manifest，并写出确定性的 `fleet_health_summary.json`：
+
+```bash
+python -m apps.cli.main fleet-summary \
+  --manifest data/sample_fleet/fleet_manifest.json \
+  --out <tmp-fleet-dir>
+```
+
+输入 manifest 只引用本地文件，例如：
+
+- `flight_summary.json`
+- `maintenance_recommendations.json`
+
+输出包括：
+
+- `fleet_health_summary.json`
+- `audit/fleet-health-analytics-*.json`
+
+当前 baseline 聚合以下离线信号：
+
+- 低电量趋势
+- GPS 降级趋势
+- 振动异常趋势
+- 高优先级维护建议
+
+所有 finding 都保留 `evidence_refs`，可追溯到单次飞行 summary 或维护建议。
+
+## 后续阶段
+
 后续 v1.1.0 小阶段可以在本契约基础上增加：
 
-1. `fleet-health` 本地聚合逻辑和 deterministic sample fixtures。
-2. `fleet-summary` CLI 输出 `fleet_health_summary.json`。
-3. fleet summary Markdown 报告和 v1.1.0 release readiness checklist。
+1. fleet summary Markdown 报告。
+2. v1.1.0 release readiness checklist。

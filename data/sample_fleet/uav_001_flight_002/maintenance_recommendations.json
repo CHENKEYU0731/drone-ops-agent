@@ -1,0 +1,29 @@
+[
+  {
+    "id": "MAINTOUT-MAINT-UAV-001-002",
+    "timestamp": "1970-01-01T00:00:00Z",
+    "drone_id": "UAV-001",
+    "human_review_required": true,
+    "generated_by_skill": "maintenance-advisor",
+    "skill_version": "1.0.0",
+    "recommendation_id": "MAINT-UAV-001-002",
+    "component": "gps",
+    "action": "Review gps trend before next fleet assignment.",
+    "priority": "POST_FLIGHT_INSPECTION",
+    "reason": "gps crossed offline fleet review threshold.",
+    "evidence_refs": [
+      {
+        "source_type": "flight_summary",
+        "source_id": "data\\sample_fleet\\uav_001_flight_002\\maintenance_recommendations.json",
+        "timestamp": "2026-06-26T10:00:00Z",
+        "field": "gps",
+        "measured_value": "review",
+        "threshold": "nominal",
+        "rule_id": "FLEET_GPS_MAINTENANCE",
+        "description": "gps crossed offline fleet threshold."
+      }
+    ],
+    "required_approval": "maintenance_lead",
+    "estimated_effort": "30 minutes"
+  }
+]

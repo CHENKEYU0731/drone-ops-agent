@@ -49,6 +49,7 @@ packages = [
   "packages.report_validation",
   "packages.audit_logger",
   "packages.work_orders",
+  "packages.fleet_health",
 ]
 
 [tool.pytest.ini_options]

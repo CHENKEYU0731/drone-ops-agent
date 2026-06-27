@@ -1,0 +1,26 @@
+{
+  "fleet_id": "FLEET-DEMO",
+  "name": "Demo offline maintenance fleet",
+  "window_start": "2026-06-24T00:00:00Z",
+  "window_end": "2026-06-26T23:59:59Z",
+  "flights": [
+    {
+      "asset_id": "UAV-001",
+      "flight_id": "UAV-001-FLIGHT-001",
+      "summary": "data/sample_fleet/uav_001_flight_001/flight_summary.json",
+      "maintenance": "data/sample_fleet/uav_001_flight_001/maintenance_recommendations.json"
+    },
+    {
+      "asset_id": "UAV-001",
+      "flight_id": "UAV-001-FLIGHT-002",
+      "summary": "data/sample_fleet/uav_001_flight_002/flight_summary.json",
+      "maintenance": "data/sample_fleet/uav_001_flight_002/maintenance_recommendations.json"
+    },
+    {
+      "asset_id": "UAV-002",
+      "flight_id": "UAV-002-FLIGHT-001",
+      "summary": "data/sample_fleet/uav_002_flight_001/flight_summary.json",
+      "maintenance": "data/sample_fleet/uav_002_flight_001/maintenance_recommendations.json"
+    }
+  ]
+}
