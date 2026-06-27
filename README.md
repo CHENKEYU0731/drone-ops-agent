@@ -296,6 +296,13 @@ v1.5.0 platform readiness:
 - `python -m apps.cli.main validate-platform-readiness --workspace data/sample_platform/workspace_project.json --bundle data/sample_platform/report_bundle_manifest.json --checklist data/sample_platform/platform_readiness_checklist.json --out <tmp>/platform_readiness_validation.json`
 - 该流程只做本地 workspace、report bundle、reviewer / approval model、offline adapter contract 和数据保留/脱敏治理检查，不连接真实平台或维修系统。
 
+v1.6.0 dataset registry:
+
+- `docs/dataset_registry.md`
+- `docs/v1.6.0_release_readiness.md`
+- `python -m apps.cli.main validate-datasets --registry data/sample_datasets/registry.json --out <tmp>/dataset_validation.json`
+- 该流程只登记和验证本地 sample / mock / sanitized cases，不下载、不上传、不连接真实平台、真实无人机或维修系统。
+
 v0.7.0 release readiness checklist:
 
 - `docs/v0.7.0_release_readiness.md`

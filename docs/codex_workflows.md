@@ -95,3 +95,12 @@ v1.5.0 platform readiness 工作流：
 - 运行 `python -m apps.cli.main validate-platform-readiness --workspace data/sample_platform/workspace_project.json --bundle data/sample_platform/report_bundle_manifest.json --checklist data/sample_platform/platform_readiness_checklist.json --out <tmp>/platform_readiness_validation.json`。
 - 确认 validation status 为 `PASS`，输出保持确定性，且所有结论默认 `human_review_required=true`。
 - 保持 offline-only 和 advisory-only；不得连接真实 fleet platform、CMMS、Jira、飞书、企业微信、真实无人机、飞控或 MAVLink endpoint，不得自动派单。
+
+v1.6.0 dataset registry 工作流：
+
+- 使用 `docs/v1.6.0_release_readiness.md` 作为发布前质量门禁清单。
+- 运行 `pytest`。
+- 运行 `pytest tests/unit/test_dataset_registry_contracts.py tests/unit/test_dataset_registry_validation.py tests/integration/test_dataset_registry_cli.py tests/unit/test_v1_6_release_readiness_docs.py`。
+- 运行 `python -m apps.cli.main validate-datasets --registry data/sample_datasets/registry.json --out <tmp>/dataset_validation.json`。
+- 确认 validation status 为 `PASS`，输出保持确定性，且所有 case 都声明 `source_refs`、`sanitized_status`、`recommended_commands`、`expected_outputs` 和安全边界。
+- 保持 offline-only 和 advisory-only；不得下载真实数据、上传数据、连接真实 fleet platform、真实无人机、飞控、MAVLink endpoint 或维修系统。
