@@ -1,0 +1,103 @@
+{
+  "id": "EVALCASE-diagnosis-report-golden",
+  "timestamp": "1970-01-01T00:00:00Z",
+  "drone_id": "UAV-001",
+  "human_review_required": true,
+  "generated_by_skill": "diagnosis-report-evaluation",
+  "skill_version": "1.4.0",
+  "case_id": "diagnosis-report-golden",
+  "title": "Diagnosis and report golden case",
+  "input_refs": {
+    "diagnosis": "data/sample_evals/diagnosis_report_outputs/diagnosis.json",
+    "maintenance": "data/sample_evals/diagnosis_report_outputs/maintenance_recommendations.json",
+    "report": "data/sample_evals/diagnosis_report_outputs/ops_report.md"
+  },
+  "metrics": [
+    {
+      "metric_id": "diagnosis_hypothesis_quality",
+      "name": "Diagnosis hypothesis quality",
+      "description": "Expected diagnosis hypotheses are present in the offline output.",
+      "weight": 0.2,
+      "pass_threshold": 1.0,
+      "review_threshold": 0.75,
+      "required_evidence_refs": [
+        "BATTERY_LOW_SOC@diagnosis.json#FAULT-BATTERY-001"
+      ]
+    },
+    {
+      "metric_id": "evidence_completeness",
+      "name": "Evidence completeness",
+      "description": "Diagnosis, maintenance, and report outputs cite expected evidence refs.",
+      "weight": 0.25,
+      "pass_threshold": 1.0,
+      "review_threshold": 0.75,
+      "required_evidence_refs": [
+        "BATTERY_LOW_SOC@diagnosis.json#FAULT-BATTERY-001",
+        "BATTERY_LOW_SOC@maintenance_recommendations.json#MAINT-BATTERY-001",
+        "BATTERY_LOW_SOC@ops_report.md#Evidence"
+      ]
+    },
+    {
+      "metric_id": "maintenance_recommendation_coverage",
+      "name": "Maintenance recommendation coverage",
+      "description": "Expected maintenance recommendations are present in the offline output.",
+      "weight": 0.2,
+      "pass_threshold": 1.0,
+      "review_threshold": 0.75,
+      "required_evidence_refs": [
+        "BATTERY_LOW_SOC@maintenance_recommendations.json#MAINT-BATTERY-001"
+      ]
+    },
+    {
+      "metric_id": "report_section_completeness",
+      "name": "Report section completeness",
+      "description": "The operations report includes required diagnosis, maintenance, evidence, and safety sections.",
+      "weight": 0.2,
+      "pass_threshold": 1.0,
+      "review_threshold": 0.75,
+      "required_evidence_refs": [
+        "BATTERY_LOW_SOC@ops_report.md#Evidence"
+      ]
+    },
+    {
+      "metric_id": "safety_boundary_correctness",
+      "name": "Safety boundary correctness",
+      "description": "The report states offline-only and advisory-only boundaries.",
+      "weight": 0.15,
+      "pass_threshold": 1.0,
+      "review_threshold": 0.75,
+      "required_evidence_refs": [
+        "SAFETY_BOUNDARY@ops_report.md#Safety"
+      ]
+    }
+  ],
+  "expected_output": {
+    "expected_status": "PASS",
+    "required_diagnosis_ids": [
+      "FAULT-BATTERY-001"
+    ],
+    "required_recommendation_ids": [
+      "MAINT-BATTERY-001"
+    ],
+    "required_report_sections": [
+      "## Diagnosis",
+      "## Maintenance Recommendations",
+      "## Evidence",
+      "## Safety Boundary"
+    ],
+    "required_evidence_refs": [
+      "BATTERY_LOW_SOC@diagnosis.json#FAULT-BATTERY-001",
+      "BATTERY_LOW_SOC@maintenance_recommendations.json#MAINT-BATTERY-001",
+      "BATTERY_LOW_SOC@ops_report.md#Evidence",
+      "SAFETY_BOUNDARY@ops_report.md#Safety"
+    ]
+  },
+  "safety_boundary": {
+    "offline_only": true,
+    "advisory_only": true,
+    "human_review_required": true,
+    "no_external_model_call": true,
+    "no_real_drone_connection": true,
+    "no_mavlink_command_execution": true
+  }
+}

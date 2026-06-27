@@ -74,3 +74,13 @@ v1.0.0 release readiness 工作流：
 - 可选运行 `python -m apps.cli.main export-pdf --markdown <tmp-report-dir>/ops_report.md --out <tmp-report-dir>/ops_report.pdf`。
 - 确认 GitHub Actions Python 3.11 和 Python 3.12 均为 success。
 - 保持 offline-only、mock-import-only 和 advisory-only；不得添加真实无人机连接、MAVLink command execution、真实仿真器启动、真实工单系统调用或自动派单。
+
+v1.4.0 diagnosis/report evaluation 工作流：
+
+- 使用 `docs/v1.4.0_release_readiness.md` 作为发布前质量门禁清单。
+- 运行 `pytest`。
+- 运行 `pytest tests/unit/test_eval_contracts.py tests/unit/test_eval_runner.py tests/integration/test_eval_cli.py tests/unit/test_v1_4_release_readiness_docs.py`。
+- 运行 `python -m apps.cli.main run-evals --case data/sample_evals/diagnosis_report_eval_case.json --out <tmp-eval-dir>`。
+- 确认 `<tmp-eval-dir>/eval_results.json`、`<tmp-eval-dir>/eval_report.md` 和 `audit/diagnosis-report-evaluation-*.json` 已生成。
+- 确认 eval status 为 `PASS`，输出保持确定性，且所有结论默认 `human_review_required=true`。
+- 保持 offline-only 和 advisory-only；不得调用外部模型，不得连接真实无人机、飞控、MAVLink endpoint、真实仿真器、fleet platform 或真实维修系统。

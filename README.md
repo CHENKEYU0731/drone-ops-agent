@@ -280,6 +280,14 @@ drone-ops generate-report \
 pytest
 ```
 
+v1.4.0 diagnosis/report evaluation:
+
+- `docs/diagnosis_report_evaluation.md`
+- `docs/v1.4.0_release_readiness.md`
+- `python -m apps.cli.main run-evals --case data/sample_evals/diagnosis_report_eval_case.json --out <tmp-eval-dir>`
+- 输出 `eval_results.json`、`eval_report.md` 和 `audit/diagnosis-report-evaluation-*.json`
+- 该流程只做本地 offline-only / advisory-only 质量评估，不连接真实无人机、外部模型、真实仿真器或维修系统。
+
 v0.7.0 release readiness checklist:
 
 - `docs/v0.7.0_release_readiness.md`
