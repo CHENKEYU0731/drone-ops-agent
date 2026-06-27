@@ -8,6 +8,7 @@ from packages.anomaly_detection import detect_anomalies
 from packages.audit_logger import write_audit_record
 from packages.diagnosis_rules import generate_fault_hypotheses
 from packages.dashboard import build_dashboard_bundle
+from packages.dataset_registry import validate_dataset_registry
 from packages.drone_schemas import (
     AnomalyEvent,
     BatteryAsset,
@@ -230,6 +231,20 @@ def run_evals_command(
     payload = _run_evals(case, out)
     typer.echo(f"Eval suite status: {payload['status']}")
     typer.echo(f"Eval suite score: {payload['score']}")
+
+
+@app.command("validate-datasets")
+def validate_datasets_command(
+    registry: Path = typer.Option(..., "--registry", help="dataset registry JSON 路径。"),
+    out: Path = typer.Option(..., "--out", help="dataset_validation.json 输出路径。"),
+) -> None:
+    result = _run_validate_datasets(registry, out)
+    if result["status"] == "PASS":
+        typer.echo("Dataset registry validation passed")
+    else:
+        typer.echo("Dataset registry validation requires review")
+    typer.echo(f"cases: {result['counts']['cases']}")
+    typer.echo(f"findings: {result['counts']['findings']}")
 
 
 @app.command("run-mvp")
@@ -866,6 +881,28 @@ def _run_evals(case_paths: list[Path], out: Path) -> dict:
         },
     )
     return payload
+
+
+def _run_validate_datasets(registry: Path, out: Path) -> dict:
+    result = validate_dataset_registry(registry)
+    write_json(out, result)
+    write_audit_record(
+        out_dir=out.parent,
+        skill_name="dataset-registry-validation",
+        skill_version="1.6.0",
+        input_refs=[str(registry)],
+        output_refs=[str(out)],
+        tools_called=["validate_dataset_registry"],
+        rules_triggered=[finding["code"] for finding in result["findings"]],
+        human_review_required=True,
+        status="success",
+        metadata={
+            "validation_status": result["status"],
+            "case_count": result["counts"]["cases"],
+            "safety_boundary": "offline-dataset-registry-only",
+        },
+    )
+    return result
 
 
 if __name__ == "__main__":

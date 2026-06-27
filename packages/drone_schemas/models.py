@@ -502,6 +502,48 @@ class PlatformReadinessChecklist(ReviewableOutput):
         self.checks = sorted(self.checks, key=lambda item: str(item.get("check_id", "")))
 
 
+class DatasetCase(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("DATASETCASE"))
+    case_id: str
+    case_type: str
+    title: str
+    source_refs: list[str] = Field(default_factory=list)
+    sanitized_status: str
+    capabilities: list[str] = Field(default_factory=list)
+    recommended_commands: list[str] = Field(default_factory=list)
+    expected_outputs: list[str] = Field(default_factory=list)
+    safety_boundary: dict[str, bool] = Field(default_factory=dict)
+    generated_by_skill: str = "dataset-registry"
+    skill_version: str = "1.6.0"
+
+    def model_post_init(self, __context: Any) -> None:
+        self.source_refs = sorted(self.source_refs)
+        self.capabilities = sorted(self.capabilities)
+        self.expected_outputs = sorted(self.expected_outputs)
+
+
+class DatasetRegistry(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("DATASETREG"))
+    registry_id: str
+    version: str
+    cases: list[DatasetCase] = Field(default_factory=list)
+    source_refs: list[str] = Field(default_factory=list)
+    safety_boundary: dict[str, bool] = Field(default_factory=dict)
+    generated_by_skill: str = "dataset-registry"
+    skill_version: str = "1.6.0"
+
+    @property
+    def case_count(self) -> int:
+        return len(self.cases)
+
+    def model_post_init(self, __context: Any) -> None:
+        case_ids = [case.case_id for case in self.cases]
+        if len(case_ids) != len(set(case_ids)):
+            raise ValueError("DatasetRegistry contains duplicate case_id values")
+        self.cases = sorted(self.cases, key=lambda case: case.case_id)
+        self.source_refs = sorted(self.source_refs)
+
+
 class SimulationScenario(BaseModel):
     scenario_id: str
     drone_id: str
