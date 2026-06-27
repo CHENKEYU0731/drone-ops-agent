@@ -7,6 +7,7 @@ import typer
 from packages.anomaly_detection import detect_anomalies
 from packages.audit_logger import write_audit_record
 from packages.diagnosis_rules import generate_fault_hypotheses
+from packages.dashboard import build_dashboard_bundle
 from packages.drone_schemas import (
     AnomalyEvent,
     BatteryAsset,
@@ -149,6 +150,17 @@ def fleet_summary_command(
 ) -> None:
     _run_cli(lambda: _run_fleet_summary(manifest, out, markdown))
     typer.echo(f"机队健康摘要生成完成: {out}")
+
+
+@app.command("dashboard-bundle")
+def dashboard_bundle_command(
+    report_dir: Path = typer.Option(..., "--report-dir", help="本地报告目录。"),
+    out: Path = typer.Option(..., "--out", help="dashboard_bundle.json 输出路径。"),
+    fleet_summary: Path | None = typer.Option(None, "--fleet-summary", help="可选 fleet_health_summary.json 路径。"),
+    fleet_report: Path | None = typer.Option(None, "--fleet-report", help="可选 fleet_health_report.md 路径。"),
+) -> None:
+    _run_cli(lambda: _run_dashboard_bundle(report_dir, out, fleet_summary, fleet_report))
+    typer.echo(f"Dashboard 数据包生成完成: {out}")
 
 
 @app.command("run-mvp")
@@ -650,6 +662,21 @@ def _run_fleet_summary(
         },
     )
     return summary
+
+
+def _run_dashboard_bundle(
+    report_dir: Path,
+    out: Path,
+    fleet_summary: Path | None = None,
+    fleet_report: Path | None = None,
+) -> dict:
+    bundle = build_dashboard_bundle(
+        report_dir=report_dir,
+        fleet_summary=fleet_summary,
+        fleet_report=fleet_report,
+    )
+    write_json(out, bundle)
+    return bundle
 
 
 if __name__ == "__main__":
