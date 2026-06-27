@@ -1,0 +1,29 @@
+[
+  {
+    "id": "MAINTOUT-MAINT-BATTERY-001",
+    "timestamp": "1970-01-01T00:00:00Z",
+    "drone_id": "UAV-001",
+    "human_review_required": true,
+    "generated_by_skill": "maintenance-advisor",
+    "skill_version": "1.0.0",
+    "recommendation_id": "MAINT-BATTERY-001",
+    "component": "battery",
+    "action": "Hold the aircraft for battery inspection before the next flight.",
+    "priority": "BEFORE_NEXT_FLIGHT",
+    "reason": "Diagnosis FAULT-BATTERY-001 found a high confidence low SOC battery risk.",
+    "evidence_refs": [
+      {
+        "source_type": "diagnosis",
+        "source_id": "diagnosis.json#FAULT-BATTERY-001",
+        "timestamp": "2026-06-24T10:04:00Z",
+        "field": "battery_soc_pct",
+        "measured_value": 18,
+        "threshold": 25,
+        "rule_id": "BATTERY_LOW_SOC",
+        "description": "Maintenance recommendation is traceable to the battery diagnosis."
+      }
+    ],
+    "required_approval": "maintenance_lead",
+    "estimated_effort": "30 minutes"
+  }
+]

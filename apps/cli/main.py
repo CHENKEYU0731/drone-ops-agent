@@ -31,6 +31,7 @@ from packages.drone_schemas import (
     write_model_list,
     SkillRunAudit,
 )
+from packages.evals import run_eval_suite
 from packages.fleet_health import build_fleet_health_summary, load_fleet_manifest, render_fleet_health_report
 from packages.log_parsers import SUPPORTED_LOG_FORMATS, ParsedFlightLog, parse_flight_log_details
 from packages.maintenance_rules import generate_maintenance_recommendations
@@ -189,6 +190,16 @@ def list_rule_packs_command(
 ) -> None:
     _run_cli(lambda: _run_list_rule_packs(rule_pack, out))
     typer.echo(f"规则包列表写出完成: {out}")
+
+
+@app.command("run-evals")
+def run_evals_command(
+    case: list[Path] = typer.Option(..., "--case", help="本地 eval case JSON 路径，可重复。"),
+    out: Path = typer.Option(..., "--out", help="eval_results.json 输出目录。"),
+) -> None:
+    payload = _run_evals(case, out)
+    typer.echo(f"Eval suite status: {payload['status']}")
+    typer.echo(f"Eval suite score: {payload['score']}")
 
 
 @app.command("run-mvp")
@@ -727,6 +738,38 @@ def _run_list_rule_packs(rule_pack_paths: list[Path], out: Path) -> dict:
         "human_review_required": True,
     }
     write_json(out, payload)
+    return payload
+
+
+def _run_evals(case_paths: list[Path], out: Path) -> dict:
+    out.mkdir(parents=True, exist_ok=True)
+    output_path = out / "eval_results.json"
+    report_path = out / "eval_report.md"
+    payload = run_eval_suite(case_paths, output_path=output_path, report_path=report_path)
+    rules_triggered = sorted(
+        {
+            metric["metric_id"]
+            for result in payload["results"]
+            for metric in result["metric_results"]
+            if metric["status"] != "PASS" or payload["status"] == "PASS"
+        }
+    )
+    write_audit_record(
+        out_dir=out,
+        skill_name="diagnosis-report-evaluation",
+        skill_version="1.4.0",
+        input_refs=[str(path) for path in case_paths],
+        output_refs=[str(output_path), str(report_path)],
+        tools_called=["run_eval_suite"],
+        rules_triggered=rules_triggered,
+        human_review_required=True,
+        status="success",
+        metadata={
+            "eval_status": payload["status"],
+            "case_count": payload["case_count"],
+            "safety_boundary": "offline-eval-only",
+        },
+    )
     return payload
 
 

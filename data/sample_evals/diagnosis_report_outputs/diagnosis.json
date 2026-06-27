@@ -1,0 +1,42 @@
+[
+  {
+    "id": "FAULTOUT-FAULT-BATTERY-001",
+    "timestamp": "1970-01-01T00:00:00Z",
+    "drone_id": "UAV-001",
+    "human_review_required": true,
+    "generated_by_skill": "fault-diagnosis",
+    "skill_version": "1.0.0",
+    "fault_id": "FAULT-BATTERY-001",
+    "fault_name": "Battery low state of charge",
+    "confidence": 0.86,
+    "severity": "HIGH",
+    "evidence_refs": [
+      {
+        "source_type": "anomaly",
+        "source_id": "anomalies.json#ANOM-001",
+        "timestamp": "2026-06-24T10:04:00Z",
+        "field": "battery_soc_pct",
+        "measured_value": 18,
+        "threshold": 25,
+        "rule_id": "BATTERY_LOW_SOC",
+        "description": "Battery SOC is below the offline diagnosis threshold."
+      }
+    ],
+    "supporting_evidence": [
+      {
+        "source_type": "anomaly",
+        "source_id": "anomalies.json#ANOM-001",
+        "timestamp": "2026-06-24T10:04:00Z",
+        "field": "battery_soc_pct",
+        "measured_value": 18,
+        "threshold": 25,
+        "rule_id": "BATTERY_LOW_SOC",
+        "description": "Battery SOC is below the offline diagnosis threshold."
+      }
+    ],
+    "counter_evidence": [],
+    "recommended_next_steps": [
+      "人工复核电池循环次数、内阻和最近低电量事件。"
+    ]
+  }
+]
