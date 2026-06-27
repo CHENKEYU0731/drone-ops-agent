@@ -1,6 +1,18 @@
 from pathlib import Path
+import subprocess
+import sys
 
 from packages.dashboard import build_dashboard_bundle
+
+
+def test_dashboard_package_import_does_not_require_backend_dependency() -> None:
+    script = (
+        "import packages.dashboard, sys; "
+        "raise SystemExit(1 if 'packages.dashboard.backend' in sys.modules else 0)"
+    )
+    result = subprocess.run([sys.executable, "-c", script], check=False)
+
+    assert result.returncode == 0
 
 
 def test_dashboard_bundle_collects_local_artifact_refs() -> None:
