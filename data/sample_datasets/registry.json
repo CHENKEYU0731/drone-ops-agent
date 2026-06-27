@@ -1,0 +1,216 @@
+{
+  "id": "DATASETREG-sample",
+  "timestamp": "1970-01-01T00:00:00Z",
+  "drone_id": null,
+  "human_review_required": true,
+  "generated_by_skill": "dataset-registry",
+  "skill_version": "1.6.0",
+  "registry_id": "sample-dataset-registry",
+  "version": "1.6.0",
+  "cases": [
+    {
+      "id": "DATASETCASE-eval-diagnosis-report-golden",
+      "timestamp": "1970-01-01T00:00:00Z",
+      "drone_id": "UAV-001",
+      "human_review_required": true,
+      "generated_by_skill": "dataset-registry",
+      "skill_version": "1.6.0",
+      "case_id": "eval-diagnosis-report-golden",
+      "case_type": "eval_case",
+      "title": "Diagnosis/report golden eval case",
+      "source_refs": [
+        "data/sample_evals/diagnosis_report_eval_case.json",
+        "data/sample_evals/diagnosis_report_outputs/diagnosis.json",
+        "data/sample_evals/diagnosis_report_outputs/maintenance_recommendations.json",
+        "data/sample_evals/diagnosis_report_outputs/ops_report.md"
+      ],
+      "sanitized_status": "sanitized_sample",
+      "capabilities": [
+        "run-evals"
+      ],
+      "recommended_commands": [
+        "python -m apps.cli.main run-evals --case data/sample_evals/diagnosis_report_eval_case.json --out <tmp-eval-dir>"
+      ],
+      "expected_outputs": [
+        "eval_results.json",
+        "eval_report.md"
+      ],
+      "safety_boundary": {
+        "offline_only": true,
+        "advisory_only": true,
+        "human_review_required": true
+      }
+    },
+    {
+      "id": "DATASETCASE-fleet-sample-manifest",
+      "timestamp": "1970-01-01T00:00:00Z",
+      "drone_id": null,
+      "human_review_required": true,
+      "generated_by_skill": "dataset-registry",
+      "skill_version": "1.6.0",
+      "case_id": "fleet-sample-manifest",
+      "case_type": "fleet_manifest",
+      "title": "Sample fleet health manifest",
+      "source_refs": [
+        "data/sample_fleet/fleet_manifest.json"
+      ],
+      "sanitized_status": "sanitized_sample",
+      "capabilities": [
+        "fleet-summary"
+      ],
+      "recommended_commands": [
+        "python -m apps.cli.main fleet-summary --manifest data/sample_fleet/fleet_manifest.json --out <tmp-fleet-dir>"
+      ],
+      "expected_outputs": [
+        "fleet_health_summary.json"
+      ],
+      "safety_boundary": {
+        "offline_only": true,
+        "advisory_only": true,
+        "human_review_required": true
+      }
+    },
+    {
+      "id": "DATASETCASE-log-csv-sample",
+      "timestamp": "1970-01-01T00:00:00Z",
+      "drone_id": "UAV-001",
+      "human_review_required": true,
+      "generated_by_skill": "dataset-registry",
+      "skill_version": "1.6.0",
+      "case_id": "log-csv-sample",
+      "case_type": "flight_log",
+      "title": "Sample CSV flight log",
+      "source_refs": [
+        "data/sample_logs/example_flight.csv"
+      ],
+      "sanitized_status": "sanitized_sample",
+      "capabilities": [
+        "analyze-log",
+        "run-mvp"
+      ],
+      "recommended_commands": [
+        "python -m apps.cli.main run-mvp --log data/sample_logs/example_flight.csv --asset data/sample_assets/uav_001.json --out <tmp-report-dir>"
+      ],
+      "expected_outputs": [
+        "anomalies.json",
+        "diagnosis.json",
+        "flight_summary.json",
+        "maintenance_recommendations.json",
+        "ops_report.md"
+      ],
+      "safety_boundary": {
+        "offline_only": true,
+        "advisory_only": true,
+        "human_review_required": true
+      }
+    },
+    {
+      "id": "DATASETCASE-platform-readiness-sample",
+      "timestamp": "1970-01-01T00:00:00Z",
+      "drone_id": null,
+      "human_review_required": true,
+      "generated_by_skill": "dataset-registry",
+      "skill_version": "1.6.0",
+      "case_id": "platform-readiness-sample",
+      "case_type": "platform_readiness",
+      "title": "Sample platform readiness governance files",
+      "source_refs": [
+        "data/sample_platform/platform_readiness_checklist.json",
+        "data/sample_platform/report_bundle_manifest.json",
+        "data/sample_platform/workspace_project.json"
+      ],
+      "sanitized_status": "sanitized_sample",
+      "capabilities": [
+        "build-report-bundle",
+        "validate-platform-readiness"
+      ],
+      "recommended_commands": [
+        "python -m apps.cli.main validate-platform-readiness --workspace data/sample_platform/workspace_project.json --bundle data/sample_platform/report_bundle_manifest.json --checklist data/sample_platform/platform_readiness_checklist.json --out <tmp>/platform_readiness_validation.json"
+      ],
+      "expected_outputs": [
+        "platform_readiness_validation.json",
+        "report_bundle_manifest.json"
+      ],
+      "safety_boundary": {
+        "offline_only": true,
+        "advisory_only": true,
+        "human_review_required": true
+      }
+    },
+    {
+      "id": "DATASETCASE-report-validation-sample",
+      "timestamp": "1970-01-01T00:00:00Z",
+      "drone_id": "UAV-001",
+      "human_review_required": true,
+      "generated_by_skill": "dataset-registry",
+      "skill_version": "1.6.0",
+      "case_id": "report-validation-sample",
+      "case_type": "report_directory",
+      "title": "Temporary MVP report directory validation case",
+      "source_refs": [
+        "data/sample_logs/example_flight.csv",
+        "data/sample_assets/uav_001.json"
+      ],
+      "sanitized_status": "sanitized_sample",
+      "capabilities": [
+        "run-mvp",
+        "validate-report"
+      ],
+      "recommended_commands": [
+        "python -m apps.cli.main run-mvp --log data/sample_logs/example_flight.csv --asset data/sample_assets/uav_001.json --out <tmp-report-dir>",
+        "python -m apps.cli.main validate-report --report-dir <tmp-report-dir> --write-index"
+      ],
+      "expected_outputs": [
+        "evidence_index.json",
+        "report_validation.json"
+      ],
+      "safety_boundary": {
+        "offline_only": true,
+        "advisory_only": true,
+        "human_review_required": true
+      }
+    },
+    {
+      "id": "DATASETCASE-simulation-matrix-sample",
+      "timestamp": "1970-01-01T00:00:00Z",
+      "drone_id": "UAV-001",
+      "human_review_required": true,
+      "generated_by_skill": "dataset-registry",
+      "skill_version": "1.6.0",
+      "case_id": "simulation-matrix-sample",
+      "case_type": "simulation_case",
+      "title": "Sample offline simulation scenario matrix",
+      "source_refs": [
+        "data/sample_simulation/example_scenario.json",
+        "data/sample_simulation/example_simulation_result.json",
+        "data/sample_simulation/scenario_matrix.json"
+      ],
+      "sanitized_status": "mock_sample",
+      "capabilities": [
+        "validate-simulation"
+      ],
+      "recommended_commands": [
+        "python -m apps.cli.main validate-simulation --scenario data/sample_simulation/example_scenario.json --result data/sample_simulation/example_simulation_result.json --out <tmp-simulation-dir>"
+      ],
+      "expected_outputs": [
+        "simulation_run.json"
+      ],
+      "safety_boundary": {
+        "offline_only": true,
+        "advisory_only": true,
+        "human_review_required": true
+      }
+    }
+  ],
+  "source_refs": [
+    "data/sample_datasets/registry.json"
+  ],
+  "safety_boundary": {
+    "offline_only": true,
+    "advisory_only": true,
+    "human_review_required": true,
+    "no_real_drone_connection": true,
+    "no_mavlink_command_execution": true,
+    "no_external_platform_connection": true
+  }
+}
