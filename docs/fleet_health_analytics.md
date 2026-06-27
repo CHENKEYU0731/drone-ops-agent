@@ -116,7 +116,28 @@ python -m apps.cli.main fleet-summary \
 
 ## 后续阶段
 
+## Fleet Report
+
+`fleet-summary` 可以通过 `--markdown` 同步写出本地 Markdown 报告：
+
+```bash
+python -m apps.cli.main fleet-summary \
+  --manifest data/sample_fleet/fleet_manifest.json \
+  --out <tmp-fleet-dir> \
+  --markdown <tmp-fleet-dir>/fleet_health_report.md
+```
+
+报告包含：
+
+- 执行摘要
+- 风险排名
+- 机队级发现
+- 数据来源
+- 安全边界
+
+## 后续阶段
+
 后续 v1.1.0 小阶段可以在本契约基础上增加：
 
-1. fleet summary Markdown 报告。
-2. v1.1.0 release readiness checklist。
+1. 合并本地三个阶段为一个 GitHub PR。
+2. PR 合并后发布 v1.1.0 tag / GitHub Release。

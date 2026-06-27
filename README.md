@@ -306,7 +306,9 @@ v1.0.0 release readiness checklist:
 v1.1.0 fleet health analytics:
 
 - `python -m apps.cli.main fleet-summary --manifest data/sample_fleet/fleet_manifest.json --out <tmp-fleet-dir>`
+- `python -m apps.cli.main fleet-summary --manifest data/sample_fleet/fleet_manifest.json --out <tmp-fleet-dir> --markdown <tmp-fleet-dir>/fleet_health_report.md`
 - 输出 `fleet_health_summary.json` 和 `audit/fleet-health-analytics-*.json`
+- 可选输出 `fleet_health_report.md`
 - 只聚合本地 sample / sanitized JSON，不连接真实机队平台，不读取实时遥测，不自动派单。
 
 ## 添加新的 skill

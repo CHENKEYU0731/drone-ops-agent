@@ -40,3 +40,28 @@ def test_fleet_summary_cli_writes_summary_and_audit(tmp_path: Path) -> None:
     assert audit["skill_name"] == "fleet-health-analytics"
     assert audit["human_review_required"] is True
     assert audit["metadata"]["safety_boundary"] == "offline-fleet-summary-only"
+
+
+def test_fleet_summary_cli_can_write_markdown_report(tmp_path: Path) -> None:
+    out_dir = tmp_path / "fleet"
+    report_path = out_dir / "fleet_health_report.md"
+
+    result = runner.invoke(
+        app,
+        [
+            "fleet-summary",
+            "--manifest",
+            "data/sample_fleet/fleet_manifest.json",
+            "--out",
+            str(out_dir),
+            "--markdown",
+            str(report_path),
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert report_path.exists()
+    report = report_path.read_text(encoding="utf-8")
+    assert "# 机队健康趋势报告" in report
+    assert "## 2. 风险排名" in report
+    assert "不代表真实飞行授权" in report
