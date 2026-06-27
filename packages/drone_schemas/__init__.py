@@ -8,6 +8,7 @@ from packages.drone_schemas.io import (
 )
 from packages.drone_schemas.models import (
     AnomalyEvent,
+    ApprovalPacket,
     BatteryAsset,
     DatasetCase,
     DatasetRegistry,
@@ -56,6 +57,7 @@ from packages.drone_schemas.models import (
 
 __all__ = [
     "AnomalyEvent",
+    "ApprovalPacket",
     "BatteryAsset",
     "DatasetCase",
     "DatasetRegistry",

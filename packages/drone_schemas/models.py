@@ -473,6 +473,28 @@ class ReviewerApproval(ReviewableOutput):
     skill_version: str = "1.5.0"
 
 
+class ApprovalPacket(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("APPROVALPACKET"))
+    packet_id: str
+    subject_ref: str
+    approvals: list[ReviewerApproval] = Field(default_factory=list)
+    required_roles: list[str] = Field(default_factory=list)
+    safety_boundary: dict[str, bool] = Field(default_factory=dict)
+    generated_by_skill: str = "approval-workflow"
+    skill_version: str = "1.7.0"
+
+    @property
+    def approval_count(self) -> int:
+        return len(self.approvals)
+
+    def model_post_init(self, __context: Any) -> None:
+        approval_ids = [approval.approval_id for approval in self.approvals]
+        if len(approval_ids) != len(set(approval_ids)):
+            raise ValueError("ApprovalPacket contains duplicate approval_id values")
+        self.approvals = sorted(self.approvals, key=lambda approval: approval.approval_id)
+        self.required_roles = sorted(self.required_roles)
+
+
 class OfflineAdapterContract(ReviewableOutput):
     id: str = Field(default_factory=lambda: new_id("ADAPTER"))
     adapter_id: str
