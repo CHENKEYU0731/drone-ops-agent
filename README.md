@@ -288,6 +288,14 @@ v1.4.0 diagnosis/report evaluation:
 - 输出 `eval_results.json`、`eval_report.md` 和 `audit/diagnosis-report-evaluation-*.json`
 - 该流程只做本地 offline-only / advisory-only 质量评估，不连接真实无人机、外部模型、真实仿真器或维修系统。
 
+v1.5.0 platform readiness:
+
+- `docs/platform_readiness.md`
+- `docs/v1.5.0_release_readiness.md`
+- `python -m apps.cli.main build-report-bundle --report-dir <tmp-report-dir> --workspace-project-id workspace-local-demo --bundle-id bundle-local-demo --drone-id UAV-001 --out <tmp>/report_bundle_manifest.json`
+- `python -m apps.cli.main validate-platform-readiness --workspace data/sample_platform/workspace_project.json --bundle data/sample_platform/report_bundle_manifest.json --checklist data/sample_platform/platform_readiness_checklist.json --out <tmp>/platform_readiness_validation.json`
+- 该流程只做本地 workspace、report bundle、reviewer / approval model、offline adapter contract 和数据保留/脱敏治理检查，不连接真实平台或维修系统。
+
 v0.7.0 release readiness checklist:
 
 - `docs/v0.7.0_release_readiness.md`
