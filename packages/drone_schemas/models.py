@@ -473,6 +473,28 @@ class ReviewerApproval(ReviewableOutput):
     skill_version: str = "1.5.0"
 
 
+class ApprovalPacket(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("APPROVALPACKET"))
+    packet_id: str
+    subject_ref: str
+    approvals: list[ReviewerApproval] = Field(default_factory=list)
+    required_roles: list[str] = Field(default_factory=list)
+    safety_boundary: dict[str, bool] = Field(default_factory=dict)
+    generated_by_skill: str = "approval-workflow"
+    skill_version: str = "1.7.0"
+
+    @property
+    def approval_count(self) -> int:
+        return len(self.approvals)
+
+    def model_post_init(self, __context: Any) -> None:
+        approval_ids = [approval.approval_id for approval in self.approvals]
+        if len(approval_ids) != len(set(approval_ids)):
+            raise ValueError("ApprovalPacket contains duplicate approval_id values")
+        self.approvals = sorted(self.approvals, key=lambda approval: approval.approval_id)
+        self.required_roles = sorted(self.required_roles)
+
+
 class OfflineAdapterContract(ReviewableOutput):
     id: str = Field(default_factory=lambda: new_id("ADAPTER"))
     adapter_id: str
@@ -487,6 +509,28 @@ class OfflineAdapterContract(ReviewableOutput):
     def model_post_init(self, __context: Any) -> None:
         self.allowed_operations = sorted(self.allowed_operations)
         self.prohibited_operations = sorted(self.prohibited_operations)
+
+
+class OfflineAdapterRegistry(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("ADAPTERREG"))
+    registry_id: str
+    version: str
+    adapters: list[OfflineAdapterContract] = Field(default_factory=list)
+    source_refs: list[str] = Field(default_factory=list)
+    safety_boundary: dict[str, bool] = Field(default_factory=dict)
+    generated_by_skill: str = "offline-adapter-management"
+    skill_version: str = "1.7.0"
+
+    @property
+    def adapter_count(self) -> int:
+        return len(self.adapters)
+
+    def model_post_init(self, __context: Any) -> None:
+        adapter_ids = [adapter.adapter_id for adapter in self.adapters]
+        if len(adapter_ids) != len(set(adapter_ids)):
+            raise ValueError("OfflineAdapterRegistry contains duplicate adapter_id values")
+        self.adapters = sorted(self.adapters, key=lambda adapter: adapter.adapter_id)
+        self.source_refs = sorted(self.source_refs)
 
 
 class PlatformReadinessChecklist(ReviewableOutput):

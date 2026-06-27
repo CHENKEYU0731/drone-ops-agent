@@ -303,6 +303,14 @@ v1.6.0 dataset registry:
 - `python -m apps.cli.main validate-datasets --registry data/sample_datasets/registry.json --out <tmp>/dataset_validation.json`
 - 该流程只登记和验证本地 sample / mock / sanitized cases，不下载、不上传、不连接真实平台、真实无人机或维修系统。
 
+v1.7.0 offline adapter and approval workflow:
+
+- `docs/offline_adapters.md`
+- `docs/v1.7.0_release_readiness.md`
+- `python -m apps.cli.main validate-adapters --registry data/sample_adapters/offline_adapter_registry.json --out <tmp>/adapter_validation.json`
+- `python -m apps.cli.main validate-approvals --packet data/sample_approvals/approval_packet.json --out <tmp>/approval_validation.json`
+- 该流程只验证本地 offline adapter registry 和 approval packet，不连接真实无人机、真实维修系统或真实平台，不执行 MAVLink command execution，不自动派单。
+
 v0.7.0 release readiness checklist:
 
 - `docs/v0.7.0_release_readiness.md`

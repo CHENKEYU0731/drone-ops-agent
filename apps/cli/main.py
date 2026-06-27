@@ -6,6 +6,7 @@ import typer
 
 from packages.anomaly_detection import detect_anomalies
 from packages.audit_logger import write_audit_record
+from packages.adapter_workflows import validate_adapter_registry, validate_approval_packet
 from packages.diagnosis_rules import generate_fault_hypotheses
 from packages.dashboard import build_dashboard_bundle
 from packages.dataset_registry import validate_dataset_registry
@@ -244,6 +245,34 @@ def validate_datasets_command(
     else:
         typer.echo("Dataset registry validation requires review")
     typer.echo(f"cases: {result['counts']['cases']}")
+    typer.echo(f"findings: {result['counts']['findings']}")
+
+
+@app.command("validate-adapters")
+def validate_adapters_command(
+    registry: Path = typer.Option(..., "--registry", help="offline_adapter_registry.json 路径。"),
+    out: Path = typer.Option(..., "--out", help="adapter_validation.json 输出路径。"),
+) -> None:
+    result = _run_validate_adapters(registry, out)
+    if result["status"] == "PASS":
+        typer.echo("Adapter registry validation passed")
+    else:
+        typer.echo("Adapter registry validation requires review")
+    typer.echo(f"adapters: {result['counts']['adapters']}")
+    typer.echo(f"findings: {result['counts']['findings']}")
+
+
+@app.command("validate-approvals")
+def validate_approvals_command(
+    packet: Path = typer.Option(..., "--packet", help="approval_packet.json 路径。"),
+    out: Path = typer.Option(..., "--out", help="approval_validation.json 输出路径。"),
+) -> None:
+    result = _run_validate_approvals(packet, out)
+    if result["status"] == "PASS":
+        typer.echo("Approval workflow validation passed")
+    else:
+        typer.echo("Approval workflow validation requires review")
+    typer.echo(f"approvals: {result['counts']['approvals']}")
     typer.echo(f"findings: {result['counts']['findings']}")
 
 
@@ -900,6 +929,50 @@ def _run_validate_datasets(registry: Path, out: Path) -> dict:
             "validation_status": result["status"],
             "case_count": result["counts"]["cases"],
             "safety_boundary": "offline-dataset-registry-only",
+        },
+    )
+    return result
+
+
+def _run_validate_adapters(registry: Path, out: Path) -> dict:
+    result = validate_adapter_registry(registry)
+    write_json(out, result)
+    write_audit_record(
+        out_dir=out.parent,
+        skill_name="offline-adapter-validation",
+        skill_version="1.7.0",
+        input_refs=[str(registry)],
+        output_refs=[str(out)],
+        tools_called=["validate_adapter_registry"],
+        rules_triggered=[finding["code"] for finding in result["findings"]],
+        human_review_required=True,
+        status="success",
+        metadata={
+            "validation_status": result["status"],
+            "adapter_count": result["counts"]["adapters"],
+            "safety_boundary": "offline-adapter-registry-only",
+        },
+    )
+    return result
+
+
+def _run_validate_approvals(packet: Path, out: Path) -> dict:
+    result = validate_approval_packet(packet)
+    write_json(out, result)
+    write_audit_record(
+        out_dir=out.parent,
+        skill_name="approval-workflow-validation",
+        skill_version="1.7.0",
+        input_refs=[str(packet)],
+        output_refs=[str(out)],
+        tools_called=["validate_approval_packet"],
+        rules_triggered=[finding["code"] for finding in result["findings"]],
+        human_review_required=True,
+        status="success",
+        metadata={
+            "validation_status": result["status"],
+            "approval_count": result["counts"]["approvals"],
+            "safety_boundary": "offline-approval-workflow-only",
         },
     )
     return result

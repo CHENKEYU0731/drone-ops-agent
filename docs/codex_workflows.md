@@ -104,3 +104,13 @@ v1.6.0 dataset registry 工作流：
 - 运行 `python -m apps.cli.main validate-datasets --registry data/sample_datasets/registry.json --out <tmp>/dataset_validation.json`。
 - 确认 validation status 为 `PASS`，输出保持确定性，且所有 case 都声明 `source_refs`、`sanitized_status`、`recommended_commands`、`expected_outputs` 和安全边界。
 - 保持 offline-only 和 advisory-only；不得下载真实数据、上传数据、连接真实 fleet platform、真实无人机、飞控、MAVLink endpoint 或维修系统。
+
+v1.7.0 offline adapter and approval workflow 工作流：
+
+- 使用 `docs/v1.7.0_release_readiness.md` 作为发布前质量门禁清单。
+- 运行 `pytest`。
+- 运行 `pytest tests/unit/test_offline_adapter_contracts.py tests/unit/test_adapter_approval_validation.py tests/integration/test_adapter_approval_cli.py tests/unit/test_v1_7_release_readiness_docs.py`。
+- 运行 `python -m apps.cli.main validate-adapters --registry data/sample_adapters/offline_adapter_registry.json --out <tmp>/adapter_validation.json`。
+- 运行 `python -m apps.cli.main validate-approvals --packet data/sample_approvals/approval_packet.json --out <tmp>/approval_validation.json`。
+- 确认 validation status 为 `PASS`，输出保持确定性，并且所有结论默认 `human_review_required=true`。
+- 保持 offline-only 和 advisory-only；不连接真实无人机、真实 fleet platform、真实维修系统或 MAVLink endpoint，不自动派单。

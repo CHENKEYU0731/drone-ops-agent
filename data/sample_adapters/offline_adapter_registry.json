@@ -1,0 +1,102 @@
+{
+  "id": "ADAPTERREG-offline",
+  "timestamp": "1970-01-01T00:00:00Z",
+  "drone_id": null,
+  "human_review_required": true,
+  "generated_by_skill": "offline-adapter-management",
+  "skill_version": "1.7.0",
+  "registry_id": "offline-adapter-registry",
+  "version": "1.7.0",
+  "adapters": [
+    {
+      "id": "ADAPTER-mock-fleet-summary-export",
+      "timestamp": "1970-01-01T00:00:00Z",
+      "drone_id": null,
+      "human_review_required": true,
+      "generated_by_skill": "platform-readiness",
+      "skill_version": "1.5.0",
+      "adapter_id": "mock-fleet-summary-export",
+      "adapter_type": "fleet_summary_export",
+      "direction": "export",
+      "allowed_operations": [
+        "render_local_file"
+      ],
+      "prohibited_operations": [
+        "api_call",
+        "auto_dispatch",
+        "mavlink_command",
+        "real_platform_connection"
+      ],
+      "safety_boundary": {
+        "offline_only": true,
+        "advisory_only": true,
+        "no_real_platform_connection": true,
+        "no_mavlink_command_execution": true
+      }
+    },
+    {
+      "id": "ADAPTER-mock-report-bundle-export",
+      "timestamp": "1970-01-01T00:00:00Z",
+      "drone_id": null,
+      "human_review_required": true,
+      "generated_by_skill": "platform-readiness",
+      "skill_version": "1.5.0",
+      "adapter_id": "mock-report-bundle-export",
+      "adapter_type": "report_bundle_export",
+      "direction": "export",
+      "allowed_operations": [
+        "render_local_file"
+      ],
+      "prohibited_operations": [
+        "api_call",
+        "auto_dispatch",
+        "mavlink_command",
+        "real_platform_connection"
+      ],
+      "safety_boundary": {
+        "offline_only": true,
+        "advisory_only": true,
+        "no_real_platform_connection": true,
+        "no_mavlink_command_execution": true
+      }
+    },
+    {
+      "id": "ADAPTER-mock-work-order-export",
+      "timestamp": "1970-01-01T00:00:00Z",
+      "drone_id": null,
+      "human_review_required": true,
+      "generated_by_skill": "platform-readiness",
+      "skill_version": "1.5.0",
+      "adapter_id": "mock-work-order-export",
+      "adapter_type": "work_order_export",
+      "direction": "export",
+      "allowed_operations": [
+        "render_local_file"
+      ],
+      "prohibited_operations": [
+        "api_call",
+        "auto_dispatch",
+        "mavlink_command",
+        "real_platform_connection"
+      ],
+      "safety_boundary": {
+        "offline_only": true,
+        "advisory_only": true,
+        "no_real_platform_connection": true,
+        "no_mavlink_command_execution": true
+      }
+    }
+  ],
+  "source_refs": [
+    "data/sample_adapters/offline_adapter_registry.json"
+  ],
+  "safety_boundary": {
+    "offline_only": true,
+    "advisory_only": true,
+    "human_review_required": true,
+    "no_real_drone_connection": true,
+    "no_mavlink_command_execution": true,
+    "no_external_platform_connection": true,
+    "no_auto_dispatch": true
+  }
+}

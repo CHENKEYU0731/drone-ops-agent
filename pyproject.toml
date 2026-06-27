@@ -38,6 +38,7 @@ packages = [
   "apps",
   "apps.cli",
   "packages",
+  "packages.adapter_workflows",
   "packages.drone_schemas",
   "packages.dataset_registry",
   "packages.dashboard",
