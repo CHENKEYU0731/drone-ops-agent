@@ -39,6 +39,7 @@ packages = [
   "apps.cli",
   "packages",
   "packages.drone_schemas",
+  "packages.dataset_registry",
   "packages.dashboard",
   "packages.evals",
   "packages.platform_readiness",
