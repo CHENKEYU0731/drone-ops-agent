@@ -40,6 +40,16 @@ class FleetRiskLevel(str, Enum):
     CRITICAL = "CRITICAL"
 
 
+class RulePackScope(str, Enum):
+    PREFLIGHT = "PREFLIGHT"
+    MONITORING = "MONITORING"
+    SIMULATION = "SIMULATION"
+    REPORT_VALIDATION = "REPORT_VALIDATION"
+    WORK_ORDER = "WORK_ORDER"
+    FLEET_HEALTH = "FLEET_HEALTH"
+    MIXED = "MIXED"
+
+
 class ReviewableOutput(BaseModel):
     id: str = Field(default_factory=lambda: new_id("OUT"))
     timestamp: datetime = Field(default_factory=utc_now)
@@ -288,6 +298,42 @@ class FleetHealthSummary(ReviewableOutput):
     def model_post_init(self, __context: Any) -> None:
         if self.window_end < self.window_start:
             raise ValueError("FleetHealthSummary.window_end must be greater than or equal to window_start")
+        self.source_refs = sorted(self.source_refs)
+
+
+class RulePackRule(BaseModel):
+    rule_id: str
+    version: str
+    scope: RulePackScope
+    description: str
+    severity: str
+    inputs: list[str] = Field(default_factory=list)
+    thresholds: dict[str, Any] = Field(default_factory=dict)
+    evidence_fields: list[str] = Field(default_factory=list)
+    human_review_required: bool = True
+
+
+class RulePack(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("RULEPACK"))
+    pack_id: str
+    name: str
+    version: str
+    scope: RulePackScope
+    rules: list[RulePackRule] = Field(default_factory=list)
+    source_refs: list[str] = Field(default_factory=list)
+    safety_boundary: dict[str, bool] = Field(default_factory=dict)
+    generated_by_skill: str = "rule-pack-management"
+    skill_version: str = "1.3.0"
+
+    @property
+    def rule_count(self) -> int:
+        return len(self.rules)
+
+    def model_post_init(self, __context: Any) -> None:
+        rule_ids = [rule.rule_id for rule in self.rules]
+        if len(rule_ids) != len(set(rule_ids)):
+            raise ValueError("RulePack contains duplicate rule_id values")
+        self.rules = sorted(self.rules, key=lambda rule: rule.rule_id)
         self.source_refs = sorted(self.source_refs)
 
 
