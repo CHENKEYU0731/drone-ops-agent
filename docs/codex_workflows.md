@@ -84,3 +84,14 @@ v1.4.0 diagnosis/report evaluation 工作流：
 - 确认 `<tmp-eval-dir>/eval_results.json`、`<tmp-eval-dir>/eval_report.md` 和 `audit/diagnosis-report-evaluation-*.json` 已生成。
 - 确认 eval status 为 `PASS`，输出保持确定性，且所有结论默认 `human_review_required=true`。
 - 保持 offline-only 和 advisory-only；不得调用外部模型，不得连接真实无人机、飞控、MAVLink endpoint、真实仿真器、fleet platform 或真实维修系统。
+
+v1.5.0 platform readiness 工作流：
+
+- 使用 `docs/v1.5.0_release_readiness.md` 作为发布前质量门禁清单。
+- 运行 `pytest`。
+- 运行 `pytest tests/unit/test_platform_readiness_contracts.py tests/unit/test_platform_readiness.py tests/integration/test_platform_readiness_cli.py tests/unit/test_v1_5_release_readiness_docs.py`。
+- 先用 `run-mvp` 和 `validate-report --write-index` 生成临时本地报告目录。
+- 运行 `python -m apps.cli.main build-report-bundle --report-dir <tmp-report-dir> --workspace-project-id workspace-local-demo --bundle-id bundle-local-demo --drone-id UAV-001 --out <tmp>/report_bundle_manifest.json`。
+- 运行 `python -m apps.cli.main validate-platform-readiness --workspace data/sample_platform/workspace_project.json --bundle data/sample_platform/report_bundle_manifest.json --checklist data/sample_platform/platform_readiness_checklist.json --out <tmp>/platform_readiness_validation.json`。
+- 确认 validation status 为 `PASS`，输出保持确定性，且所有结论默认 `human_review_required=true`。
+- 保持 offline-only 和 advisory-only；不得连接真实 fleet platform、CMMS、Jira、飞书、企业微信、真实无人机、飞控或 MAVLink endpoint，不得自动派单。

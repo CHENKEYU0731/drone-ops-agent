@@ -41,6 +41,7 @@ packages = [
   "packages.drone_schemas",
   "packages.dashboard",
   "packages.evals",
+  "packages.platform_readiness",
   "packages.rule_packs",
   "packages.log_parsers",
   "packages.telemetry_rules",

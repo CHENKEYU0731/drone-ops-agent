@@ -19,6 +19,7 @@ from packages.drone_schemas import (
     MissionPlan,
     MonitoringEvent,
     MonitoringSummary,
+    ReportBundleManifest,
     PreflightCheckResult,
     SimulationRun,
     SimulationScenario,
@@ -35,6 +36,7 @@ from packages.evals import run_eval_suite
 from packages.fleet_health import build_fleet_health_summary, load_fleet_manifest, render_fleet_health_report
 from packages.log_parsers import SUPPORTED_LOG_FORMATS, ParsedFlightLog, parse_flight_log_details
 from packages.maintenance_rules import generate_maintenance_recommendations
+from packages.platform_readiness import build_report_bundle_manifest, validate_platform_readiness
 from packages.preflight_rules import run_preflight_check
 from packages.report_validation import ReportValidationError, ReportValidationPaths, validate_report_outputs
 from packages.report_templates import export_markdown_to_pdf, render_ops_report
@@ -163,6 +165,34 @@ def dashboard_bundle_command(
 ) -> None:
     _run_cli(lambda: _run_dashboard_bundle(report_dir, out, fleet_summary, fleet_report))
     typer.echo(f"Dashboard 数据包生成完成: {out}")
+
+
+@app.command("build-report-bundle")
+def build_report_bundle_command(
+    report_dir: Path = typer.Option(..., "--report-dir", help="本地报告目录。"),
+    workspace_project_id: str = typer.Option(..., "--workspace-project-id", help="本地 workspace project id。"),
+    bundle_id: str = typer.Option(..., "--bundle-id", help="本地 report bundle id。"),
+    out: Path = typer.Option(..., "--out", help="report_bundle_manifest.json 输出路径。"),
+    drone_id: str | None = typer.Option(None, "--drone-id", help="可选无人机 ID。"),
+) -> None:
+    _run_cli(lambda: _run_build_report_bundle(report_dir, workspace_project_id, bundle_id, out, drone_id))
+    typer.echo(f"Report bundle manifest 写出完成: {out}")
+
+
+@app.command("validate-platform-readiness")
+def validate_platform_readiness_command(
+    workspace: Path = typer.Option(..., "--workspace", help="workspace_project.json 路径。"),
+    bundle: Path = typer.Option(..., "--bundle", help="report_bundle_manifest.json 路径。"),
+    checklist: Path = typer.Option(..., "--checklist", help="platform_readiness_checklist.json 路径。"),
+    out: Path = typer.Option(..., "--out", help="platform_readiness_validation.json 输出路径。"),
+    adapter: list[Path] = typer.Option([], "--adapter", help="可选 offline adapter contract JSON，可重复。"),
+) -> None:
+    result = _run_validate_platform_readiness(workspace, bundle, checklist, out, adapter)
+    if result["status"] == "PASS":
+        typer.echo("Platform readiness validation passed")
+    else:
+        typer.echo("Platform readiness validation requires review")
+    typer.echo(f"findings: {result['counts']['findings']}")
 
 
 @app.command("validate-rule-pack")
@@ -716,6 +746,71 @@ def _run_dashboard_bundle(
     )
     write_json(out, bundle)
     return bundle
+
+
+def _run_build_report_bundle(
+    report_dir: Path,
+    workspace_project_id: str,
+    bundle_id: str,
+    out: Path,
+    drone_id: str | None = None,
+) -> ReportBundleManifest:
+    manifest = build_report_bundle_manifest(
+        report_dir=report_dir,
+        workspace_project_id=workspace_project_id,
+        bundle_id=bundle_id,
+        drone_id=drone_id,
+    )
+    write_model(out, manifest)
+    write_audit_record(
+        out_dir=out.parent,
+        skill_name="platform-readiness",
+        skill_version="1.5.0",
+        input_refs=[str(report_dir), f"workspace_project_id={workspace_project_id}", f"bundle_id={bundle_id}"],
+        output_refs=[str(out)],
+        tools_called=["build_report_bundle_manifest"],
+        rules_triggered=[],
+        human_review_required=True,
+        status="success",
+        metadata={
+            "bundle_id": manifest.bundle_id,
+            "file_count": manifest.file_count,
+            "safety_boundary": "offline-report-bundle-only",
+        },
+    )
+    return manifest
+
+
+def _run_validate_platform_readiness(
+    workspace: Path,
+    bundle: Path,
+    checklist: Path,
+    out: Path,
+    adapters: list[Path],
+) -> dict:
+    result = validate_platform_readiness(
+        workspace_path=workspace,
+        bundle_path=bundle,
+        checklist_path=checklist,
+        adapter_paths=adapters,
+    )
+    write_json(out, result)
+    write_audit_record(
+        out_dir=out.parent,
+        skill_name="platform-readiness-validation",
+        skill_version="1.5.0",
+        input_refs=[str(workspace), str(bundle), str(checklist), *[str(path) for path in adapters]],
+        output_refs=[str(out)],
+        tools_called=["validate_platform_readiness"],
+        rules_triggered=[finding["code"] for finding in result["findings"]],
+        human_review_required=True,
+        status="success",
+        metadata={
+            "validation_status": result["status"],
+            "safety_boundary": "offline-platform-readiness-only",
+        },
+    )
+    return result
 
 
 def _run_validate_rule_pack(rule_pack_path: Path, out: Path) -> dict:

@@ -1,0 +1,29 @@
+{
+  "id": "BUNDLE-uav-001-demo",
+  "timestamp": "1970-01-01T00:00:00Z",
+  "drone_id": "UAV-001",
+  "human_review_required": true,
+  "generated_by_skill": "platform-readiness",
+  "skill_version": "1.5.0",
+  "bundle_id": "bundle-uav-001-demo",
+  "workspace_project_id": "workspace-local-demo",
+  "source_report_dir": "data/sample_reports",
+  "file_refs": [
+    "audit/*.json",
+    "diagnosis.json",
+    "evidence_index.json",
+    "flight_summary.json",
+    "maintenance_recommendations.json",
+    "ops_report.md",
+    "report_validation.json"
+  ],
+  "manifest_hash": "sha256:sample",
+  "export_format": "directory-json",
+  "safety_boundary": {
+    "offline_only": true,
+    "advisory_only": true,
+    "human_review_required": true,
+    "no_external_upload": true,
+    "no_real_platform_connection": true
+  }
+}
