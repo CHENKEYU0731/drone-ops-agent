@@ -12,6 +12,7 @@ from packages.drone_schemas import (
     BatteryAsset,
     DroneAsset,
     FaultHypothesis,
+    FleetHealthSummary,
     FlightLogSummary,
     MaintenanceRecommendation,
     MissionPlan,
@@ -29,6 +30,7 @@ from packages.drone_schemas import (
     write_model_list,
     SkillRunAudit,
 )
+from packages.fleet_health import build_fleet_health_summary, load_fleet_manifest, render_fleet_health_report
 from packages.log_parsers import SUPPORTED_LOG_FORMATS, ParsedFlightLog, parse_flight_log_details
 from packages.maintenance_rules import generate_maintenance_recommendations
 from packages.preflight_rules import run_preflight_check
@@ -137,6 +139,16 @@ def validate_work_orders_command(
     typer.echo("Work order validation passed")
     typer.echo(f"validated drafts: {result.counts.validated_drafts}")
     typer.echo(f"evidence refs: {result.counts.evidence_refs}")
+
+
+@app.command("fleet-summary")
+def fleet_summary_command(
+    manifest: Path = typer.Option(..., "--manifest", help="本地 fleet manifest JSON 路径。"),
+    out: Path = typer.Option(..., "--out", help="输出目录。"),
+    markdown: Path | None = typer.Option(None, "--markdown", help="可选 fleet Markdown 报告输出路径。"),
+) -> None:
+    _run_cli(lambda: _run_fleet_summary(manifest, out, markdown))
+    typer.echo(f"机队健康摘要生成完成: {out}")
 
 
 @app.command("run-mvp")
@@ -602,6 +614,42 @@ def _run_validate_work_orders(
         },
     )
     return result
+
+
+def _run_fleet_summary(
+    manifest_path: Path,
+    out: Path,
+    markdown_path: Path | None = None,
+) -> FleetHealthSummary:
+    out.mkdir(parents=True, exist_ok=True)
+    manifest = load_fleet_manifest(manifest_path)
+    summary = build_fleet_health_summary(manifest)
+    output_path = out / "fleet_health_summary.json"
+    write_model(output_path, summary)
+    output_refs = [str(output_path)]
+    if markdown_path is not None:
+        markdown_path.parent.mkdir(parents=True, exist_ok=True)
+        markdown_path.write_text(render_fleet_health_report(summary), encoding="utf-8")
+        output_refs.append(str(markdown_path))
+    write_audit_record(
+        out_dir=out,
+        skill_name="fleet-health-analytics",
+        skill_version="1.1.0",
+        input_refs=[str(manifest_path), *summary.source_refs],
+        output_refs=output_refs,
+        tools_called=["load_fleet_manifest", "build_fleet_health_summary"],
+        rules_triggered=sorted({finding.evidence_refs[0].rule_id for finding in summary.findings if finding.evidence_refs}),
+        human_review_required=True,
+        status="success",
+        metadata={
+            "fleet_id": summary.fleet_id,
+            "asset_count": summary.asset_count,
+            "flight_count": summary.flight_count,
+            "highest_risk": summary.highest_risk.value,
+            "safety_boundary": "offline-fleet-summary-only",
+        },
+    )
+    return summary
 
 
 if __name__ == "__main__":

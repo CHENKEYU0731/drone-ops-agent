@@ -1,0 +1,50 @@
+{
+  "id": "SUM-UAV-002-FLIGHT-001",
+  "timestamp": "1970-01-01T00:00:00Z",
+  "drone_id": "UAV-002",
+  "human_review_required": true,
+  "generated_by_skill": "flight-log-analysis",
+  "skill_version": "1.0.0",
+  "source_log_id": "UAV-002-FLIGHT-001",
+  "start_time": "2026-06-26T10:00:00Z",
+  "end_time": "2026-06-26T10:12:00Z",
+  "duration_seconds": 720,
+  "record_count": 12,
+  "min_battery_voltage_v": 14.8,
+  "max_battery_current_a": 32.0,
+  "min_battery_soc_pct": 18.0,
+  "gps_summary": {
+    "min_satellites": 9,
+    "max_hdop": 1.0
+  },
+  "vibration_summary": {
+    "max_x": 1.4,
+    "max_y": 0.7,
+    "max_z": 0.4666666666666666
+  },
+  "motor_imbalance_summary": {
+    "max_delta_pct": 8
+  },
+  "link_quality_summary": {
+    "min_link_quality_pct": 82
+  },
+  "flight_mode_timeline": [
+    {
+      "mode": "AUTO",
+      "start": "2026-06-26T10:00:00Z"
+    }
+  ],
+  "anomaly_count": 1,
+  "evidence_refs": [
+    {
+      "source_type": "flight_summary",
+      "source_id": "data\\sample_fleet\\uav_002_flight_001\\flight_summary.json",
+      "timestamp": "2026-06-26T10:00:00Z",
+      "field": "min_battery_soc_pct",
+      "measured_value": 18,
+      "threshold": 25,
+      "rule_id": "FLEET_SOURCE_SUMMARY",
+      "description": "min_battery_soc_pct crossed offline fleet threshold."
+    }
+  ]
+}
