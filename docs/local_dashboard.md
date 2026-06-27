@@ -32,6 +32,20 @@ python -m apps.cli.main dashboard-bundle \
 Dashboard bundle 只保存本地 artifact reference，不读取实时遥测，不调用外部 API，不启动服务，
 也不执行任何飞控或维护动作。
 
+## Local Read-only Backend Baseline
+
+第二阶段新增一个轻量本地 ASGI backend factory：
+
+- `packages.dashboard.create_dashboard_app(bundle_path=...)`
+- `GET /health`
+- `GET /api/dashboard/bundle`
+
+该 backend 只读取已经生成好的本地 `dashboard_bundle.json`。它不接受写入请求，不连接外部 API，
+不做远程部署，也不实现多用户权限。后续 UI 可以直接读取 `/api/dashboard/bundle` 来展示报告、
+仿真、工单、机队健康、audit 和 evidence refs。
+
+本阶段不强制引入 ASGI server 运行依赖；测试通过 Starlette `TestClient` 验证只读 API。
+
 明确不包含：
 
 - 真实无人机连接
