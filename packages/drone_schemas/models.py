@@ -420,6 +420,88 @@ class EvalResult(ReviewableOutput):
         self.output_refs = sorted(self.output_refs)
 
 
+class WorkspaceProject(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("WORKSPACE"))
+    project_id: str
+    name: str
+    root_ref: str
+    asset_refs: list[str] = Field(default_factory=list)
+    report_bundle_refs: list[str] = Field(default_factory=list)
+    reviewer_roles: list[str] = Field(default_factory=list)
+    retention_policy: dict[str, Any] = Field(default_factory=dict)
+    safety_boundary: dict[str, bool] = Field(default_factory=dict)
+    generated_by_skill: str = "platform-readiness"
+    skill_version: str = "1.5.0"
+
+    def model_post_init(self, __context: Any) -> None:
+        self.asset_refs = sorted(self.asset_refs)
+        self.report_bundle_refs = sorted(self.report_bundle_refs)
+        self.reviewer_roles = sorted(self.reviewer_roles)
+        self.retention_policy = dict(sorted(self.retention_policy.items()))
+
+
+class ReportBundleManifest(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("BUNDLE"))
+    bundle_id: str
+    workspace_project_id: str
+    source_report_dir: str
+    file_refs: list[str] = Field(default_factory=list)
+    manifest_hash: str
+    export_format: str = "directory-json"
+    safety_boundary: dict[str, bool] = Field(default_factory=dict)
+    generated_by_skill: str = "platform-readiness"
+    skill_version: str = "1.5.0"
+
+    @property
+    def file_count(self) -> int:
+        return len(self.file_refs)
+
+    def model_post_init(self, __context: Any) -> None:
+        self.file_refs = sorted(self.file_refs)
+
+
+class ReviewerApproval(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("APPROVAL"))
+    approval_id: str
+    subject_ref: str
+    reviewer_id: str
+    reviewer_role: str
+    decision: str
+    rationale: str
+    evidence_refs: list[EvidenceRef] = Field(default_factory=list)
+    generated_by_skill: str = "platform-readiness"
+    skill_version: str = "1.5.0"
+
+
+class OfflineAdapterContract(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("ADAPTER"))
+    adapter_id: str
+    adapter_type: str
+    direction: str
+    allowed_operations: list[str] = Field(default_factory=list)
+    prohibited_operations: list[str] = Field(default_factory=list)
+    safety_boundary: dict[str, bool] = Field(default_factory=dict)
+    generated_by_skill: str = "platform-readiness"
+    skill_version: str = "1.5.0"
+
+    def model_post_init(self, __context: Any) -> None:
+        self.allowed_operations = sorted(self.allowed_operations)
+        self.prohibited_operations = sorted(self.prohibited_operations)
+
+
+class PlatformReadinessChecklist(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("PLATFORMCHECK"))
+    checklist_id: str
+    title: str
+    checks: list[dict[str, Any]] = Field(default_factory=list)
+    safety_boundary: dict[str, bool] = Field(default_factory=dict)
+    generated_by_skill: str = "platform-readiness"
+    skill_version: str = "1.5.0"
+
+    def model_post_init(self, __context: Any) -> None:
+        self.checks = sorted(self.checks, key=lambda item: str(item.get("check_id", "")))
+
+
 class SimulationScenario(BaseModel):
     scenario_id: str
     drone_id: str
