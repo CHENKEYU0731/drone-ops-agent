@@ -68,3 +68,22 @@ python -m apps.cli.main validate-rule-pack \
 
 验证逻辑会暴露缺失 evidence fields、缺失 inputs 等可审计问题。当前验证只读取本地 JSON，
 不加载真实硬件、不连接外部平台，也不改变任何规则执行结果。
+
+## Skill Version Registry
+
+第三阶段新增：
+
+```bash
+python -m apps.cli.main list-skills \
+  --rule-pack data/sample_rule_packs/offline_default_rules.json \
+  --out /tmp/skill_registry.json
+```
+
+```bash
+python -m apps.cli.main list-rule-packs \
+  --rule-pack data/sample_rule_packs/offline_default_rules.json \
+  --out /tmp/rule_packs.json
+```
+
+`skill_registry.json` 记录本地 core CLI skill 名称、版本、分类，以及可审计 rule pack reference。
+这些信息只是离线治理元数据，不触发真实规则执行、飞控连接或外部系统调用。

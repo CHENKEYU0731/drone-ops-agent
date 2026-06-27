@@ -37,7 +37,7 @@ from packages.maintenance_rules import generate_maintenance_recommendations
 from packages.preflight_rules import run_preflight_check
 from packages.report_validation import ReportValidationError, ReportValidationPaths, validate_report_outputs
 from packages.report_templates import export_markdown_to_pdf, render_ops_report
-from packages.rule_packs import validate_rule_pack
+from packages.rule_packs import build_skill_registry, list_rule_pack_refs, validate_rule_pack
 from packages.simulation import parse_simulation_result, validate_simulation_result
 from packages.state_monitoring import run_monitoring_replay
 from packages.telemetry_rules import summarize_flight
@@ -171,6 +171,24 @@ def validate_rule_pack_command(
 ) -> None:
     _run_cli(lambda: _run_validate_rule_pack(rule_pack, out))
     typer.echo(f"规则包验证完成: {out}")
+
+
+@app.command("list-skills")
+def list_skills_command(
+    out: Path = typer.Option(..., "--out", help="skill_registry.json 输出路径。"),
+    rule_pack: list[Path] = typer.Option([], "--rule-pack", help="可选本地 rule pack JSON 路径，可重复。"),
+) -> None:
+    _run_cli(lambda: _run_list_skills(rule_pack, out))
+    typer.echo(f"Skill registry 写出完成: {out}")
+
+
+@app.command("list-rule-packs")
+def list_rule_packs_command(
+    out: Path = typer.Option(..., "--out", help="rule_packs.json 输出路径。"),
+    rule_pack: list[Path] = typer.Option([], "--rule-pack", help="可选本地 rule pack JSON 路径，可重复。"),
+) -> None:
+    _run_cli(lambda: _run_list_rule_packs(rule_pack, out))
+    typer.echo(f"规则包列表写出完成: {out}")
 
 
 @app.command("run-mvp")
@@ -693,6 +711,23 @@ def _run_validate_rule_pack(rule_pack_path: Path, out: Path) -> dict:
     result = validate_rule_pack(rule_pack_path)
     write_json(out, result)
     return result
+
+
+def _run_list_skills(rule_pack_paths: list[Path], out: Path) -> dict:
+    registry = build_skill_registry(rule_pack_paths=rule_pack_paths)
+    write_json(out, registry)
+    return registry
+
+
+def _run_list_rule_packs(rule_pack_paths: list[Path], out: Path) -> dict:
+    payload = {
+        "schema_version": 1,
+        "generated_at": "1970-01-01T00:00:00Z",
+        "rule_packs": list_rule_pack_refs(rule_pack_paths),
+        "human_review_required": True,
+    }
+    write_json(out, payload)
+    return payload
 
 
 if __name__ == "__main__":
