@@ -32,6 +32,14 @@ class MaintenancePriority(str, Enum):
     MONITOR = "MONITOR"
 
 
+class FleetRiskLevel(str, Enum):
+    PASS = "PASS"
+    LOW = "LOW"
+    REVIEW_REQUIRED = "REVIEW_REQUIRED"
+    HIGH = "HIGH"
+    CRITICAL = "CRITICAL"
+
+
 class ReviewableOutput(BaseModel):
     id: str = Field(default_factory=lambda: new_id("OUT"))
     timestamp: datetime = Field(default_factory=utc_now)
@@ -75,6 +83,18 @@ class BatteryAsset(BaseModel):
     soc_pct: float = Field(default=100, ge=0, le=100)
     voltage_v: float | None = None
     temperature_c: float | None = None
+
+
+class FleetAsset(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("FLEET"))
+    fleet_id: str
+    name: str
+    asset_ids: list[str]
+    source_refs: list[str] = Field(default_factory=list)
+
+    @property
+    def asset_count(self) -> int:
+        return len(self.asset_ids)
 
 
 class MissionPlan(BaseModel):
@@ -238,6 +258,37 @@ class MaintenanceRecommendation(ReviewableOutput):
     evidence_refs: list[EvidenceRef]
     required_approval: str
     estimated_effort: str
+
+
+class FleetHealthFinding(BaseModel):
+    finding_id: str
+    category: str
+    risk_level: FleetRiskLevel
+    affected_assets: list[str] = Field(default_factory=list)
+    affected_flights: list[str] = Field(default_factory=list)
+    summary: str
+    evidence_refs: list[EvidenceRef]
+    recommended_action: str
+    human_review_required: bool = True
+
+
+class FleetHealthSummary(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("FLEETSUM"))
+    fleet_id: str
+    window_start: datetime
+    window_end: datetime
+    asset_count: int = Field(ge=0)
+    flight_count: int = Field(ge=0)
+    highest_risk: FleetRiskLevel
+    risk_rankings: list[dict[str, Any]] = Field(default_factory=list)
+    findings: list[FleetHealthFinding] = Field(default_factory=list)
+    evidence_refs: list[EvidenceRef] = Field(default_factory=list)
+    source_refs: list[str] = Field(default_factory=list)
+
+    def model_post_init(self, __context: Any) -> None:
+        if self.window_end < self.window_start:
+            raise ValueError("FleetHealthSummary.window_end must be greater than or equal to window_start")
+        self.source_refs = sorted(self.source_refs)
 
 
 class WorkOrderDraft(ReviewableOutput):
