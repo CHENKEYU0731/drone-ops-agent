@@ -37,6 +37,7 @@ packages = [
   "apps.cli",
   "packages",
   "packages.drone_schemas",
+  "packages.dashboard",
   "packages.log_parsers",
   "packages.telemetry_rules",
   "packages.anomaly_detection",
