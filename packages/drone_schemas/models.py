@@ -533,6 +533,41 @@ class OfflineAdapterRegistry(ReviewableOutput):
         self.source_refs = sorted(self.source_refs)
 
 
+class OrganizationHandoffArtifact(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("HANDOFFART"))
+    artifact_id: str
+    artifact_type: str
+    path: str
+    required: bool = True
+    description: str
+    generated_by_skill: str = "organization-handoff"
+    skill_version: str = "1.8.0"
+
+
+class OrganizationHandoffPackage(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("HANDOFF"))
+    package_id: str
+    version: str
+    title: str
+    workspace_project_id: str
+    artifact_refs: list[OrganizationHandoffArtifact] = Field(default_factory=list)
+    reviewer_roles: list[str] = Field(default_factory=list)
+    safety_boundary: dict[str, bool] = Field(default_factory=dict)
+    generated_by_skill: str = "organization-handoff"
+    skill_version: str = "1.8.0"
+
+    @property
+    def artifact_count(self) -> int:
+        return len(self.artifact_refs)
+
+    def model_post_init(self, __context: Any) -> None:
+        artifact_ids = [artifact.artifact_id for artifact in self.artifact_refs]
+        if len(artifact_ids) != len(set(artifact_ids)):
+            raise ValueError("OrganizationHandoffPackage contains duplicate artifact_id values")
+        self.artifact_refs = sorted(self.artifact_refs, key=lambda artifact: artifact.artifact_id)
+        self.reviewer_roles = sorted(self.reviewer_roles)
+
+
 class PlatformReadinessChecklist(ReviewableOutput):
     id: str = Field(default_factory=lambda: new_id("PLATFORMCHECK"))
     checklist_id: str

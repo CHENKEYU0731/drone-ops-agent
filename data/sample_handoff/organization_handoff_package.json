@@ -1,0 +1,104 @@
+{
+  "id": "HANDOFF-org-handoff-demo",
+  "timestamp": "1970-01-01T00:00:00Z",
+  "drone_id": null,
+  "human_review_required": true,
+  "generated_by_skill": "organization-handoff",
+  "skill_version": "1.8.0",
+  "package_id": "org-handoff-demo",
+  "version": "1.8.0",
+  "title": "Offline organization handoff package",
+  "workspace_project_id": "workspace-local-demo",
+  "artifact_refs": [
+    {
+      "id": "HANDOFFART-adapter-registry",
+      "timestamp": "1970-01-01T00:00:00Z",
+      "drone_id": null,
+      "human_review_required": true,
+      "generated_by_skill": "organization-handoff",
+      "skill_version": "1.8.0",
+      "artifact_id": "adapter-registry",
+      "artifact_type": "offline_adapter_registry",
+      "path": "data/sample_adapters/offline_adapter_registry.json",
+      "required": true,
+      "description": "Offline adapter registry for mock export boundaries."
+    },
+    {
+      "id": "HANDOFFART-approval-packet",
+      "timestamp": "1970-01-01T00:00:00Z",
+      "drone_id": null,
+      "human_review_required": true,
+      "generated_by_skill": "organization-handoff",
+      "skill_version": "1.8.0",
+      "artifact_id": "approval-packet",
+      "artifact_type": "approval_packet",
+      "path": "data/sample_approvals/approval_packet.json",
+      "required": true,
+      "description": "Local approval packet requiring human review."
+    },
+    {
+      "id": "HANDOFFART-dataset-registry",
+      "timestamp": "1970-01-01T00:00:00Z",
+      "drone_id": null,
+      "human_review_required": true,
+      "generated_by_skill": "organization-handoff",
+      "skill_version": "1.8.0",
+      "artifact_id": "dataset-registry",
+      "artifact_type": "dataset_registry",
+      "path": "data/sample_datasets/registry.json",
+      "required": true,
+      "description": "Local dataset and case registry."
+    },
+    {
+      "id": "HANDOFFART-platform-checklist",
+      "timestamp": "1970-01-01T00:00:00Z",
+      "drone_id": null,
+      "human_review_required": true,
+      "generated_by_skill": "organization-handoff",
+      "skill_version": "1.8.0",
+      "artifact_id": "platform-checklist",
+      "artifact_type": "platform_readiness_checklist",
+      "path": "data/sample_platform/platform_readiness_checklist.json",
+      "required": true,
+      "description": "Platform readiness checklist for offline governance."
+    },
+    {
+      "id": "HANDOFFART-report-bundle",
+      "timestamp": "1970-01-01T00:00:00Z",
+      "drone_id": null,
+      "human_review_required": true,
+      "generated_by_skill": "organization-handoff",
+      "skill_version": "1.8.0",
+      "artifact_id": "report-bundle",
+      "artifact_type": "report_bundle_manifest",
+      "path": "data/sample_platform/report_bundle_manifest.json",
+      "required": true,
+      "description": "Local report bundle manifest."
+    },
+    {
+      "id": "HANDOFFART-workspace-project",
+      "timestamp": "1970-01-01T00:00:00Z",
+      "drone_id": null,
+      "human_review_required": true,
+      "generated_by_skill": "organization-handoff",
+      "skill_version": "1.8.0",
+      "artifact_id": "workspace-project",
+      "artifact_type": "workspace_project",
+      "path": "data/sample_platform/workspace_project.json",
+      "required": true,
+      "description": "Local workspace governance file."
+    }
+  ],
+  "reviewer_roles": [
+    "maintenance_lead",
+    "safety_reviewer"
+  ],
+  "safety_boundary": {
+    "offline_only": true,
+    "advisory_only": true,
+    "human_review_required": true,
+    "no_real_drone_connection": true,
+    "no_external_platform_connection": true,
+    "no_auto_dispatch": true
+  }
+}
