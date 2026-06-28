@@ -620,6 +620,50 @@ class PlatformReadinessIndex(ReviewableOutput):
         self.required_release_checks = sorted(self.required_release_checks)
 
 
+class OperationsPlatformModule(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("OPSMOD"))
+    module_id: str
+    title: str
+    source_version: str
+    artifact_refs: list[str] = Field(default_factory=list)
+    validation_commands: list[str] = Field(default_factory=list)
+    expected_outputs: list[str] = Field(default_factory=list)
+    reviewer_roles: list[str] = Field(default_factory=list)
+    safety_notes: list[str] = Field(default_factory=list)
+    generated_by_skill: str = "operations-platform-baseline"
+    skill_version: str = "2.0.0"
+
+    def model_post_init(self, __context: Any) -> None:
+        self.artifact_refs = sorted(self.artifact_refs)
+        self.validation_commands = sorted(self.validation_commands)
+        self.expected_outputs = sorted(self.expected_outputs)
+        self.reviewer_roles = sorted(self.reviewer_roles)
+        self.safety_notes = sorted(self.safety_notes)
+
+
+class OperationsPlatformBaseline(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("OPSBASE"))
+    baseline_id: str
+    version: str
+    title: str
+    modules: list[OperationsPlatformModule] = Field(default_factory=list)
+    release_checks: list[str] = Field(default_factory=list)
+    safety_boundary: dict[str, bool] = Field(default_factory=dict)
+    generated_by_skill: str = "operations-platform-baseline"
+    skill_version: str = "2.0.0"
+
+    @property
+    def module_count(self) -> int:
+        return len(self.modules)
+
+    def model_post_init(self, __context: Any) -> None:
+        module_ids = [module.module_id for module in self.modules]
+        if len(module_ids) != len(set(module_ids)):
+            raise ValueError("OperationsPlatformBaseline contains duplicate module_id values")
+        self.modules = sorted(self.modules, key=lambda module: module.module_id)
+        self.release_checks = sorted(self.release_checks)
+
+
 class DatasetCase(ReviewableOutput):
     id: str = Field(default_factory=lambda: new_id("DATASETCASE"))
     case_id: str
