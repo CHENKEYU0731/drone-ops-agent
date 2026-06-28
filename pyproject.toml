@@ -47,6 +47,7 @@ packages = [
   "packages.rule_packs",
   "packages.log_parsers",
   "packages.telemetry_rules",
+  "packages.organization_handoff",
   "packages.anomaly_detection",
   "packages.diagnosis_rules",
   "packages.maintenance_rules",

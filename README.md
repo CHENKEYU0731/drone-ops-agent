@@ -311,6 +311,13 @@ v1.7.0 offline adapter and approval workflow:
 - `python -m apps.cli.main validate-approvals --packet data/sample_approvals/approval_packet.json --out <tmp>/approval_validation.json`
 - 该流程只验证本地 offline adapter registry 和 approval packet，不连接真实无人机、真实维修系统或真实平台，不执行 MAVLink command execution，不自动派单。
 
+v1.8.0 organization handoff package:
+
+- `docs/organization_handoff.md`
+- `docs/v1.8.0_release_readiness.md`
+- `python -m apps.cli.main validate-handoff-package --package data/sample_handoff/organization_handoff_package.json --out <tmp>/handoff_validation.json`
+- 该流程只验证本地组织级交接包 manifest，不上传文件，不连接真实无人机、真实维修系统或真实平台，不自动派单。
+
 v0.7.0 release readiness checklist:
 
 - `docs/v0.7.0_release_readiness.md`

@@ -38,6 +38,7 @@ from packages.evals import run_eval_suite
 from packages.fleet_health import build_fleet_health_summary, load_fleet_manifest, render_fleet_health_report
 from packages.log_parsers import SUPPORTED_LOG_FORMATS, ParsedFlightLog, parse_flight_log_details
 from packages.maintenance_rules import generate_maintenance_recommendations
+from packages.organization_handoff import validate_handoff_package
 from packages.platform_readiness import build_report_bundle_manifest, validate_platform_readiness
 from packages.preflight_rules import run_preflight_check
 from packages.report_validation import ReportValidationError, ReportValidationPaths, validate_report_outputs
@@ -273,6 +274,20 @@ def validate_approvals_command(
     else:
         typer.echo("Approval workflow validation requires review")
     typer.echo(f"approvals: {result['counts']['approvals']}")
+    typer.echo(f"findings: {result['counts']['findings']}")
+
+
+@app.command("validate-handoff-package")
+def validate_handoff_package_command(
+    package: Path = typer.Option(..., "--package", help="organization_handoff_package.json 路径。"),
+    out: Path = typer.Option(..., "--out", help="handoff_validation.json 输出路径。"),
+) -> None:
+    result = _run_validate_handoff_package(package, out)
+    if result["status"] == "PASS":
+        typer.echo("Organization handoff package validation passed")
+    else:
+        typer.echo("Organization handoff package validation requires review")
+    typer.echo(f"artifacts: {result['counts']['artifacts']}")
     typer.echo(f"findings: {result['counts']['findings']}")
 
 
@@ -973,6 +988,28 @@ def _run_validate_approvals(packet: Path, out: Path) -> dict:
             "validation_status": result["status"],
             "approval_count": result["counts"]["approvals"],
             "safety_boundary": "offline-approval-workflow-only",
+        },
+    )
+    return result
+
+
+def _run_validate_handoff_package(package: Path, out: Path) -> dict:
+    result = validate_handoff_package(package)
+    write_json(out, result)
+    write_audit_record(
+        out_dir=out.parent,
+        skill_name="organization-handoff-validation",
+        skill_version="1.8.0",
+        input_refs=[str(package)],
+        output_refs=[str(out)],
+        tools_called=["validate_handoff_package"],
+        rules_triggered=[finding["code"] for finding in result["findings"]],
+        human_review_required=True,
+        status="success",
+        metadata={
+            "validation_status": result["status"],
+            "artifact_count": result["counts"]["artifacts"],
+            "safety_boundary": "offline-organization-handoff-only",
         },
     )
     return result
