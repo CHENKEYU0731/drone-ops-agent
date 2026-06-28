@@ -39,6 +39,7 @@ from packages.fleet_health import build_fleet_health_summary, load_fleet_manifes
 from packages.log_parsers import SUPPORTED_LOG_FORMATS, ParsedFlightLog, parse_flight_log_details
 from packages.maintenance_rules import generate_maintenance_recommendations
 from packages.organization_handoff import validate_handoff_package
+from packages.operations_platform import validate_operations_platform
 from packages.platform_index import validate_platform_index
 from packages.platform_readiness import build_report_bundle_manifest, validate_platform_readiness
 from packages.preflight_rules import run_preflight_check
@@ -303,6 +304,20 @@ def validate_platform_index_command(
     else:
         typer.echo("Platform readiness index validation requires review")
     typer.echo(f"capabilities: {result['counts']['capabilities']}")
+    typer.echo(f"findings: {result['counts']['findings']}")
+
+
+@app.command("validate-operations-platform")
+def validate_operations_platform_command(
+    baseline: Path = typer.Option(..., "--baseline", help="operations_platform_baseline.json 路径。"),
+    out: Path = typer.Option(..., "--out", help="operations_platform_validation.json 输出路径。"),
+) -> None:
+    result = _run_validate_operations_platform(baseline, out)
+    if result["status"] == "PASS":
+        typer.echo("Operations platform baseline validation passed")
+    else:
+        typer.echo("Operations platform baseline validation requires review")
+    typer.echo(f"modules: {result['counts']['modules']}")
     typer.echo(f"findings: {result['counts']['findings']}")
 
 
@@ -1047,6 +1062,28 @@ def _run_validate_platform_index(index: Path, out: Path) -> dict:
             "validation_status": result["status"],
             "capability_count": result["counts"]["capabilities"],
             "safety_boundary": "offline-platform-readiness-index-only",
+        },
+    )
+    return result
+
+
+def _run_validate_operations_platform(baseline: Path, out: Path) -> dict:
+    result = validate_operations_platform(baseline)
+    write_json(out, result)
+    write_audit_record(
+        out_dir=out.parent,
+        skill_name="operations-platform-validation",
+        skill_version="2.0.0",
+        input_refs=[str(baseline)],
+        output_refs=[str(out)],
+        tools_called=["validate_operations_platform"],
+        rules_triggered=[finding["code"] for finding in result["findings"]],
+        human_review_required=True,
+        status="success",
+        metadata={
+            "validation_status": result["status"],
+            "module_count": result["counts"]["modules"],
+            "safety_boundary": "offline-operations-platform-baseline-only",
         },
     )
     return result
