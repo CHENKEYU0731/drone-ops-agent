@@ -1,6 +1,6 @@
 # 路线图
 
-项目当前已发布到 `v0.9.0 - Work Order Drafts`。
+项目当前已发布到 `v1.9.0 - Offline Platform Readiness Index Baseline`，正在推进 `v2.0.0 - Offline Operations Platform Baseline`。
 
 详细规划见：
 
@@ -41,7 +41,7 @@
 - `v1.3.0`：规则包和 skill 版本管理。
 - `v1.4.0`：诊断与报告评测。
 - `v1.5.x`：平台化准备。
-- `v2.0.0`：组织级运维平台基线。
+- `v2.0.0`：组织级离线运维平台基线。
 
 ## 安全边界
 

@@ -326,6 +326,14 @@ v1.9.0 offline platform readiness index:
 - 输出 `platform_index_validation.json` 和 `audit/platform-readiness-index-validation-*.json`
 - 该流程只验证本地 platform readiness index，不连接真实无人机、真实维修系统或真实平台，不自动派单。
 
+v2.0.0 offline operations platform baseline:
+
+- `docs/operations_platform_baseline.md`
+- `docs/v2.0.0_release_readiness.md`
+- `python -m apps.cli.main validate-operations-platform --baseline data/sample_platform/operations_platform_baseline.json --out <tmp>/operations_platform_validation.json`
+- 输出 `operations_platform_validation.json` 和 `audit/operations-platform-validation-*.json`
+- 该流程只验证本地 operations platform baseline，不连接真实无人机、真实维修系统或真实平台，不自动派单。
+
 v0.7.0 release readiness checklist:
 
 - `docs/v0.7.0_release_readiness.md`

@@ -132,3 +132,12 @@ v1.9.0 offline platform readiness index 工作流：
 - 运行 `python -m apps.cli.main validate-platform-index --index data/sample_platform/platform_readiness_index.json --out <tmp>/platform_index_validation.json`。
 - 确认 validation status 为 `PASS`，输出保持确定性，并且所有结论默认 `human_review_required=true`。
 - 保持 offline-only 和 advisory-only；不连接真实无人机、真实 fleet platform、真实维修系统或 MAVLink endpoint，不自动派单。
+
+v2.0.0 offline operations platform baseline 工作流：
+
+- 使用 `docs/v2.0.0_release_readiness.md` 作为发布前质量门禁清单。
+- 运行 `pytest`。
+- 运行 `pytest tests/unit/test_operations_platform_baseline_contracts.py tests/unit/test_operations_platform_validation.py tests/integration/test_operations_platform_cli.py tests/unit/test_v2_0_release_readiness_docs.py`。
+- 运行 `python -m apps.cli.main validate-operations-platform --baseline data/sample_platform/operations_platform_baseline.json --out <tmp>/operations_platform_validation.json`。
+- 确认 validation status 为 `PASS`，输出保持确定性，并且所有结论默认 `human_review_required=true`。
+- 保持 offline-only 和 advisory-only；不连接真实无人机、真实 fleet platform、真实维修系统或 MAVLink endpoint，不自动派单。
