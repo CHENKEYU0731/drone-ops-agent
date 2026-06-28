@@ -49,6 +49,7 @@ packages = [
   "packages.telemetry_rules",
   "packages.organization_handoff",
   "packages.platform_index",
+  "packages.operations_platform",
   "packages.anomaly_detection",
   "packages.diagnosis_rules",
   "packages.maintenance_rules",
