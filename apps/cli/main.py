@@ -39,6 +39,7 @@ from packages.fleet_health import build_fleet_health_summary, load_fleet_manifes
 from packages.log_parsers import SUPPORTED_LOG_FORMATS, ParsedFlightLog, parse_flight_log_details
 from packages.maintenance_rules import generate_maintenance_recommendations
 from packages.organization_handoff import validate_handoff_package
+from packages.platform_index import validate_platform_index
 from packages.platform_readiness import build_report_bundle_manifest, validate_platform_readiness
 from packages.preflight_rules import run_preflight_check
 from packages.report_validation import ReportValidationError, ReportValidationPaths, validate_report_outputs
@@ -288,6 +289,20 @@ def validate_handoff_package_command(
     else:
         typer.echo("Organization handoff package validation requires review")
     typer.echo(f"artifacts: {result['counts']['artifacts']}")
+    typer.echo(f"findings: {result['counts']['findings']}")
+
+
+@app.command("validate-platform-index")
+def validate_platform_index_command(
+    index: Path = typer.Option(..., "--index", help="platform_readiness_index.json 路径。"),
+    out: Path = typer.Option(..., "--out", help="platform_index_validation.json 输出路径。"),
+) -> None:
+    result = _run_validate_platform_index(index, out)
+    if result["status"] == "PASS":
+        typer.echo("Platform readiness index validation passed")
+    else:
+        typer.echo("Platform readiness index validation requires review")
+    typer.echo(f"capabilities: {result['counts']['capabilities']}")
     typer.echo(f"findings: {result['counts']['findings']}")
 
 
@@ -1010,6 +1025,28 @@ def _run_validate_handoff_package(package: Path, out: Path) -> dict:
             "validation_status": result["status"],
             "artifact_count": result["counts"]["artifacts"],
             "safety_boundary": "offline-organization-handoff-only",
+        },
+    )
+    return result
+
+
+def _run_validate_platform_index(index: Path, out: Path) -> dict:
+    result = validate_platform_index(index)
+    write_json(out, result)
+    write_audit_record(
+        out_dir=out.parent,
+        skill_name="platform-readiness-index-validation",
+        skill_version="1.9.0",
+        input_refs=[str(index)],
+        output_refs=[str(out)],
+        tools_called=["validate_platform_index"],
+        rules_triggered=[finding["code"] for finding in result["findings"]],
+        human_review_required=True,
+        status="success",
+        metadata={
+            "validation_status": result["status"],
+            "capability_count": result["counts"]["capabilities"],
+            "safety_boundary": "offline-platform-readiness-index-only",
         },
     )
     return result

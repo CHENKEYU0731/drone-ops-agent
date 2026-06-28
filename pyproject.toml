@@ -48,6 +48,7 @@ packages = [
   "packages.log_parsers",
   "packages.telemetry_rules",
   "packages.organization_handoff",
+  "packages.platform_index",
   "packages.anomaly_detection",
   "packages.diagnosis_rules",
   "packages.maintenance_rules",
