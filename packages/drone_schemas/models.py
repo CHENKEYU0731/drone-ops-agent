@@ -581,6 +581,45 @@ class PlatformReadinessChecklist(ReviewableOutput):
         self.checks = sorted(self.checks, key=lambda item: str(item.get("check_id", "")))
 
 
+class PlatformReadinessCapability(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("PLATFORMCAP"))
+    capability_id: str
+    title: str
+    version: str
+    commands: list[str] = Field(default_factory=list)
+    output_refs: list[str] = Field(default_factory=list)
+    safety_notes: list[str] = Field(default_factory=list)
+    generated_by_skill: str = "platform-readiness-index"
+    skill_version: str = "1.9.0"
+
+    def model_post_init(self, __context: Any) -> None:
+        self.commands = sorted(self.commands)
+        self.output_refs = sorted(self.output_refs)
+        self.safety_notes = sorted(self.safety_notes)
+
+
+class PlatformReadinessIndex(ReviewableOutput):
+    id: str = Field(default_factory=lambda: new_id("PLATFORMINDEX"))
+    index_id: str
+    version: str
+    capabilities: list[PlatformReadinessCapability] = Field(default_factory=list)
+    required_release_checks: list[str] = Field(default_factory=list)
+    safety_boundary: dict[str, bool] = Field(default_factory=dict)
+    generated_by_skill: str = "platform-readiness-index"
+    skill_version: str = "1.9.0"
+
+    @property
+    def capability_count(self) -> int:
+        return len(self.capabilities)
+
+    def model_post_init(self, __context: Any) -> None:
+        capability_ids = [capability.capability_id for capability in self.capabilities]
+        if len(capability_ids) != len(set(capability_ids)):
+            raise ValueError("PlatformReadinessIndex contains duplicate capability_id values")
+        self.capabilities = sorted(self.capabilities, key=lambda capability: capability.capability_id)
+        self.required_release_checks = sorted(self.required_release_checks)
+
+
 class DatasetCase(ReviewableOutput):
     id: str = Field(default_factory=lambda: new_id("DATASETCASE"))
     case_id: str
