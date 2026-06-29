@@ -280,6 +280,16 @@ drone-ops generate-report \
 pytest
 ```
 
+## 生成本地演示成果包
+
+如果想快速查看项目当前效果，可以生成一个本地示例成果包：
+
+```bash
+python scripts/generate_demo_outputs.py --out demo_outputs
+```
+
+说明文档见 `docs/demo_guide.md`。该流程只使用仓库内 sample / mock / sanitized fixture，保持 offline-only 和 advisory-only，不连接真实无人机、真实仿真器、真实维修系统或真实 fleet platform。
+
 v1.4.0 diagnosis/report evaluation:
 
 - `docs/diagnosis_report_evaluation.md`

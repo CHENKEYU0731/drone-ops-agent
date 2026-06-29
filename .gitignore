@@ -8,3 +8,4 @@ build/
 *.egg-info/
 data/sample_reports/*
 !data/sample_reports/.gitkeep
+demo_outputs/
