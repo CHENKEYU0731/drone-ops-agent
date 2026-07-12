@@ -54,7 +54,7 @@ from packages.work_orders import WorkOrderValidationError, validate_work_order_d
 from packages.work_orders.validation import WorkOrderValidationResult
 
 
-app = typer.Typer(help="无人机运维 Agent 离线 MVP CLI。")
+app = typer.Typer(help="无人机运维离线决策支持平台 CLI。")
 
 
 def _run_cli(action) -> None:
@@ -305,6 +305,8 @@ def validate_platform_index_command(
         typer.echo("Platform readiness index validation requires review")
     typer.echo(f"capabilities: {result['counts']['capabilities']}")
     typer.echo(f"findings: {result['counts']['findings']}")
+    if result["status"] != "PASS":
+        raise typer.Exit(code=1)
 
 
 @app.command("validate-operations-platform")
@@ -319,6 +321,8 @@ def validate_operations_platform_command(
         typer.echo("Operations platform baseline validation requires review")
     typer.echo(f"modules: {result['counts']['modules']}")
     typer.echo(f"findings: {result['counts']['findings']}")
+    if result["status"] != "PASS":
+        raise typer.Exit(code=1)
 
 
 @app.command("run-mvp")
@@ -341,7 +345,7 @@ def run_mvp_command(
             ),
         )
     )
-    typer.echo(f"MVP 流程完成: {out}")
+    typer.echo(f"核心离线流程完成: {out}")
 
 
 @app.command("preflight-check")
@@ -1057,7 +1061,7 @@ def _run_validate_platform_index(index: Path, out: Path) -> dict:
         tools_called=["validate_platform_index"],
         rules_triggered=[finding["code"] for finding in result["findings"]],
         human_review_required=True,
-        status="success",
+        status="success" if result["status"] == "PASS" else "review_required",
         metadata={
             "validation_status": result["status"],
             "capability_count": result["counts"]["capabilities"],
@@ -1079,7 +1083,7 @@ def _run_validate_operations_platform(baseline: Path, out: Path) -> dict:
         tools_called=["validate_operations_platform"],
         rules_triggered=[finding["code"] for finding in result["findings"]],
         human_review_required=True,
-        status="success",
+        status="success" if result["status"] == "PASS" else "review_required",
         metadata={
             "validation_status": result["status"],
             "module_count": result["counts"]["modules"],

@@ -1,6 +1,8 @@
 from pathlib import Path
 
-from scripts.generate_demo_outputs import generate_demo_outputs
+import pytest
+
+from scripts.generate_demo_outputs import generate_demo_outputs, validate_demo_output_dir
 
 
 def test_generate_demo_outputs_creates_showcase_package(tmp_path: Path) -> None:
@@ -36,3 +38,19 @@ def test_generate_demo_outputs_creates_showcase_package(tmp_path: Path) -> None:
     assert "offline-only" in readme
     assert "advisory-only" in readme
     assert "不连接真实无人机" in readme
+
+
+def test_demo_output_validation_rejects_workspace_root() -> None:
+    with pytest.raises(ValueError, match="项目目录"):
+        validate_demo_output_dir(Path.cwd())
+
+
+def test_demo_output_validation_rejects_unmanaged_nonempty_directory(tmp_path: Path) -> None:
+    out_dir = tmp_path / "existing"
+    out_dir.mkdir()
+    (out_dir / "keep.txt").write_text("do not delete", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="不是已生成的 demo 目录"):
+        validate_demo_output_dir(out_dir)
+
+    assert (out_dir / "keep.txt").read_text(encoding="utf-8") == "do not delete"

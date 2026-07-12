@@ -1,6 +1,6 @@
 # drone-ops-agent
 
-`drone-ops-agent` 是一个离线优先的无人机运维 Copilot / Agent MVP。它基于样例飞行日志和样例资产数据，完成日志解析、异常检测、故障假设、维护建议、Markdown 运维报告和审计记录生成。
+`drone-ops-agent` 是一个离线优先的无人机运维决策支持平台。它基于 sample / mock / sanitized 飞行数据和资产数据，完成日志解析、异常检测、故障假设、维护建议、运维报告、质量门禁和审计记录生成。
 
 ## 安全边界
 
@@ -22,7 +22,7 @@ pip install -e .[dev]
 pip install -e .[dev]
 ```
 
-## 运行 MVP
+## 运行核心离线流程
 
 完整离线流程：
 

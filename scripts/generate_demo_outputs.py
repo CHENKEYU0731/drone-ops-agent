@@ -8,12 +8,18 @@ from apps.cli import main as cli
 
 
 DEFAULT_OUTPUT_DIR = Path("demo_outputs")
+DEMO_MARKER = ".drone-ops-demo-output"
+DEMO_README_HEADER = "# 无人机运维 Agent 示例成果包"
+REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 
 
 def generate_demo_outputs(out_dir: Path = DEFAULT_OUTPUT_DIR) -> list[Path]:
-    out_dir = Path(out_dir)
+    out_dir = validate_demo_output_dir(out_dir)
     if out_dir.exists():
         shutil.rmtree(out_dir)
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / DEMO_MARKER).write_text("managed demo output directory\n", encoding="utf-8")
 
     reports_dir = out_dir / "reports"
     fleet_dir = out_dir / "fleet"
@@ -113,6 +119,30 @@ def generate_demo_outputs(out_dir: Path = DEFAULT_OUTPUT_DIR) -> list[Path]:
 
     _write_demo_readme(out_dir)
     return sorted(path.relative_to(out_dir) for path in out_dir.rglob("*") if path.is_file())
+
+
+def validate_demo_output_dir(out_dir: Path) -> Path:
+    target = Path(out_dir).expanduser().resolve()
+    protected = {
+        REPOSITORY_ROOT,
+        Path.cwd().resolve(),
+        Path.home().resolve(),
+        Path(target.anchor).resolve(),
+    }
+    if target in protected or REPOSITORY_ROOT.is_relative_to(target):
+        raise ValueError(f"拒绝将项目目录或其上级目录作为 demo 输出目录: {target}")
+    if target.exists() and not target.is_dir():
+        raise ValueError(f"demo 输出路径必须是目录: {target}")
+    if target.exists() and any(target.iterdir()) and not _is_managed_demo_dir(target):
+        raise ValueError(f"目标不是已生成的 demo 目录，拒绝清理: {target}")
+    return target
+
+
+def _is_managed_demo_dir(path: Path) -> bool:
+    if (path / DEMO_MARKER).is_file():
+        return True
+    readme = path / "README.md"
+    return readme.is_file() and readme.read_text(encoding="utf-8").startswith(DEMO_README_HEADER)
 
 
 def _write_demo_readme(out_dir: Path) -> None:

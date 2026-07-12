@@ -70,11 +70,11 @@ def _observations(**overrides) -> dict:
     return data
 
 
-def test_preflight_go_case_has_no_review_requirement() -> None:
+def test_preflight_go_case_still_requires_human_review() -> None:
     result = run_preflight_check(_asset(), _battery(), _mission(), _observations(), RULES)
 
     assert result.status == "GO"
-    assert result.human_review_required is False
+    assert result.human_review_required is True
     assert result.blocking_items == []
     assert result.warnings == []
     assert result.evidence_refs

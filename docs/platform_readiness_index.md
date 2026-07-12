@@ -38,6 +38,8 @@ python -m apps.cli.main validate-platform-index \
   --out <tmp>/platform_index_validation.json
 ```
 
+当结果为 `REVIEW_REQUIRED` 时，命令仍会写出 validation JSON 和 audit，但会返回非零退出码，便于 CI 或脚本阻止错误放行。
+
 输出包括：
 
 - `platform_index_validation.json`
