@@ -1,6 +1,6 @@
 # 路线图
 
-项目当前已发布到 `v2.0.0 - Offline Operations Platform Baseline`。
+项目当前已发布到 `v2.1.0 - Demo and Portfolio Readiness`。
 
 详细规划见：
 
@@ -27,12 +27,14 @@
   - 完成平台 readiness、dataset registry、offline adapter/approval、organization handoff 和 readiness index。
 - `v2.0.0 - Offline Operations Platform Baseline`
   - 将已完成能力收成可验证的组织级离线运维决策平台基线。
+- `v2.1.0 - Demo and Portfolio Readiness`
+  - 增加可重复生成的本地演示成果包、中文演示指南和更严格的平台验证门禁。
 
 ## 当前里程碑
 
-### v2.0.0：Offline Operations Platform Baseline
+### v2.1.0：Demo and Portfolio Readiness
 
-目标已经完成：项目具备 CLI、本地只读 Web Dashboard、多资产分析、报告和工单闭环、规则与评测、审计、审批、交接及平台质量门禁，同时继续保持 offline-only、advisory-only 和 human-review-required。
+目标已经完成：项目可以用一条本地命令生成适合项目讲解和作品展示的完整成果包，并对输出目录、平台索引、平台基线及人工复核边界执行确定性验证。所有流程继续保持 offline-only、advisory-only 和 human-review-required。
 
 ## 已完成版本演进
 
@@ -44,6 +46,7 @@
 - `v1.4.0`：诊断与报告评测。
 - `v1.5.x`：平台化准备。
 - `v2.0.0`：组织级离线运维平台基线。
+- `v2.1.0`：本地演示与作品展示就绪。
 
 ## 安全边界
 

@@ -290,6 +290,14 @@ python scripts/generate_demo_outputs.py --out demo_outputs
 
 说明文档见 `docs/demo_guide.md`。该流程只使用仓库内 sample / mock / sanitized fixture，保持 offline-only 和 advisory-only，不连接真实无人机、真实仿真器、真实维修系统或真实 fleet platform。
 
+v2.1.0 demo and portfolio readiness:
+
+- `docs/demo_guide.md`
+- `docs/v2.1.0_release_readiness.md`
+- 一条命令生成报告、PDF、证据索引、仿真验证、工单草稿、机队健康、Dashboard 数据包和平台验证结果。
+- 输出目录带 `.drone-ops-demo-output` 管理标记，并拒绝覆盖仓库根目录、用户目录或未受管理的非空目录。
+- 演示与验证仍保持 offline-only、advisory-only 和 `human_review_required=true`。
+
 v1.4.0 diagnosis/report evaluation:
 
 - `docs/diagnosis_report_evaluation.md`
