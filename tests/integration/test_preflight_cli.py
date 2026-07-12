@@ -35,7 +35,7 @@ def test_preflight_cli_writes_result_and_audit(tmp_path: Path) -> None:
     assert output.exists()
     payload = json.loads(output.read_text(encoding="utf-8"))
     assert payload["status"] == "GO"
-    assert payload["human_review_required"] is False
+    assert payload["human_review_required"] is True
 
     audit_files = list((out_dir / "audit").glob("preflight-check-*.json"))
     assert audit_files

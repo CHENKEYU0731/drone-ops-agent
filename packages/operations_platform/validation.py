@@ -7,11 +7,22 @@ from packages.drone_schemas import OperationsPlatformBaseline, load_model
 
 
 CREATED_AT = "1970-01-01T00:00:00Z"
+REQUIRED_MODULE_IDS = {
+    "dashboard-bundle",
+    "dataset-registry",
+    "eval-suite",
+    "fleet-health",
+    "organization-handoff",
+    "platform-readiness",
+    "platform-readiness-index",
+    "rule-pack-versioning",
+    "work-order-drafts",
+}
 
 
 def validate_operations_platform(path: Path) -> dict[str, Any]:
     baseline = load_model(path, OperationsPlatformBaseline)
-    findings = _collect_findings(baseline)
+    findings = _collect_findings(baseline, path.parent)
     source_versions = sorted({module.source_version for module in baseline.modules})
     reviewer_roles = sorted({role for module in baseline.modules for role in module.reviewer_roles})
     return {
@@ -52,7 +63,7 @@ def validate_operations_platform(path: Path) -> dict[str, Any]:
     }
 
 
-def _collect_findings(baseline: OperationsPlatformBaseline) -> list[dict[str, str]]:
+def _collect_findings(baseline: OperationsPlatformBaseline, base_dir: Path) -> list[dict[str, str]]:
     findings: list[dict[str, str]] = []
     required_boundaries = {
         "offline_only": "OPS_PLATFORM_OFFLINE_BOUNDARY_MISSING",
@@ -79,6 +90,16 @@ def _collect_findings(baseline: OperationsPlatformBaseline) -> list[dict[str, st
                 )
             )
 
+    module_ids = {module.module_id for module in baseline.modules}
+    for module_id in sorted(REQUIRED_MODULE_IDS - module_ids):
+        findings.append(
+            _finding(
+                "OPS_PLATFORM_REQUIRED_MODULE_MISSING",
+                module_id,
+                f"Required operations platform module missing: {module_id}.",
+            )
+        )
+
     for module in baseline.modules:
         if not module.artifact_refs:
             findings.append(
@@ -88,6 +109,15 @@ def _collect_findings(baseline: OperationsPlatformBaseline) -> list[dict[str, st
                     f"Module {module.module_id} must include artifact refs.",
                 )
             )
+        for artifact_ref in module.artifact_refs:
+            if not _resolve_ref(artifact_ref, base_dir).exists():
+                findings.append(
+                    _finding(
+                        "OPS_PLATFORM_MODULE_ARTIFACT_NOT_FOUND",
+                        module.module_id,
+                        f"Module {module.module_id} artifact not found: {artifact_ref}.",
+                    )
+                )
         if not module.validation_commands:
             findings.append(
                 _finding(
@@ -131,6 +161,13 @@ def _collect_findings(baseline: OperationsPlatformBaseline) -> list[dict[str, st
                 )
 
     return sorted(findings, key=lambda item: (item["subject_id"], item["code"], item["message"]))
+
+
+def _resolve_ref(source_ref: str, base_dir: Path) -> Path:
+    path = Path(source_ref)
+    if path.is_absolute() or path.exists():
+        return path
+    return base_dir / path
 
 
 def _finding(code: str, subject_id: str, message: str) -> dict[str, str]:

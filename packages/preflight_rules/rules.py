@@ -186,7 +186,7 @@ def run_preflight_check(
         blocking_items=blocking,
         warnings=warnings,
         evidence_refs=evidence_refs,
-        human_review_required=status_value != "GO",
+        human_review_required=True,
         drone_id=asset.drone_id,
         generated_by_skill=SKILL_NAME,
         skill_version=SKILL_VERSION,

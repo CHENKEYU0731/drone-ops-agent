@@ -1,6 +1,6 @@
 # 路线图
 
-项目当前已发布到 `v1.9.0 - Offline Platform Readiness Index Baseline`，正在推进 `v2.0.0 - Offline Operations Platform Baseline`。
+项目当前已发布到 `v2.1.0 - Demo and Portfolio Readiness`。
 
 详细规划见：
 
@@ -19,20 +19,24 @@
   - 将仿真验证、审计摘要、parser metadata 和人工复核清单纳入 Markdown/PDF 报告。
 - `v0.9.0 - Work Order Drafts`
   - 增加工单草稿生成、工单草稿验证和报告中的工单章节。
+- `v1.0.0 - Stable Offline Ops Agent`
+  - 冻结核心 CLI、schema、audit、证据链和安全边界。
+- `v1.1.0` 至 `v1.4.0`
+  - 完成机队健康分析、本地只读 Dashboard、规则包版本管理和诊断/报告评测。
+- `v1.5.0` 至 `v1.9.0`
+  - 完成平台 readiness、dataset registry、offline adapter/approval、organization handoff 和 readiness index。
+- `v2.0.0 - Offline Operations Platform Baseline`
+  - 将已完成能力收成可验证的组织级离线运维决策平台基线。
+- `v2.1.0 - Demo and Portfolio Readiness`
+  - 增加可重复生成的本地演示成果包、中文演示指南和更严格的平台验证门禁。
 
-## 下一阶段
+## 当前里程碑
 
-### v1.0.0：Stable Offline Ops Agent
+### v2.1.0：Demo and Portfolio Readiness
 
-目标：冻结并稳定从 `v0.1.0` 到 `v0.9.0` 的完整离线能力，形成第一个可靠主版本。
+目标已经完成：项目可以用一条本地命令生成适合项目讲解和作品展示的完整成果包，并对输出目录、平台索引、平台基线及人工复核边界执行确定性验证。所有流程继续保持 offline-only、advisory-only 和 human-review-required。
 
-建议拆成小 PR：
-
-1. 稳定合同盘点：CLI、JSON 输出、schema、audit 和安全边界。
-2. 安全边界回归测试：集中验证没有真实飞控、仿真器或维修系统接入。
-3. v1.0.0 release readiness：完整 CLI / 报告 / 验证 / GitHub Actions 收口。
-
-## 长期方向
+## 已完成版本演进
 
 - `v0.9.0`：工单草稿闭环。
 - `v1.0.0`：稳定离线运维 Agent 主版本。
@@ -42,6 +46,7 @@
 - `v1.4.0`：诊断与报告评测。
 - `v1.5.x`：平台化准备。
 - `v2.0.0`：组织级离线运维平台基线。
+- `v2.1.0`：本地演示与作品展示就绪。
 
 ## 安全边界
 

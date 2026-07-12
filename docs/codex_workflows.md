@@ -141,3 +141,13 @@ v2.0.0 offline operations platform baseline 工作流：
 - 运行 `python -m apps.cli.main validate-operations-platform --baseline data/sample_platform/operations_platform_baseline.json --out <tmp>/operations_platform_validation.json`。
 - 确认 validation status 为 `PASS`，输出保持确定性，并且所有结论默认 `human_review_required=true`。
 - 保持 offline-only 和 advisory-only；不连接真实无人机、真实 fleet platform、真实维修系统或 MAVLink endpoint，不自动派单。
+
+v2.1.0 demo and portfolio readiness 工作流：
+
+- 使用 `docs/v2.1.0_release_readiness.md` 作为发布前质量门禁清单。
+- 运行 `pytest` 以及清单中的 focused tests。
+- 运行 `python scripts/generate_demo_outputs.py --out demo_outputs`。
+- 确认成果包包含 `ops_report.pdf`、证据索引、报告与仿真验证、工单草稿、机队健康、Dashboard 数据包和平台验证结果。
+- 确认 `validate-platform-index` 与 `validate-operations-platform` 对 `REVIEW_REQUIRED` 返回非零退出码。
+- 确认所有结论保持 `human_review_required=true`，并在 GitHub Actions Python 3.11 和 Python 3.12 均通过后发布。
+- 保持 offline-only 和 advisory-only；不连接真实无人机、真实仿真器、真实维修系统或真实 fleet platform，不执行 MAVLink command，不自动派单。

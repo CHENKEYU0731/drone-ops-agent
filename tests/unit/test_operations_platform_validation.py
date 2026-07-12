@@ -68,4 +68,45 @@ def test_validate_operations_platform_reports_missing_validation_command(tmp_pat
     result = validate_operations_platform(baseline_path)
 
     assert result["status"] == "REVIEW_REQUIRED"
-    assert "OPS_PLATFORM_MODULE_VALIDATION_COMMANDS_MISSING" in {finding["code"] for finding in result["findings"]}
+    finding_codes = {finding["code"] for finding in result["findings"]}
+    assert "OPS_PLATFORM_MODULE_VALIDATION_COMMANDS_MISSING" in finding_codes
+    assert "OPS_PLATFORM_MODULE_ARTIFACT_NOT_FOUND" in finding_codes
+
+
+def test_validate_operations_platform_rejects_empty_module_list(tmp_path: Path) -> None:
+    baseline_path = tmp_path / "operations_platform_baseline.json"
+    baseline_path.write_text(
+        """
+{
+  "id": "OPSBASE-empty",
+  "timestamp": "1970-01-01T00:00:00Z",
+  "drone_id": null,
+  "human_review_required": true,
+  "generated_by_skill": "operations-platform-baseline",
+  "skill_version": "2.0.0",
+  "baseline_id": "ops-platform-empty",
+  "version": "2.0.0",
+  "title": "Empty operations platform baseline",
+  "modules": [],
+  "release_checks": ["pytest", "validate-operations-platform"],
+  "safety_boundary": {
+    "offline_only": true,
+    "advisory_only": true,
+    "human_review_required": true,
+    "no_real_drone_connection": true,
+    "no_mavlink_command_execution": true,
+    "no_external_platform_connection": true,
+    "no_real_maintenance_system": true,
+    "no_auto_dispatch": true,
+    "no_simulator_launch": true
+  }
+}
+""".strip()
+        + "\n",
+        encoding="utf-8",
+    )
+
+    result = validate_operations_platform(baseline_path)
+
+    assert result["status"] == "REVIEW_REQUIRED"
+    assert "OPS_PLATFORM_REQUIRED_MODULE_MISSING" in {finding["code"] for finding in result["findings"]}

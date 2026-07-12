@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 
 
-RUNTIME_ROOTS = [Path("apps"), Path("packages")]
+RUNTIME_ROOTS = [Path("apps"), Path("packages"), Path("scripts")]
 
 FORBIDDEN_RUNTIME_PATTERNS = {
     "mavlink connection": re.compile(r"\bmavutil\.mavlink_connection\b"),
