@@ -171,3 +171,13 @@ v2.3.0 open-source upstream log compatibility 工作流：
 - 确认 3 个来源大小和 SHA-256 匹配，parser 全部通过，结果摘要可重复。
 - 不把 `real_world_flight_verified=false` 的公开 fixture 描述成真实外场准确率。
 - 下载与分析分离；分析保持 offline-only、advisory-only 和 `human_review_required=true`。
+
+v2.4.0 reproducible distribution 工作流：
+
+- 使用 `docs/v2.4.0_release_readiness.md` 作为发布前质量门禁清单。
+- 运行 `python scripts/check_environment.py --out <tmp>/environment.json` 并确认状态为 `PASS`。
+- 运行 `pytest` 和分发工具 focused tests。
+- 连续两次运行 `python scripts/build_release_bundle.py`，确认 ZIP SHA-256 完全一致。
+- Windows 使用 `scripts/verify_release.ps1` 在临时虚拟环境完成受约束安装、测试、demo、wheel/sdist 构建和 wheel 安装 smoke test。
+- 确认 ZIP 内 `distribution_manifest.json`、`SHA256SUMS` 与外部 `.sha256` 文件完整，且不包含缓存日志、虚拟环境或本地绝对路径。
+- 构建过程与运行时边界分离；安装完成后的应用保持 offline-only、advisory-only 和 human-review-required。

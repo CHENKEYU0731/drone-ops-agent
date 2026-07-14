@@ -1,0 +1,6 @@
+# v2.4.0 direct runtime dependency constraints
+packaging==26.2
+pydantic==2.13.4
+reportlab==4.5.1
+starlette==0.52.1
+typer==0.25.1
