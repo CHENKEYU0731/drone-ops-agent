@@ -39,6 +39,11 @@ from packages.fleet_health import build_fleet_health_summary, load_fleet_manifes
 from packages.log_parsers import SUPPORTED_LOG_FORMATS, ParsedFlightLog, parse_flight_log_details
 from packages.maintenance_rules import generate_maintenance_recommendations
 from packages.organization_handoff import validate_handoff_package
+from packages.open_source_logs import (
+    render_open_source_log_case_study,
+    run_open_source_log_case_study,
+    validate_open_source_log_registry,
+)
 from packages.operations_platform import validate_operations_platform
 from packages.platform_index import validate_platform_index
 from packages.platform_readiness import build_report_bundle_manifest, validate_platform_readiness
@@ -246,6 +251,28 @@ def run_case_studies_command(
     payload = _run_case_studies(simulation_matrix, eval_case, out)
     typer.echo(f"Case study status: {payload['status']}")
     typer.echo(f"Case study accuracy: {payload['metrics']['expected_status_accuracy']}")
+    if payload["status"] != "PASS":
+        raise typer.Exit(code=1)
+
+
+@app.command("validate-open-log-registry")
+def validate_open_log_registry_command(
+    registry: Path = typer.Option(..., "--registry", help="开源日志注册表 JSON 路径。"),
+    out: Path = typer.Option(..., "--out", help="注册表验证结果 JSON 路径。"),
+) -> None:
+    payload = _run_validate_open_log_registry(registry, out)
+    typer.echo(f"Open-source log registry status: {payload['status']}")
+
+
+@app.command("run-open-log-case-studies")
+def run_open_log_case_studies_command(
+    registry: Path = typer.Option(..., "--registry", help="开源日志注册表 JSON 路径。"),
+    cache_dir: Path = typer.Option(..., "--cache-dir", help="已经显式下载并校验的本地缓存目录。"),
+    drone_id: str = typer.Option(..., "--drone-id", help="案例研究使用的本地资产标识。"),
+    out: Path = typer.Option(..., "--out", help="案例研究输出目录。"),
+) -> None:
+    payload = _run_open_log_case_studies(registry, cache_dir, drone_id, out)
+    typer.echo(f"Open-source log case study status: {payload['status']}")
     if payload["status"] != "PASS":
         raise typer.Exit(code=1)
 
@@ -1015,6 +1042,54 @@ def _run_case_studies(simulation_matrix: Path, eval_case_paths: list[Path], out:
             "case_count": payload["case_count"],
             "expected_status_accuracy": payload["metrics"]["expected_status_accuracy"],
             "safety_boundary": "offline-case-study-only",
+        },
+    )
+    return payload
+
+
+def _run_validate_open_log_registry(registry: Path, out: Path) -> dict:
+    payload = validate_open_source_log_registry(registry)
+    write_json(out, payload)
+    write_audit_record(
+        out_dir=out.parent,
+        skill_name="open-source-log-registry-validation",
+        skill_version="2.3.0",
+        input_refs=[str(registry)],
+        output_refs=[str(out)],
+        tools_called=["validate_open_source_log_registry"],
+        rules_triggered=["SOURCE_COMMIT_PIN", "SOURCE_LICENSE", "SOURCE_SHA256", "SOURCE_SIZE"],
+        human_review_required=True,
+        status="success",
+        metadata={
+            "source_count": payload["source_count"],
+            "all_real_world_flight_verified": payload["all_real_world_flight_verified"],
+            "safety_boundary": "explicit-download-offline-analysis",
+        },
+    )
+    return payload
+
+
+def _run_open_log_case_studies(registry: Path, cache_dir: Path, drone_id: str, out: Path) -> dict:
+    out.mkdir(parents=True, exist_ok=True)
+    output_path = out / "open_log_case_study.json"
+    report_path = out / "open_log_case_study.md"
+    payload = run_open_source_log_case_study(registry, cache_dir, drone_id)
+    write_json(output_path, payload)
+    report_path.write_text(render_open_source_log_case_study(payload), encoding="utf-8")
+    write_audit_record(
+        out_dir=out,
+        skill_name="open-source-log-case-study",
+        skill_version="2.3.0",
+        input_refs=[str(registry), str(cache_dir)],
+        output_refs=[str(output_path), str(report_path)],
+        tools_called=["run_open_source_log_case_study"],
+        rules_triggered=["CACHE_SHA256", "PARSER_COMPATIBILITY", "PROVENANCE_DISCLOSURE"],
+        human_review_required=True,
+        status="success" if payload["status"] == "PASS" else "failed",
+        metadata={
+            "case_count": payload["case_count"],
+            "passed_count": payload["passed_count"],
+            "safety_boundary": "offline-open-log-analysis-only",
         },
     )
     return payload

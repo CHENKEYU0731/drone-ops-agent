@@ -10,7 +10,7 @@
 python scripts/generate_demo_outputs.py --out demo_outputs
 ```
 
-命令会生成 49 个本地成果文件。建议先打开：
+命令会生成 51 个本地成果文件。建议先打开：
 
 1. `demo_outputs/reports/ops_report.pdf`：中文无人机运维报告。
 2. `demo_outputs/reports/evidence_index.json`：异常、诊断、维护建议与报告之间的证据索引。
@@ -18,6 +18,7 @@ python scripts/generate_demo_outputs.py --out demo_outputs
 4. `demo_outputs/reports/work_order_drafts.md`：等待人工复核的工单草稿。
 5. `demo_outputs/fleet/fleet_health_report.md`：多资产机队健康摘要。
 6. `demo_outputs/case_studies/case_study_report.md`：15 个离线案例的准确率、证据覆盖率、误报和漏检汇总。
+7. `demo_outputs/open_source_logs/registry_validation.json`：公开上游日志来源与供应链校验结果。
 
 完整演示顺序和讲解脚本见 [`docs/demo_guide.md`](docs/demo_guide.md)。成果包只使用 sample / mock / sanitized 数据，生成目录被 Git 忽略。
 
@@ -356,6 +357,14 @@ v2.2.0 evaluation and case study baseline:
 - `python -m apps.cli.main run-case-studies --simulation-matrix data/sample_simulation/scenario_matrix.json --eval-case data/sample_evals/diagnosis_report_eval_case.json --out <tmp-case-study-dir>`
 - 汇总 14 个离线仿真场景和 1 个诊断/报告 golden case，输出预期状态准确率、证据覆盖率、误报数、漏检数和确定性结果摘要。
 - 该流程只调用现有本地规则，不调用外部模型，不连接真实无人机、仿真器、维修系统或 fleet platform。
+
+v2.3.0 open-source upstream log compatibility:
+
+- `docs/open_source_log_case_study.md`
+- `docs/v2.3.0_release_readiness.md`
+- 根据 `data/open_source_logs/registry.json` 使用浏览器或系统下载工具显式获取固定 commit 的 BSD-3-Clause 上游 ULog；项目运行时代码不包含网络客户端。
+- `python -m apps.cli.main run-open-log-case-studies --registry data/open_source_logs/registry.json --cache-dir data/open_source_logs/cache --drone-id UAV-OPEN-SOURCE --out <tmp-open-log-dir>`：只分析本地缓存，不联网。
+- 当前 3 个公开上游 fixture 均通过 parser 兼容性验证；来源元数据不足以证明真实外场飞行，因此结果不能表述为真实异常检测准确率。
 
 v1.4.0 diagnosis/report evaluation:
 

@@ -9,3 +9,4 @@ build/
 data/sample_reports/*
 !data/sample_reports/.gitkeep
 demo_outputs/
+data/open_source_logs/cache/

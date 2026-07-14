@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "drone-ops-agent"
-version = "2.2.0"
+version = "2.3.0"
 description = "Offline drone operations decision support platform"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -50,6 +50,7 @@ packages = [
   "packages.organization_handoff",
   "packages.platform_index",
   "packages.operations_platform",
+  "packages.open_source_logs",
   "packages.anomaly_detection",
   "packages.diagnosis_rules",
   "packages.maintenance_rules",

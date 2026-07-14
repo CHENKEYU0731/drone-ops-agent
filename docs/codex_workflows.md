@@ -161,3 +161,13 @@ v2.2.0 evaluation and case study baseline 工作流：
 - 确认 15 个案例全部匹配预期，状态准确率和证据覆盖率均为 `1.0`，误报数和漏检数均为 `0`。
 - 重复运行并确认 `result_digest` 不变。
 - 保持 offline-only、advisory-only 和 `human_review_required=true`；不调用外部模型，不连接真实无人机、真实仿真器、维修系统或 fleet platform。
+
+v2.3.0 open-source upstream log compatibility 工作流：
+
+- 使用 `docs/v2.3.0_release_readiness.md` 作为发布前质量门禁清单。
+- 先运行 `python -m apps.cli.main validate-open-log-registry --registry data/open_source_logs/registry.json --out <tmp>/registry_validation.json`。
+- 只有需要本地兼容性案例时，才根据 registry 使用浏览器或系统下载工具显式获取文件；项目不内置网络客户端，下载缓存被 Git 忽略。
+- 运行 `python -m apps.cli.main run-open-log-case-studies --registry data/open_source_logs/registry.json --cache-dir data/open_source_logs/cache --drone-id UAV-OPEN-SOURCE --out <tmp>/open-log-case-study`。
+- 确认 3 个来源大小和 SHA-256 匹配，parser 全部通过，结果摘要可重复。
+- 不把 `real_world_flight_verified=false` 的公开 fixture 描述成真实外场准确率。
+- 下载与分析分离；分析保持 offline-only、advisory-only 和 `human_review_required=true`。

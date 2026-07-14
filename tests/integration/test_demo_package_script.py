@@ -32,6 +32,7 @@ def test_generate_demo_outputs_creates_showcase_package(tmp_path: Path) -> None:
         "platform/operations_platform_validation.json",
         "case_studies/case_study_results.json",
         "case_studies/case_study_report.md",
+        "open_source_logs/registry_validation.json",
     }
 
     assert expected_files.issubset({path.as_posix() for path in generated})
@@ -52,6 +53,13 @@ def test_generate_demo_outputs_creates_showcase_package(tmp_path: Path) -> None:
     assert case_study["status"] == "PASS"
     assert case_study["case_count"] == 15
     assert case_study["metrics"]["expected_status_accuracy"] == 1.0
+
+    open_log_registry = json.loads(
+        (out_dir / "open_source_logs" / "registry_validation.json").read_text(encoding="utf-8")
+    )
+    assert open_log_registry["status"] == "PASS"
+    assert open_log_registry["source_count"] == 3
+    assert open_log_registry["all_real_world_flight_verified"] is False
 
 
 def test_demo_output_validation_rejects_workspace_root() -> None:

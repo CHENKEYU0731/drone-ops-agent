@@ -16,8 +16,9 @@ def test_demo_guide_documents_local_showcase_workflow() -> None:
     assert "advisory-only" in text
     assert "不连接真实无人机" in text
     assert "5 分钟演示流程" in text
-    assert "49" in text
+    assert "51" in text
     assert "case_study_report.md" in text
+    assert "registry_validation.json" in text
 
 
 def test_readme_has_a_portfolio_showcase_entry() -> None:

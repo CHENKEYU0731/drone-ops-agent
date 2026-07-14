@@ -1,6 +1,6 @@
 # 路线图
 
-项目当前已发布到 `v2.2.0 - Evaluation and Case Study Baseline`。
+项目当前已发布到 `v2.3.0 - Open-Source Upstream Log Compatibility`。
 
 详细规划见：
 
@@ -31,12 +31,14 @@
   - 增加可重复生成的本地演示成果包、中文演示指南和更严格的平台验证门禁。
 - `v2.2.0 - Evaluation and Case Study Baseline`
   - 用 14 个仿真场景和诊断/报告 golden case 量化预期状态准确率、证据覆盖率、误报与漏检。
+- `v2.3.0 - Open-Source Upstream Log Compatibility`
+  - 增加固定来源和校验和的公开上游 ULog 注册表、显式下载与离线 parser 兼容性案例研究。
 
 ## 当前里程碑
 
-### v2.2.0：Evaluation and Case Study Baseline
+### v2.3.0：Open-Source Upstream Log Compatibility
 
-目标已经完成：项目可以批量复用现有 simulation matrix 和 diagnosis/report eval，生成确定性的机器可读结果与中文案例研究报告，并明确报告状态准确率、证据覆盖率、误报数和漏检数。所有流程继续保持 offline-only、advisory-only 和 human-review-required。
+目标已经完成：项目可以对许可证、固定 commit、大小和 SHA-256 均明确的公开上游 ULog 做显式获取和离线 parser 兼容性验证，同时如实区分“开源上游 fixture”与“已验证真实外场日志”。所有分析继续保持 offline-only、advisory-only 和 human-review-required。
 
 ## 已完成版本演进
 
@@ -50,6 +52,7 @@
 - `v2.0.0`：组织级离线运维平台基线。
 - `v2.1.0`：本地演示与作品展示就绪。
 - `v2.2.0`：离线评测与案例研究基线。
+- `v2.3.0`：公开上游日志兼容性案例研究。
 
 ## 安全边界
 

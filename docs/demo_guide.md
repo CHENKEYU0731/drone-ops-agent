@@ -12,7 +12,7 @@ python scripts/generate_demo_outputs.py --out demo_outputs
 
 该命令会重新生成 `demo_outputs/` 目录。它只读取仓库内的 sample / mock / sanitized fixture，并调用现有离线 CLI 流程，不连接真实无人机、真实仿真器、真实维修系统或真实 fleet platform。
 
-一次成功运行会生成 49 个文件。`dashboard/dashboard_bundle.json` 使用相对于成果包根目录的 artifact 引用，因此整个 `demo_outputs/` 可以移动到其他目录后继续检查。
+一次成功运行会生成 51 个文件。`dashboard/dashboard_bundle.json` 使用相对于成果包根目录的 artifact 引用，因此整个 `demo_outputs/` 可以移动到其他目录后继续检查。
 
 ## 5 分钟演示流程
 
@@ -22,7 +22,7 @@ python scripts/generate_demo_outputs.py --out demo_outputs
 
 2. **第 1–2 分钟：生成成果包**
 
-   运行 `python scripts/generate_demo_outputs.py --out demo_outputs`，确认终端显示 `Generated 49 demo files`。
+   运行 `python scripts/generate_demo_outputs.py --out demo_outputs`，确认终端显示 `Generated 51 demo files`。
 
 3. **第 2–3 分钟：查看报告和证据链**
 
@@ -93,6 +93,10 @@ python scripts/generate_demo_outputs.py --out demo_outputs
 13. `demo_outputs/case_studies/case_study_report.md`
 
     v2.2.0 离线案例研究报告，汇总 14 个仿真场景和 1 个诊断/报告 golden case 的预期状态准确率、证据覆盖率、误报数和漏检数。
+
+14. `demo_outputs/open_source_logs/registry_validation.json`
+
+    v2.3.0 公开上游日志注册表质量门禁。它验证来源、许可证、固定 commit、大小和 SHA-256，但不会在演示流程中自动联网下载。
 
 ## 这个成果包能展示什么
 
