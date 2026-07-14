@@ -10,3 +10,6 @@ data/sample_reports/*
 !data/sample_reports/.gitkeep
 demo_outputs/
 data/open_source_logs/cache/
+portfolio_showcase/
+portfolio_showcase.zip
+portfolio_showcase.zip.sha256

@@ -14,6 +14,14 @@ python scripts/generate_demo_outputs.py --out demo_outputs
 
 一次成功运行会生成 51 个文件。`dashboard/dashboard_bundle.json` 使用相对于成果包根目录的 artifact 引用，因此整个 `demo_outputs/` 可以移动到其他目录后继续检查。
 
+如需同时包含中英文项目总览、能力矩阵、演示脚本、简历/面试说明和截图，可生成最终作品展示包：
+
+```bash
+python scripts/build_portfolio_showcase.py --out portfolio_showcase
+```
+
+该命令会生成 `portfolio_showcase/`、`portfolio_showcase.zip` 和对应 SHA-256 文件。作品包只包含仓库内 sample/mock/sanitized 演示成果，不复制外部 ULog 缓存。
+
 ## 5 分钟演示流程
 
 1. **第 0–1 分钟：说明项目定位**
