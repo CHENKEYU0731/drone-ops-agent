@@ -9,7 +9,7 @@ from typing import Any
 from pydantic import ValidationError
 
 from packages.drone_schemas import FlightLogRecord
-from packages.drone_schemas.io import MAX_JSON_FILE_BYTES, ensure_file_size
+from packages.drone_schemas.io import MAX_JSON_FILE_BYTES, ensure_file_size, parse_json_text
 from packages.log_parsers.base import LogParserDependencyError, ParsedFlightLog
 from packages.log_parsers.parser import MAX_FLIGHT_LOG_BYTES
 
@@ -126,7 +126,7 @@ def _read_mock_fixture(path: Path) -> dict[str, Any] | None:
     if len(payload) > MAX_JSON_FILE_BYTES:
         raise ValueError(f"PX4 ULog mock fixture exceeds {MAX_JSON_FILE_BYTES} bytes: {path}")
     try:
-        data = json.loads(payload.decode("utf-8"))
+        data = parse_json_text(payload.decode("utf-8"), f"PX4 ULog mock fixture {path} ")
     except (UnicodeDecodeError, json.JSONDecodeError):
         return None
     if isinstance(data, dict) and data.get("format") == "px4-ulog-mock":

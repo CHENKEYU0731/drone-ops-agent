@@ -541,7 +541,7 @@ def _run_analyze_log(
             "detect_anomalies",
         ],
         rules_triggered=sorted({event.rule_id for event in anomalies}),
-        human_review_required=bool(anomalies),
+        human_review_required=True,
         status="success",
         metadata={
             "requested_format": parsed.requested_format,
@@ -592,7 +592,7 @@ def _run_preflight_check(
         output_refs=[str(output_path)],
         tools_called=["load_preflight_rules", "run_preflight_check"],
         rules_triggered=sorted({item.rule_id for item in [*result.blocking_items, *result.warnings]}),
-        human_review_required=result.human_review_required,
+        human_review_required=True,
         status="success",
     )
     return result
@@ -619,7 +619,7 @@ def _run_monitor_replay(
         output_refs=[str(summary_path), str(events_path)],
         tools_called=["parse_telemetry_replay", "load_monitoring_rules", "run_monitoring_replay"],
         rules_triggered=sorted({event.rule_id for event in events}),
-        human_review_required=summary.human_review_required,
+        human_review_required=True,
         status="success",
     )
     return summary, events

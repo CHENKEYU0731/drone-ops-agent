@@ -27,6 +27,14 @@ def test_auto_format_detects_bin_extension() -> None:
     assert records[1].flight_mode == "AUTO"
 
 
+def test_ardupilot_mock_rejects_non_finite_json(tmp_path: Path) -> None:
+    path = tmp_path / "non-finite.bin"
+    path.write_bytes(b'DRONE_OPS_ARDUPILOT_BIN_MOCK_V1\n{"records": NaN}')
+
+    with pytest.raises(ValueError, match="NaN"):
+        parse_flight_log_with_metadata(path, requested_format="ardupilot-bin")
+
+
 def test_bin_parser_rejects_non_bin_file() -> None:
     parser = ArduPilotBinParser()
 

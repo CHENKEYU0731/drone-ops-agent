@@ -27,17 +27,19 @@ def _reject_json_constant(value: str) -> None:
     raise ValueError(f"JSON 不允许常量 {value}")
 
 
+def parse_json_text(text: str, label: str = "JSON 输入") -> object:
+    try:
+        return json.loads(text, parse_constant=_reject_json_constant)
+    except RecursionError as exc:
+        raise ValueError(f"{label}嵌套层级过深") from exc
+
+
 def read_json_file(path: Path) -> object:
     ensure_file_size(path, MAX_JSON_FILE_BYTES, "JSON 输入文件")
     try:
-        return json.loads(
-            path.read_text(encoding="utf-8"),
-            parse_constant=_reject_json_constant,
-        )
+        return parse_json_text(path.read_text(encoding="utf-8"), f"JSON 文件 {path} ")
     except json.JSONDecodeError as exc:
         raise ValueError(f"JSON 文件格式无效: {path}: {exc}") from exc
-    except RecursionError as exc:
-        raise ValueError(f"JSON 嵌套层级过深: {path}") from exc
 
 
 def write_json(path: Path, data: object) -> None:

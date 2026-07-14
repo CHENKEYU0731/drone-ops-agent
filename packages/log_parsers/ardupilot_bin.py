@@ -9,7 +9,7 @@ from typing import Any
 from pydantic import ValidationError
 
 from packages.drone_schemas import FlightLogRecord
-from packages.drone_schemas.io import MAX_JSON_FILE_BYTES, ensure_file_size
+from packages.drone_schemas.io import MAX_JSON_FILE_BYTES, ensure_file_size, parse_json_text
 from packages.log_parsers.base import LogParserDependencyError, ParsedFlightLog
 from packages.log_parsers.parser import MAX_FLIGHT_LOG_BYTES, REQUIRED_FIELDS, _record_from_row
 
@@ -48,8 +48,8 @@ class ArduPilotBinParser:
 
     def _parse_mock_fixture(self, path: Path, payload: bytes, requested_format: str) -> ParsedFlightLog:
         try:
-            data = json.loads(payload.decode("utf-8"))
-        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            data = parse_json_text(payload.decode("utf-8"), f"ArduPilot BIN mock fixture {path} ")
+        except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
             raise ValueError(f"ArduPilot BIN mock fixture is invalid JSON: {path}: {exc}") from exc
         if not isinstance(data, dict):
             raise ValueError(f"ArduPilot BIN mock fixture must be an object: {path}")

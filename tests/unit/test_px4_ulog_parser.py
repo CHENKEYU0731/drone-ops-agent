@@ -39,6 +39,14 @@ def test_legacy_parse_flight_log_still_returns_records_for_px4_auto() -> None:
     assert records[-1].link_quality_pct == 58
 
 
+def test_px4_mock_rejects_non_finite_json(tmp_path: Path) -> None:
+    path = tmp_path / "non-finite.ulg"
+    path.write_text('{"format":"px4-ulog-mock","topics":NaN}', encoding="utf-8")
+
+    with pytest.raises(ValueError, match="NaN"):
+        parse_flight_log_details(path, requested_format="px4-ulog")
+
+
 def test_px4_dependency_error_is_clear_for_non_mock_ulog(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     path = tmp_path / "realish.ulg"
     path.write_bytes(b"ULog\x01\x12not-a-json-mock")

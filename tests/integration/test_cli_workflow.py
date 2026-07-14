@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from typer.testing import CliRunner
@@ -6,6 +7,37 @@ from apps.cli.main import app
 
 
 runner = CliRunner()
+
+
+def test_nominal_log_audit_still_requires_human_review(tmp_path: Path) -> None:
+    log_path = tmp_path / "nominal.csv"
+    log_path.write_text(
+        "timestamp,flight_mode,altitude_m,battery_voltage_v,battery_current_a,battery_soc_pct,"
+        "gps_satellites,gps_hdop,vibration_x,vibration_y,vibration_z,motor_1_output,"
+        "motor_2_output,motor_3_output,motor_4_output,link_quality_pct,temperature_c\n"
+        "2026-06-24T10:00:00Z,STABILIZE,0,16.8,4,96,14,0.8,0.1,0.1,0.2,20,21,20,20,99,28\n",
+        encoding="utf-8",
+    )
+    out_dir = tmp_path / "reports"
+
+    result = runner.invoke(
+        app,
+        [
+            "analyze-log",
+            "--log",
+            str(log_path),
+            "--asset",
+            "data/sample_assets/uav_001.json",
+            "--out",
+            str(out_dir),
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert json.loads((out_dir / "anomalies.json").read_text(encoding="utf-8")) == []
+    audit_file = next((out_dir / "audit").glob("flight-log-analysis-*.json"))
+    audit = json.loads(audit_file.read_text(encoding="utf-8"))
+    assert audit["human_review_required"] is True
 
 
 def test_cli_commands_generate_expected_artifacts(tmp_path: Path) -> None:
