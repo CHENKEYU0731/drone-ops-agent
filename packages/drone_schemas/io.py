@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 ModelT = TypeVar("ModelT", bound=BaseModel)
 MAX_JSON_FILE_BYTES = 20 * 1024 * 1024
+MAX_JSON_NESTING_DEPTH = 100
 
 
 def ensure_file_size(path: Path, max_bytes: int, label: str) -> int:
@@ -29,9 +30,19 @@ def _reject_json_constant(value: str) -> None:
 
 def parse_json_text(text: str, label: str = "JSON 输入") -> object:
     try:
-        return json.loads(text, parse_constant=_reject_json_constant)
+        data = json.loads(text, parse_constant=_reject_json_constant)
     except RecursionError as exc:
         raise ValueError(f"{label}嵌套层级过深") from exc
+    stack: list[tuple[object, int]] = [(data, 0)]
+    while stack:
+        value, depth = stack.pop()
+        if depth > MAX_JSON_NESTING_DEPTH:
+            raise ValueError(f"{label}嵌套层级超过限制 {MAX_JSON_NESTING_DEPTH}")
+        if isinstance(value, dict):
+            stack.extend((item, depth + 1) for item in value.values())
+        elif isinstance(value, list):
+            stack.extend((item, depth + 1) for item in value)
+    return data
 
 
 def read_json_file(path: Path) -> object:
