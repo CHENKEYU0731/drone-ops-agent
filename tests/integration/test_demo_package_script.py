@@ -30,6 +30,8 @@ def test_generate_demo_outputs_creates_showcase_package(tmp_path: Path) -> None:
         "dashboard/dashboard_bundle.json",
         "platform/platform_index_validation.json",
         "platform/operations_platform_validation.json",
+        "case_studies/case_study_results.json",
+        "case_studies/case_study_report.md",
     }
 
     assert expected_files.issubset({path.as_posix() for path in generated})
@@ -45,6 +47,11 @@ def test_generate_demo_outputs_creates_showcase_package(tmp_path: Path) -> None:
     assert dashboard["artifacts"]["report"]["ops_report_md"] == "reports/ops_report.md"
     assert dashboard["artifacts"]["fleet_health"]["fleet_health_summary"] == "fleet/fleet_health_summary.json"
     assert str(tmp_path).replace("\\", "/") not in json.dumps(dashboard, ensure_ascii=False)
+
+    case_study = json.loads((out_dir / "case_studies" / "case_study_results.json").read_text(encoding="utf-8"))
+    assert case_study["status"] == "PASS"
+    assert case_study["case_count"] == 15
+    assert case_study["metrics"]["expected_status_accuracy"] == 1.0
 
 
 def test_demo_output_validation_rejects_workspace_root() -> None:

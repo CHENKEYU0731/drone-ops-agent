@@ -34,7 +34,7 @@ from packages.drone_schemas import (
     write_model_list,
     SkillRunAudit,
 )
-from packages.evals import run_eval_suite
+from packages.evals import render_case_study_report, run_case_study, run_eval_suite
 from packages.fleet_health import build_fleet_health_summary, load_fleet_manifest, render_fleet_health_report
 from packages.log_parsers import SUPPORTED_LOG_FORMATS, ParsedFlightLog, parse_flight_log_details
 from packages.maintenance_rules import generate_maintenance_recommendations
@@ -235,6 +235,19 @@ def run_evals_command(
     payload = _run_evals(case, out)
     typer.echo(f"Eval suite status: {payload['status']}")
     typer.echo(f"Eval suite score: {payload['score']}")
+
+
+@app.command("run-case-studies")
+def run_case_studies_command(
+    simulation_matrix: Path = typer.Option(..., "--simulation-matrix", help="离线仿真场景矩阵 JSON 路径。"),
+    eval_case: list[Path] = typer.Option([], "--eval-case", help="诊断/报告 eval case JSON 路径，可重复。"),
+    out: Path = typer.Option(..., "--out", help="案例研究输出目录。"),
+) -> None:
+    payload = _run_case_studies(simulation_matrix, eval_case, out)
+    typer.echo(f"Case study status: {payload['status']}")
+    typer.echo(f"Case study accuracy: {payload['metrics']['expected_status_accuracy']}")
+    if payload["status"] != "PASS":
+        raise typer.Exit(code=1)
 
 
 @app.command("validate-datasets")
@@ -958,6 +971,50 @@ def _run_evals(case_paths: list[Path], out: Path) -> dict:
             "eval_status": payload["status"],
             "case_count": payload["case_count"],
             "safety_boundary": "offline-eval-only",
+        },
+    )
+    return payload
+
+
+def _run_case_studies(simulation_matrix: Path, eval_case_paths: list[Path], out: Path) -> dict:
+    out.mkdir(parents=True, exist_ok=True)
+    output_path = out / "case_study_results.json"
+    report_path = out / "case_study_report.md"
+    payload = run_case_study(simulation_matrix, eval_case_paths)
+    write_json(output_path, payload)
+    report_path.write_text(render_case_study_report(payload), encoding="utf-8")
+    case_study_rules = {
+        "CASE_EVIDENCE_COVERAGE",
+        "CASE_EXPECTED_STATUS_MATCH",
+        "CASE_FALSE_ALARM_COUNT",
+        "CASE_MISSED_RISK_COUNT",
+    }
+    case_study_rules.update(
+        rule_id
+        for case in payload["simulation"]["cases"]
+        for rule_id in case["triggered_rule_ids"]
+    )
+    rules_triggered = sorted(case_study_rules)
+    audit_status = {
+        "PASS": "success",
+        "REVIEW_REQUIRED": "review_required",
+        "FAIL": "failed",
+    }.get(payload["status"], "failed")
+    write_audit_record(
+        out_dir=out,
+        skill_name="evaluation-case-study",
+        skill_version="2.2.0",
+        input_refs=[str(simulation_matrix), *(str(path) for path in eval_case_paths)],
+        output_refs=[str(output_path), str(report_path)],
+        tools_called=["run_case_study"],
+        rules_triggered=rules_triggered,
+        human_review_required=True,
+        status=audit_status,
+        metadata={
+            "case_study_status": payload["status"],
+            "case_count": payload["case_count"],
+            "expected_status_accuracy": payload["metrics"]["expected_status_accuracy"],
+            "safety_boundary": "offline-case-study-only",
         },
     )
     return payload

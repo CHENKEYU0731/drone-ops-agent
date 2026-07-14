@@ -10,13 +10,14 @@
 python scripts/generate_demo_outputs.py --out demo_outputs
 ```
 
-命令会生成 46 个本地成果文件。建议先打开：
+命令会生成 49 个本地成果文件。建议先打开：
 
 1. `demo_outputs/reports/ops_report.pdf`：中文无人机运维报告。
 2. `demo_outputs/reports/evidence_index.json`：异常、诊断、维护建议与报告之间的证据索引。
 3. `demo_outputs/reports/simulation_run.json`：离线/mock 仿真规则命中结果。
 4. `demo_outputs/reports/work_order_drafts.md`：等待人工复核的工单草稿。
 5. `demo_outputs/fleet/fleet_health_report.md`：多资产机队健康摘要。
+6. `demo_outputs/case_studies/case_study_report.md`：15 个离线案例的准确率、证据覆盖率、误报和漏检汇总。
 
 完整演示顺序和讲解脚本见 [`docs/demo_guide.md`](docs/demo_guide.md)。成果包只使用 sample / mock / sanitized 数据，生成目录被 Git 忽略。
 
@@ -347,6 +348,14 @@ v2.1.0 demo and portfolio readiness:
 - 一条命令生成报告、PDF、证据索引、仿真验证、工单草稿、机队健康、Dashboard 数据包和平台验证结果。
 - 输出目录带 `.drone-ops-demo-output` 管理标记，并拒绝覆盖仓库根目录、用户目录或未受管理的非空目录。
 - 演示与验证仍保持 offline-only、advisory-only 和 `human_review_required=true`。
+
+v2.2.0 evaluation and case study baseline:
+
+- `docs/evaluation_case_studies.md`
+- `docs/v2.2.0_release_readiness.md`
+- `python -m apps.cli.main run-case-studies --simulation-matrix data/sample_simulation/scenario_matrix.json --eval-case data/sample_evals/diagnosis_report_eval_case.json --out <tmp-case-study-dir>`
+- 汇总 14 个离线仿真场景和 1 个诊断/报告 golden case，输出预期状态准确率、证据覆盖率、误报数、漏检数和确定性结果摘要。
+- 该流程只调用现有本地规则，不调用外部模型，不连接真实无人机、仿真器、维修系统或 fleet platform。
 
 v1.4.0 diagnosis/report evaluation:
 
