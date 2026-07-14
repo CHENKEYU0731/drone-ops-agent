@@ -1,6 +1,6 @@
 # 路线图
 
-项目当前版本为 `v2.5.1 - Final Adversarial Hardening`。
+项目当前版本为 `v2.5.2 - Public Portfolio Cleanup`。
 
 详细规划见：
 
@@ -36,15 +36,17 @@
 - `v2.4.0 - Reproducible Distribution`
   - 增加环境诊断、直接依赖约束、Windows 临时环境验收、wheel/sdist smoke test 和确定性发布 ZIP。
 - `v2.5.0 - Portfolio Finalization`
-  - 增加中英文总览、能力矩阵、演示脚本、简历/面试说明和带 manifest/SHA-256 的 sanitized 最终展示包。
+  - 增加中英文总览、能力矩阵、演示脚本和带 manifest/SHA-256 的 sanitized 最终展示包。
 - `v2.5.1 - Final Adversarial Hardening`
   - 修复输出目录标记伪造、Dashboard DOM 注入、超大输入资源耗尽、人工复核 fail-open 和质量门禁退出码不一致问题。
+- `v2.5.2 - Public Portfolio Cleanup`
+  - 公开仓库和发布资产只保留技术项目材料，个人用途说明保留在 Git 忽略的本地目录。
 
 ## 当前里程碑
 
-### v2.5.1：Final Adversarial Hardening
+### v2.5.2：Public Portfolio Cleanup
 
-目标已经完成：项目在作品集收口后完成恶意输入、误用、供应链和维护者四个视角的对抗式审查，并修复所有确认的高/中风险阻塞项。系统仍不声称真实飞行准确率或飞行/维修授权。
+目标已经完成：公开项目只保留技术总览、能力矩阵、演示脚本、截图和可验证成果；个人用途说明不进入仓库、源码包或展示包。系统仍不声称真实飞行准确率或飞行/维修授权。
 
 ## 已完成版本演进
 
@@ -62,6 +64,7 @@
 - `v2.4.0`：可复现安装、构建与发布包基线。
 - `v2.5.0`：作品集说明、演示和 sanitized 成果包收口。
 - `v2.5.1`：最终对抗式安全与质量门禁加固。
+- `v2.5.2`：公开作品集与个人本地说明分离。
 
 ## 安全边界
 

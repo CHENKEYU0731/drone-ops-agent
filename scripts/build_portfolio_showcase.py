@@ -27,7 +27,6 @@ PORTFOLIO_DOCS = (
     Path("docs/portfolio/project_overview_en.md"),
     Path("docs/portfolio/capability_matrix.md"),
     Path("docs/portfolio/demo_script.md"),
-    Path("docs/portfolio/resume_and_interview_guide.md"),
 )
 SHOWCASE_ASSETS = (
     Path("docs/assets/showcase/dashboard_overview.png"),
