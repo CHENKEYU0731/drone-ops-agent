@@ -2,9 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from packages.drone_schemas import SimulationScenario
 from packages.simulation import FAIL, PASS, REVIEW_REQUIRED, validate_simulation_result
-from packages.simulation.result_parser import SimulationResult
 from packages.simulation.scenario_matrix import INVALID_INPUT, load_simulation_scenario_matrix
 
 

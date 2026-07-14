@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
-from packages.drone_schemas import write_json
+from packages.drone_schemas import read_json_file, write_json
+from packages.drone_schemas.io import ensure_file_size
 from packages.report_validation.models import (
     EvidenceIndex,
     EvidenceIndexEntry,
@@ -15,8 +15,6 @@ from packages.report_validation.models import (
 
 
 REQUIRED_EVIDENCE_FIELDS = ["source_type", "source_id", "field", "rule_id", "description"]
-HIGH_SEVERITIES = {"HIGH", "CRITICAL"}
-GROUNDING_PRIORITIES = {"IMMEDIATE_GROUNDING", "BEFORE_NEXT_FLIGHT"}
 REQUIRED_AUDIT_SKILLS = {
     "flight-log-analysis": {"flight-log-analysis", "analyze-log"},
     "fault-diagnosis": {"fault-diagnosis", "diagnose"},
@@ -42,6 +40,8 @@ NON_EMPTY_AUDIT_FIELDS = [
     "human_review_required",
     "status",
 ]
+MAX_REPORT_MARKDOWN_BYTES = 10 * 1024 * 1024
+MAX_AUDIT_FILES = 10_000
 
 
 class ReportValidationError(ValueError):
@@ -104,10 +104,10 @@ def validate_report_outputs(paths: ReportValidationPaths, write_index: bool = Fa
 
 def _read_json(path: Path, label: str, errors: list[str]) -> object | None:
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        return read_json_file(path)
     except FileNotFoundError:
         errors.append(f"{label} missing: {path}")
-    except json.JSONDecodeError as exc:
+    except ValueError as exc:
         errors.append(f"{label} invalid JSON: {exc}")
     return None
 
@@ -165,6 +165,8 @@ def _validate_diagnosis(
     for index, hypothesis in enumerate(hypotheses):
         prefix = f"diagnosis[{index}]"
         _require_fields(hypothesis, ["confidence", "severity", "recommended_next_steps", "human_review_required"], prefix, errors)
+        if hypothesis.get("human_review_required") is not True:
+            errors.append(f"{prefix} requires human_review_required=true")
         evidence_refs = hypothesis.get("evidence_refs") or hypothesis.get("supporting_evidence")
         if not evidence_refs:
             errors.append(f"{prefix} missing evidence_refs")
@@ -178,8 +180,6 @@ def _validate_diagnosis(
             )
             collected_keys.update(evidence_keys)
             _validate_traceable_evidence(prefix, evidence_keys, traceable_keys, errors, "anomaly or summary evidence")
-        if str(hypothesis.get("severity", "")).upper() in HIGH_SEVERITIES and hypothesis.get("human_review_required") is not True:
-            errors.append(f"{prefix} severity={hypothesis.get('severity')} requires human_review_required=true")
     return collected_keys
 
 
@@ -193,6 +193,8 @@ def _validate_maintenance(
     for index, recommendation in enumerate(recommendations):
         prefix = f"maintenance_recommendations[{index}]"
         _require_fields(recommendation, required, prefix, errors)
+        if recommendation.get("human_review_required") is not True:
+            errors.append(f"{prefix} requires human_review_required=true")
         evidence_refs = recommendation.get("evidence_refs")
         if not evidence_refs:
             errors.append(f"{prefix} missing evidence_refs")
@@ -205,9 +207,6 @@ def _validate_maintenance(
                 prefix,
             )
             _validate_traceable_evidence(prefix, evidence_keys, traceable_keys, errors, "anomaly, diagnosis, or summary evidence")
-        priority = str(recommendation.get("priority", "")).upper()
-        if priority in GROUNDING_PRIORITIES and recommendation.get("human_review_required") is not True:
-            errors.append(f"{prefix} priority={priority} requires human_review_required=true")
 
 
 def _collect_evidence_refs(
@@ -293,8 +292,12 @@ def _validate_audits(audit_dir: Path, errors: list[str]) -> int:
         errors.append(f"audit path is not a directory: {audit_dir}")
         return 0
 
+    audit_files = sorted(audit_dir.glob("*.json"))
+    if len(audit_files) > MAX_AUDIT_FILES:
+        errors.append(f"audit file count exceeds limit {MAX_AUDIT_FILES}: {len(audit_files)}")
+        return 0
     audit_payloads: list[dict[str, Any]] = []
-    for audit_file in sorted(audit_dir.glob("*.json")):
+    for audit_file in audit_files:
         payload = _read_json(audit_file, audit_file.name, errors)
         if isinstance(payload, dict):
             audit_payloads.append(payload)
@@ -302,6 +305,8 @@ def _validate_audits(audit_dir: Path, errors: list[str]) -> int:
             _require_fields(payload, NON_EMPTY_AUDIT_FIELDS, audit_file.name, errors)
             if "created_at" not in payload and "timestamp" not in payload:
                 errors.append(f"{audit_file.name} missing timestamp")
+            if payload.get("human_review_required") is not True:
+                errors.append(f"{audit_file.name} requires human_review_required=true")
 
     skill_names = {str(payload.get("skill_name", "")) for payload in audit_payloads}
     for canonical_name, aliases in REQUIRED_AUDIT_SKILLS.items():
@@ -312,9 +317,13 @@ def _validate_audits(audit_dir: Path, errors: list[str]) -> int:
 
 def _validate_report_markdown(report_path: Path, errors: list[str], warnings: list[str]) -> None:
     try:
+        ensure_file_size(report_path, MAX_REPORT_MARKDOWN_BYTES, "ops_report.md")
         report = report_path.read_text(encoding="utf-8")
     except FileNotFoundError:
         errors.append(f"ops_report.md missing: {report_path}")
+        return
+    except ValueError as exc:
+        errors.append(str(exc))
         return
 
     required_sections = {

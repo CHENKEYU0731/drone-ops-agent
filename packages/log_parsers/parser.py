@@ -7,6 +7,7 @@ from typing import Any
 from pydantic import ValidationError
 
 from packages.drone_schemas import FlightLogRecord, read_json_file
+from packages.drone_schemas.io import ensure_file_size
 
 
 REQUIRED_FIELDS = {
@@ -31,11 +32,12 @@ REQUIRED_FIELDS = {
 
 
 NUMERIC_FIELDS = REQUIRED_FIELDS - {"timestamp", "flight_mode"}
+MAX_FLIGHT_LOG_BYTES = 250 * 1024 * 1024
+MAX_FLIGHT_LOG_RECORDS = 250_000
 
 
 def parse_flight_log(path: Path) -> list[FlightLogRecord]:
-    if not path.exists():
-        raise FileNotFoundError(f"飞行日志不存在: {path}")
+    ensure_file_size(path, MAX_FLIGHT_LOG_BYTES, "飞行日志")
     if path.suffix.lower() == ".csv":
         rows = _read_csv(path)
     elif path.suffix.lower() == ".json":
@@ -55,13 +57,20 @@ def _read_csv(path: Path) -> list[dict[str, Any]]:
         missing = REQUIRED_FIELDS - set(reader.fieldnames)
         if missing:
             raise ValueError(f"CSV 缺少字段 {sorted(missing)}: {path}")
-        return [dict(row) for row in reader]
+        rows: list[dict[str, Any]] = []
+        for row in reader:
+            rows.append(dict(row))
+            if len(rows) > MAX_FLIGHT_LOG_RECORDS:
+                raise ValueError(f"CSV 记录数超过限制 {MAX_FLIGHT_LOG_RECORDS}: {path}")
+        return rows
 
 
 def _read_json(path: Path) -> list[dict[str, Any]]:
     data = read_json_file(path)
     if not isinstance(data, list):
         raise ValueError(f"JSON 飞行日志必须是记录列表: {path}")
+    if len(data) > MAX_FLIGHT_LOG_RECORDS:
+        raise ValueError(f"JSON 记录数超过限制 {MAX_FLIGHT_LOG_RECORDS}: {path}")
     for index, row in enumerate(data, start=1):
         if not isinstance(row, dict):
             raise ValueError(f"JSON 第 {index} 条记录不是对象: {path}")

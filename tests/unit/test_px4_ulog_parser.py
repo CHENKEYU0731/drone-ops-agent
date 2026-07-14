@@ -39,6 +39,14 @@ def test_legacy_parse_flight_log_still_returns_records_for_px4_auto() -> None:
     assert records[-1].link_quality_pct == 58
 
 
+def test_px4_mock_rejects_non_finite_json(tmp_path: Path) -> None:
+    path = tmp_path / "non-finite.ulg"
+    path.write_text('{"format":"px4-ulog-mock","topics":NaN}', encoding="utf-8")
+
+    with pytest.raises(ValueError, match="NaN"):
+        parse_flight_log_details(path, requested_format="px4-ulog")
+
+
 def test_px4_dependency_error_is_clear_for_non_mock_ulog(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     path = tmp_path / "realish.ulg"
     path.write_bytes(b"ULog\x01\x12not-a-json-mock")
@@ -53,6 +61,16 @@ def test_px4_dependency_error_is_clear_for_non_mock_ulog(tmp_path: Path, monkeyp
     assert "px4-ulog" in message
     assert "will not connect to a real drone" in message
     assert "Traceback" not in message
+
+
+def test_px4_binary_probe_does_not_decode_entire_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    path = tmp_path / "binary.ulg"
+    path.write_bytes(b"ULog\x01\x12binary")
+    monkeypatch.setattr("packages.log_parsers.px4_ulog.find_spec", lambda name: None)
+    monkeypatch.setattr(Path, "read_text", lambda *_args, **_kwargs: pytest.fail("binary probe used read_text"))
+
+    with pytest.raises(LogParserDependencyError):
+        parse_flight_log_details(path, requested_format="px4-ulog")
 
 
 def test_px4_rejects_non_ulg_when_format_explicit(tmp_path: Path) -> None:

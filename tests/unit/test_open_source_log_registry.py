@@ -28,6 +28,16 @@ def test_open_source_log_registry_pins_license_commit_size_and_hash() -> None:
     assert validation["all_real_world_flight_verified"] is False
 
 
+def test_registry_cannot_self_attest_real_world_flight(tmp_path: Path) -> None:
+    payload = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
+    payload["sources"][0]["real_world_flight_verified"] = True
+    path = tmp_path / "registry.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="no real-world flight attestation mechanism"):
+        load_open_source_log_registry(path)
+
+
 def test_verify_cached_source_accepts_exact_size_and_hash(tmp_path: Path) -> None:
     source_file = Path("data/sample_logs/example_px4_mock.ulg")
     payload = source_file.read_bytes()

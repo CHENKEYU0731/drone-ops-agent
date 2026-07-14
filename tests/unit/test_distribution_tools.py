@@ -5,12 +5,21 @@ import tomllib
 import zipfile
 from pathlib import Path
 
+import pytest
+
 from scripts.build_release_bundle import build_release_bundle
 from scripts.check_environment import check_environment
 
 
 def _current_version() -> str:
     return tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
+
+
+def _symlink_or_skip(link: Path, target: Path) -> None:
+    try:
+        link.symlink_to(target)
+    except OSError as exc:
+        pytest.skip(f"symbolic links are unavailable: {exc}")
 
 
 def test_environment_diagnostic_has_stable_structure() -> None:
@@ -62,3 +71,17 @@ def test_direct_dependency_constraints_are_exact() -> None:
         requirements = [line for line in path.read_text(encoding="utf-8").splitlines() if line and not line.startswith("#")]
         assert requirements
         assert all("==" in requirement for requirement in requirements)
+
+
+def test_release_bundle_refuses_symbolic_link_output(tmp_path: Path) -> None:
+    version = _current_version()
+    out_dir = tmp_path / "release"
+    out_dir.mkdir()
+    target = tmp_path / "keep.txt"
+    target.write_text("keep", encoding="utf-8")
+    _symlink_or_skip(out_dir / f"drone-ops-agent-{version}.zip", target)
+
+    with pytest.raises(ValueError, match="symbolic-link output"):
+        build_release_bundle(Path.cwd(), out_dir)
+
+    assert target.read_text(encoding="utf-8") == "keep"

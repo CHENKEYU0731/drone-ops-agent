@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import tomllib
 import zipfile
 from pathlib import Path
 
@@ -10,6 +11,7 @@ from scripts.build_portfolio_showcase import build_portfolio_showcase, validate_
 
 
 def test_portfolio_showcase_contains_sanitized_review_materials(tmp_path: Path) -> None:
+    version = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
     result = build_portfolio_showcase(tmp_path / "portfolio")
     out_dir = result["output_dir"]
 
@@ -32,7 +34,7 @@ def test_portfolio_showcase_contains_sanitized_review_materials(tmp_path: Path) 
     assert not any(path.endswith((".ulg", ".bin")) for path in actual)
 
     manifest = json.loads((out_dir / "portfolio_manifest.json").read_text(encoding="utf-8"))
-    assert manifest["version"] == "2.5.0"
+    assert manifest["version"] == version
     assert manifest["data_policy"] == {
         "external_binary_logs_included": False,
         "real_world_accuracy_claimed": False,
@@ -45,12 +47,41 @@ def test_portfolio_showcase_contains_sanitized_review_materials(tmp_path: Path) 
     assert result["checksum"].read_text(encoding="ascii").startswith(result["archive_sha256"])
     with zipfile.ZipFile(result["archive"]) as archive:
         assert archive.testzip() is None
-        assert all(name.startswith("drone-ops-agent-v2.5.0-showcase/") for name in archive.namelist())
+        assert all(name.startswith(f"drone-ops-agent-v{version}-showcase/") for name in archive.namelist())
 
 
 def test_portfolio_output_validation_rejects_unmanaged_directory(tmp_path: Path) -> None:
     out_dir = tmp_path / "existing"
     out_dir.mkdir()
+    (out_dir / "keep.txt").write_text("keep", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="不是已生成"):
+        validate_portfolio_output_dir(out_dir)
+
+    assert (out_dir / "keep.txt").read_text(encoding="utf-8") == "keep"
+
+
+def test_portfolio_output_validation_rejects_spoofed_marker(tmp_path: Path) -> None:
+    out_dir = tmp_path / "spoofed"
+    out_dir.mkdir()
+    (out_dir / ".drone-ops-portfolio-output").write_text("spoofed\n", encoding="utf-8")
+    (out_dir / "keep.txt").write_text("keep", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="不是已生成"):
+        validate_portfolio_output_dir(out_dir)
+
+    assert (out_dir / "keep.txt").read_text(encoding="utf-8") == "keep"
+
+
+def test_portfolio_output_validation_rejects_symlink_marker(tmp_path: Path) -> None:
+    out_dir = tmp_path / "symlink-marker"
+    out_dir.mkdir()
+    marker_target = tmp_path / "marker-target"
+    marker_target.write_text("managed portfolio output directory\n", encoding="utf-8")
+    try:
+        (out_dir / ".drone-ops-portfolio-output").symlink_to(marker_target)
+    except OSError as exc:
+        pytest.skip(f"symbolic links are unavailable: {exc}")
     (out_dir / "keep.txt").write_text("keep", encoding="utf-8")
 
     with pytest.raises(ValueError, match="不是已生成"):

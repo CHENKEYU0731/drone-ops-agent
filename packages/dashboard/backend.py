@@ -176,7 +176,11 @@ _DASHBOARD_HTML = """<!doctype html>
         const artifacts = document.getElementById("artifacts");
         flatten(bundle.artifacts || {}).forEach(([name, value]) => {
           const li = document.createElement("li");
-          li.innerHTML = `<strong>${name}</strong>: <code>${value ?? "未提供"}</code>`;
+          const label = document.createElement("strong");
+          label.textContent = name;
+          const content = document.createElement("code");
+          content.textContent = value ?? "未提供";
+          li.append(label, ": ", content);
           artifacts.appendChild(li);
         });
       });

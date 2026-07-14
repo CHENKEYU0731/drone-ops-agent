@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import shutil
+import tomllib
 import zipfile
 from pathlib import Path
 from typing import Any
@@ -17,6 +18,7 @@ else:
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = Path("portfolio_showcase")
 PORTFOLIO_MARKER = ".drone-ops-portfolio-output"
+PORTFOLIO_MARKER_CONTENT = "managed portfolio output directory\n"
 FIXED_ZIP_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
 TEXT_SUFFIXES = {".json", ".md", ".stderr", ".txt"}
 FORBIDDEN_BINARY_SUFFIXES = {".bin", ".ulg"}
@@ -49,8 +51,15 @@ def validate_portfolio_output_dir(out_dir: Path) -> Path:
         raise ValueError(f"拒绝将项目目录或其上级目录作为 portfolio 输出目录: {target}")
     if target.exists() and not target.is_dir():
         raise ValueError(f"portfolio 输出路径必须是目录: {target}")
-    if target.exists() and any(target.iterdir()) and not (target / PORTFOLIO_MARKER).is_file():
-        raise ValueError(f"目标不是已生成的 portfolio 目录，拒绝清理: {target}")
+    if target.exists() and any(target.iterdir()):
+        marker = target / PORTFOLIO_MARKER
+        managed = (
+            marker.is_file()
+            and not marker.is_symlink()
+            and marker.read_text(encoding="utf-8") == PORTFOLIO_MARKER_CONTENT
+        )
+        if not managed:
+            raise ValueError(f"目标不是已生成的 portfolio 目录，拒绝清理: {target}")
     return target
 
 
@@ -107,8 +116,13 @@ def _zip_info(path: str) -> zipfile.ZipInfo:
     return info
 
 
-def _write_archive(out_dir: Path, archive_path: Path) -> str:
-    root_name = "drone-ops-agent-v2.5.0-showcase"
+def _project_version() -> str:
+    return str(tomllib.loads((REPOSITORY_ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"])
+
+
+def _write_archive(out_dir: Path, archive_path: Path, version: str) -> str:
+    _reject_unsafe_output_file(archive_path)
+    root_name = f"drone-ops-agent-v{version}-showcase"
     with zipfile.ZipFile(archive_path, "w") as archive:
         for path in sorted(out_dir.rglob("*"), key=lambda item: item.relative_to(out_dir).as_posix()):
             if path.is_file():
@@ -122,12 +136,13 @@ def build_portfolio_showcase(out_dir: Path = DEFAULT_OUTPUT_DIR) -> dict[str, An
     if out_dir.exists():
         shutil.rmtree(out_dir)
     out_dir.mkdir(parents=True)
-    (out_dir / PORTFOLIO_MARKER).write_text("managed portfolio output directory\n", encoding="utf-8")
+    (out_dir / PORTFOLIO_MARKER).write_text(PORTFOLIO_MARKER_CONTENT, encoding="utf-8")
 
     generate_demo_outputs(out_dir / "demo_outputs")
     _copy_portfolio_materials(out_dir)
     _write_portfolio_readme(out_dir)
     artifacts = _artifact_manifest(out_dir)
+    version = _project_version()
     manifest = {
         "artifact_count": len(artifacts),
         "artifacts": artifacts,
@@ -143,7 +158,7 @@ def build_portfolio_showcase(out_dir: Path = DEFAULT_OUTPUT_DIR) -> dict[str, An
             "offline_only": True,
         },
         "schema_version": "1.0.0",
-        "version": "2.5.0",
+        "version": version,
     }
     (out_dir / "portfolio_manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
@@ -151,8 +166,9 @@ def build_portfolio_showcase(out_dir: Path = DEFAULT_OUTPUT_DIR) -> dict[str, An
     )
 
     archive_path = out_dir.parent / f"{out_dir.name}.zip"
-    archive_sha256 = _write_archive(out_dir, archive_path)
+    archive_sha256 = _write_archive(out_dir, archive_path, version)
     checksum_path = archive_path.parent / f"{archive_path.name}.sha256"
+    _reject_unsafe_output_file(checksum_path)
     checksum_path.write_text(f"{archive_sha256}  {archive_path.name}\n", encoding="ascii")
     return {
         "archive": archive_path,
@@ -161,6 +177,13 @@ def build_portfolio_showcase(out_dir: Path = DEFAULT_OUTPUT_DIR) -> dict[str, An
         "checksum": checksum_path,
         "output_dir": out_dir,
     }
+
+
+def _reject_unsafe_output_file(path: Path) -> None:
+    if path.is_symlink():
+        raise ValueError(f"refusing symbolic-link output: {path}")
+    if path.exists() and not path.is_file():
+        raise ValueError(f"output path must be a regular file: {path}")
 
 
 def main() -> None:

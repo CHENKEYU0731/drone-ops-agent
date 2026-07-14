@@ -129,31 +129,44 @@ def test_validate_report_outputs_fails_when_safety_review_is_relaxed(tmp_path: P
     _build_report_outputs(out_dir)
     maintenance = _load_json(out_dir / "maintenance_recommendations.json")
     assert isinstance(maintenance, list)
-    maintenance[0]["priority"] = "BEFORE_NEXT_FLIGHT"
+    maintenance[0]["priority"] = "MONITOR"
     maintenance[0]["human_review_required"] = False
     _write_json(out_dir / "maintenance_recommendations.json", maintenance)
 
     with pytest.raises(ReportValidationError) as exc_info:
         validate_report_outputs(ReportValidationPaths.from_report_dir(out_dir))
 
-    assert "maintenance_recommendations[0] priority=BEFORE_NEXT_FLIGHT requires human_review_required=true" in str(
-        exc_info.value
-    )
+    assert "maintenance_recommendations[0] requires human_review_required=true" in str(exc_info.value)
 
 
-def test_validate_report_outputs_fails_when_high_diagnosis_review_is_relaxed(tmp_path: Path) -> None:
+def test_validate_report_outputs_fails_when_diagnosis_review_is_relaxed(tmp_path: Path) -> None:
     out_dir = tmp_path / "reports"
     _build_report_outputs(out_dir)
     diagnosis = _load_json(out_dir / "diagnosis.json")
     assert isinstance(diagnosis, list)
-    diagnosis[0]["severity"] = "HIGH"
+    diagnosis[0]["severity"] = "LOW"
     diagnosis[0]["human_review_required"] = False
     _write_json(out_dir / "diagnosis.json", diagnosis)
 
     with pytest.raises(ReportValidationError) as exc_info:
         validate_report_outputs(ReportValidationPaths.from_report_dir(out_dir))
 
-    assert "diagnosis[0] severity=HIGH requires human_review_required=true" in str(exc_info.value)
+    assert "diagnosis[0] requires human_review_required=true" in str(exc_info.value)
+
+
+def test_validate_report_outputs_fails_when_audit_review_is_relaxed(tmp_path: Path) -> None:
+    out_dir = tmp_path / "reports"
+    _build_report_outputs(out_dir)
+    audit_file = next((out_dir / "audit").glob("*.json"))
+    audit = _load_json(audit_file)
+    assert isinstance(audit, dict)
+    audit["human_review_required"] = False
+    _write_json(audit_file, audit)
+
+    with pytest.raises(ReportValidationError) as exc_info:
+        validate_report_outputs(ReportValidationPaths.from_report_dir(out_dir))
+
+    assert f"{audit_file.name} requires human_review_required=true" in str(exc_info.value)
 
 
 def test_validate_report_outputs_fails_when_required_audit_is_missing(tmp_path: Path) -> None:

@@ -44,6 +44,7 @@ def test_monitor_replay_cli_writes_outputs_and_audit(tmp_path: Path) -> None:
     assert audit["skill_name"] == "state-monitoring"
     assert audit["output_refs"] == [str(summary_path), str(events_path)]
     assert audit["status"] == "success"
+    assert audit["human_review_required"] is True
 
 
 def test_monitor_replay_cli_missing_file_error_is_clear(tmp_path: Path) -> None:

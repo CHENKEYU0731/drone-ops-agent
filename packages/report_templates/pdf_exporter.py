@@ -16,6 +16,7 @@ from reportlab.platypus import Paragraph, Preformatted, SimpleDocTemplate, Space
 
 PDF_FONT_ENV_VAR = "DRONE_OPS_PDF_FONT_PATH"
 PDF_FONT_NAME = "DroneOpsCJK"
+MAX_MARKDOWN_FILE_BYTES = 10 * 1024 * 1024
 CJK_FONT_CANDIDATES = [
     Path("/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc"),
     Path("/usr/share/fonts/truetype/arphic/uming.ttc"),
@@ -33,9 +34,14 @@ CJK_FONT_CANDIDATES = [
 
 def export_markdown_to_pdf(markdown_path: Path, output_path: Path) -> None:
     try:
-        markdown = markdown_path.read_text(encoding="utf-8")
+        markdown_size = markdown_path.stat().st_size
     except FileNotFoundError as exc:
         raise FileNotFoundError(f"Markdown input does not exist: {markdown_path}") from exc
+    if not markdown_path.is_file():
+        raise ValueError(f"Markdown input must be a file: {markdown_path}")
+    if markdown_size > MAX_MARKDOWN_FILE_BYTES:
+        raise ValueError(f"Markdown input exceeds {MAX_MARKDOWN_FILE_BYTES} bytes: {markdown_path}")
+    markdown = markdown_path.read_text(encoding="utf-8")
     if not markdown.strip():
         raise ValueError(f"Markdown input is empty: {markdown_path}")
 

@@ -9,7 +9,9 @@ from typing import Any
 from pydantic import ValidationError
 
 from packages.drone_schemas import FlightLogRecord
+from packages.drone_schemas.io import MAX_JSON_FILE_BYTES, ensure_file_size, parse_json_text
 from packages.log_parsers.base import LogParserDependencyError, ParsedFlightLog
+from packages.log_parsers.parser import MAX_FLIGHT_LOG_BYTES
 
 
 class PX4ULogParser:
@@ -23,6 +25,7 @@ class PX4ULogParser:
     def parse(self, path: Path, requested_format: str = "auto") -> ParsedFlightLog:
         if path.suffix.lower() != ".ulg":
             raise ValueError(f"log format px4-ulog cannot parse file: {path}")
+        ensure_file_size(path, MAX_FLIGHT_LOG_BYTES, "PX4 ULog")
         mock_data = _read_mock_fixture(path)
         if mock_data is not None:
             return self._parse_mock_fixture(path, mock_data, requested_format)
@@ -114,8 +117,16 @@ class PX4ULogParser:
 
 
 def _read_mock_fixture(path: Path) -> dict[str, Any] | None:
+    with path.open("rb") as handle:
+        prefix = handle.read(4096)
+        if not prefix.lstrip().startswith(b"{"):
+            return None
+        remaining_limit = MAX_JSON_FILE_BYTES - len(prefix)
+        payload = prefix + handle.read(max(remaining_limit, 0) + 1)
+    if len(payload) > MAX_JSON_FILE_BYTES:
+        raise ValueError(f"PX4 ULog mock fixture exceeds {MAX_JSON_FILE_BYTES} bytes: {path}")
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
+        data = parse_json_text(payload.decode("utf-8"), f"PX4 ULog mock fixture {path} ")
     except (UnicodeDecodeError, json.JSONDecodeError):
         return None
     if isinstance(data, dict) and data.get("format") == "px4-ulog-mock":

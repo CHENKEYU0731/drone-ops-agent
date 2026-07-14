@@ -385,6 +385,14 @@ v2.5.0 portfolio finalization:
 - `python scripts/build_portfolio_showcase.py --out portfolio_showcase`：生成只含 sample/mock/sanitized 成果、说明文档、截图、manifest 和 SHA-256 的最终展示 ZIP。
 - 作品包中的随机 run ID 和 audit 时间反映一次实际离线运行，因此跨次 ZIP 哈希可能变化；每个单次发布资产都有完整文件哈希和外部校验和。
 
+v2.5.1 final adversarial hardening:
+
+- `docs/v2.5.1_adversarial_review.md`：恶意输入、误用、供应链和维护者视角的最终审查结论。
+- managed demo/portfolio 目录必须包含内容精确且非 symlink 的标记文件，发布 ZIP/校验文件拒绝 symlink 输出。
+- JSON、CSV、Markdown、ULog/BIN 输入增加大小/记录数门禁，真实二进制 mock 探测不再整文件读取。
+- 本地 Dashboard 不再使用 `innerHTML` 渲染 bundle 数据；所有质量门禁在非 PASS 时退出码为 1。
+- report/audit 质量门禁对所有诊断和维护结论强制 `human_review_required=true`，开源 registry 不允许自我声明真实飞行认证。
+
 v1.4.0 diagnosis/report evaluation:
 
 - `docs/diagnosis_report_evaluation.md`

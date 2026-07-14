@@ -72,3 +72,5 @@ def test_dashboard_backend_serves_minimal_dashboard_page(tmp_path: Path) -> None
     assert "无人机运维 Dashboard" in response.text
     assert "offline-only" in response.text
     assert "/api/dashboard/bundle" in response.text
+    assert "innerHTML" not in response.text
+    assert "content.textContent" in response.text

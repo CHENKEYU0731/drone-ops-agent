@@ -67,6 +67,8 @@ def build_release_bundle(source_root: Path, out_dir: Path) -> dict[str, Any]:
     zip_path = out_dir / f"{bundle_name}.zip"
     checksum_path = out_dir / f"{bundle_name}.zip.sha256"
     out_dir.mkdir(parents=True, exist_ok=True)
+    _reject_unsafe_output_file(zip_path)
+    _reject_unsafe_output_file(checksum_path)
 
     entries: list[tuple[str, bytes]] = []
     for path in _payload_files(source_root):
@@ -102,6 +104,13 @@ def build_release_bundle(source_root: Path, out_dir: Path) -> dict[str, Any]:
         "file_count": len(file_manifest),
         "version": version,
     }
+
+
+def _reject_unsafe_output_file(path: Path) -> None:
+    if path.is_symlink():
+        raise ValueError(f"refusing symbolic-link output: {path}")
+    if path.exists() and not path.is_file():
+        raise ValueError(f"output path must be a regular file: {path}")
 
 
 def main() -> None:
