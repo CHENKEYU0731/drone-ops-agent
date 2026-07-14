@@ -41,7 +41,7 @@ try {
     Invoke-Checked $VenvPython @("-m", "pip", "install", "--no-deps", $Wheel.FullName)
     Invoke-Checked $EntryPoint @("--help")
     Invoke-Checked $VenvPython @((Join-Path $RepoRoot "scripts/build_release_bundle.py"), "--source", $RepoRoot, "--out", $ResolvedOut)
-    Write-Host "v2.4.0 release verification completed: $ResolvedOut"
+    Write-Host "Release verification completed: $ResolvedOut"
 }
 finally {
     $FullTempRoot = [System.IO.Path]::GetFullPath($TempRoot)

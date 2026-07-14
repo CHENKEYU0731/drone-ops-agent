@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import tomllib
 import zipfile
 from pathlib import Path
 
@@ -8,11 +9,16 @@ from scripts.build_release_bundle import build_release_bundle
 from scripts.check_environment import check_environment
 
 
+def _current_version() -> str:
+    return tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
+
+
 def test_environment_diagnostic_has_stable_structure() -> None:
     result = check_environment()
+    version = _current_version()
 
     assert result["schema_version"] == "1.0.0"
-    assert result["project"] == {"name": "drone-ops-agent", "version": "2.4.0"}
+    assert result["project"] == {"name": "drone-ops-agent", "version": version}
     assert result["safety_boundary"] == {
         "advisory_only": True,
         "human_review_required": True,
@@ -28,24 +34,26 @@ def test_environment_diagnostic_has_stable_structure() -> None:
 
 
 def test_release_bundle_is_deterministic_and_self_describing(tmp_path: Path) -> None:
+    version = _current_version()
+    root_name = f"drone-ops-agent-{version}"
     first = build_release_bundle(Path.cwd(), tmp_path / "first")
     second = build_release_bundle(Path.cwd(), tmp_path / "second")
 
     assert first["bundle_sha256"] == second["bundle_sha256"]
     assert first["file_count"] == second["file_count"]
-    assert first["checksum"].read_text(encoding="ascii").endswith("  drone-ops-agent-2.4.0.zip\n")
+    assert first["checksum"].read_text(encoding="ascii").endswith(f"  {root_name}.zip\n")
 
     with zipfile.ZipFile(first["bundle"]) as archive:
         names = archive.namelist()
         assert names == sorted(names[:-2]) + names[-2:]
-        assert "drone-ops-agent-2.4.0/distribution_manifest.json" in names
-        assert "drone-ops-agent-2.4.0/SHA256SUMS" in names
+        assert f"{root_name}/distribution_manifest.json" in names
+        assert f"{root_name}/SHA256SUMS" in names
         assert not any("open_source_logs/cache" in name for name in names)
         assert [name for name in names if "/data/sample_reports/" in name] == [
-            "drone-ops-agent-2.4.0/data/sample_reports/.gitkeep"
+            f"{root_name}/data/sample_reports/.gitkeep"
         ]
-        manifest = json.loads(archive.read("drone-ops-agent-2.4.0/distribution_manifest.json"))
-        assert manifest["version"] == "2.4.0"
+        manifest = json.loads(archive.read(f"{root_name}/distribution_manifest.json"))
+        assert manifest["version"] == version
         assert manifest["file_count"] == first["file_count"]
 
 

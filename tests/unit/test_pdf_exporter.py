@@ -38,6 +38,18 @@ def test_export_markdown_to_pdf_writes_valid_pdf(tmp_path: Path) -> None:
     assert "MON_LOW_BATTERY_SOC" in text
 
 
+def test_export_markdown_to_pdf_is_deterministic(tmp_path: Path) -> None:
+    markdown = tmp_path / "report.md"
+    first = tmp_path / "first.pdf"
+    second = tmp_path / "second.pdf"
+    markdown.write_text("# 确定性报告\n\n- offline-only\n- human review required\n", encoding="utf-8")
+
+    export_markdown_to_pdf(markdown, first)
+    export_markdown_to_pdf(markdown, second)
+
+    assert first.read_bytes() == second.read_bytes()
+
+
 def test_resolve_pdf_font_path_uses_env_override(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     font = tmp_path / "custom-font.ttf"
     font.write_bytes(b"font")

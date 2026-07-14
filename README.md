@@ -375,6 +375,16 @@ v2.4.0 reproducible distribution:
 - Windows 可运行 `powershell -ExecutionPolicy Bypass -File scripts/verify_release.ps1`，在临时虚拟环境完成约束安装、测试、演示生成、wheel/sdist 构建与安装 smoke test。
 - 约束文件只固定项目直接依赖和发布工具；发布检查可能访问 Python 包索引，但安装后的项目运行仍为 offline-only、advisory-only。
 
+v2.5.0 portfolio finalization:
+
+- `docs/portfolio/项目总览.md`：中文项目定位、能力、证据和限制说明。
+- `docs/portfolio/project_overview_en.md`：英文项目摘要。
+- `docs/portfolio/capability_matrix.md`：输入、输出、验证证据与能力边界矩阵。
+- `docs/portfolio/demo_script.md`：3–5 分钟演示脚本。
+- `docs/portfolio/resume_and_interview_guide.md`：中英文简历描述和面试追问说明。
+- `python scripts/build_portfolio_showcase.py --out portfolio_showcase`：生成只含 sample/mock/sanitized 成果、说明文档、截图、manifest 和 SHA-256 的最终展示 ZIP。
+- 作品包中的随机 run ID 和 audit 时间反映一次实际离线运行，因此跨次 ZIP 哈希可能变化；每个单次发布资产都有完整文件哈希和外部校验和。
+
 v1.4.0 diagnosis/report evaluation:
 
 - `docs/diagnosis_report_evaluation.md`
