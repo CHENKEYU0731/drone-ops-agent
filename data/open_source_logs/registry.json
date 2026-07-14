@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "registry_id": "PX4-PYULOG-UPSTREAM-COMPATIBILITY",
+  "description": "Pinned open-source upstream ULog fixtures for explicit download and offline parser compatibility checks.",
+  "sources": [
+    {
+      "source_id": "pyulog-sample-log-small",
+      "title": "PX4 pyulog sample_log_small.ulg",
+      "repository": "PX4/pyulog",
+      "commit": "3cf17793f14709713ab297d3743314c658874068",
+      "source_path": "test/sample_log_small.ulg",
+      "download_url": "https://raw.githubusercontent.com/PX4/pyulog/3cf17793f14709713ab297d3743314c658874068/test/sample_log_small.ulg",
+      "filename": "sample_log_small.ulg",
+      "format": "px4-ulog",
+      "size_bytes": 921631,
+      "sha256": "68d1020f688109f027dba08d2950247cc0ae34aaefdcf37e4a7d60838f3e1aa3",
+      "license_spdx": "BSD-3-Clause",
+      "license_url": "https://github.com/PX4/pyulog/blob/3cf17793f14709713ab297d3743314c658874068/LICENSE.md",
+      "provenance_class": "upstream-test-fixture",
+      "real_world_flight_verified": false,
+      "usage_note": "用于公开上游 ULog parser 兼容性验证；来源元数据不足以证明真实外场飞行。"
+    },
+    {
+      "source_id": "pyulog-sample-logging-tagged",
+      "title": "PX4 pyulog sample_logging_tagged_and_default_params.ulg",
+      "repository": "PX4/pyulog",
+      "commit": "3cf17793f14709713ab297d3743314c658874068",
+      "source_path": "test/sample_logging_tagged_and_default_params.ulg",
+      "download_url": "https://raw.githubusercontent.com/PX4/pyulog/3cf17793f14709713ab297d3743314c658874068/test/sample_logging_tagged_and_default_params.ulg",
+      "filename": "sample_logging_tagged_and_default_params.ulg",
+      "format": "px4-ulog",
+      "size_bytes": 1942808,
+      "sha256": "32f564608d46caf5a4cbb1cb0cd0dc839fb9512b06c6d1384fb96ec3d6c9173d",
+      "license_spdx": "BSD-3-Clause",
+      "license_url": "https://github.com/PX4/pyulog/blob/3cf17793f14709713ab297d3743314c658874068/LICENSE.md",
+      "provenance_class": "upstream-test-fixture",
+      "real_world_flight_verified": false,
+      "usage_note": "用于公开上游 ULog parser 兼容性验证；来源元数据不足以证明真实外场飞行。"
+    },
+    {
+      "source_id": "pyulog-sample-px4-events",
+      "title": "PX4 pyulog sample_px4_events.ulg",
+      "repository": "PX4/pyulog",
+      "commit": "3cf17793f14709713ab297d3743314c658874068",
+      "source_path": "test/sample_px4_events.ulg",
+      "download_url": "https://raw.githubusercontent.com/PX4/pyulog/3cf17793f14709713ab297d3743314c658874068/test/sample_px4_events.ulg",
+      "filename": "sample_px4_events.ulg",
+      "format": "px4-ulog",
+      "size_bytes": 1563146,
+      "sha256": "4b43a23a7b7f649004facba5c7835d800bbc8cc13e71cbc96678d971451e3d7e",
+      "license_spdx": "BSD-3-Clause",
+      "license_url": "https://github.com/PX4/pyulog/blob/3cf17793f14709713ab297d3743314c658874068/LICENSE.md",
+      "provenance_class": "upstream-test-fixture",
+      "real_world_flight_verified": false,
+      "usage_note": "用于公开上游 ULog parser 兼容性验证；来源元数据不足以证明真实外场飞行。"
+    }
+  ],
+  "safety_boundary": {
+    "explicit_download_only": true,
+    "offline_analysis_only": true,
+    "no_real_drone_connection": true,
+    "no_mavlink_command_execution": true,
+    "human_review_required": true
+  }
+}

@@ -26,6 +26,7 @@ def generate_demo_outputs(out_dir: Path = DEFAULT_OUTPUT_DIR) -> list[Path]:
     dashboard_dir = out_dir / "dashboard"
     evals_dir = out_dir / "evals"
     case_studies_dir = out_dir / "case_studies"
+    open_logs_dir = out_dir / "open_source_logs"
     platform_dir = out_dir / "platform"
     rules_dir = out_dir / "rules"
     adapters_dir = out_dir / "adapters"
@@ -39,6 +40,7 @@ def generate_demo_outputs(out_dir: Path = DEFAULT_OUTPUT_DIR) -> list[Path]:
         dashboard_dir,
         evals_dir,
         case_studies_dir,
+        open_logs_dir,
         platform_dir,
         rules_dir,
         adapters_dir,
@@ -108,6 +110,10 @@ def generate_demo_outputs(out_dir: Path = DEFAULT_OUTPUT_DIR) -> list[Path]:
         [Path("data/sample_evals/diagnosis_report_eval_case.json")],
         case_studies_dir,
     )
+    cli._run_validate_open_log_registry(
+        Path("data/open_source_logs/registry.json"),
+        open_logs_dir / "registry_validation.json",
+    )
     cli._run_validate_rule_pack(Path("data/sample_rule_packs/offline_default_rules.json"), rules_dir / "rule_pack_validation.json")
     cli._run_validate_datasets(Path("data/sample_datasets/registry.json"), platform_dir / "dataset_validation.json")
     cli._run_validate_adapters(Path("data/sample_adapters/offline_adapter_registry.json"), adapters_dir / "adapter_validation.json")
@@ -169,6 +175,7 @@ def _write_demo_readme(out_dir: Path) -> None:
 6. `dashboard/dashboard_bundle.json`：本地只读 dashboard 数据包。
 7. `platform/platform_index_validation.json` 和 `platform/operations_platform_validation.json`：平台 readiness index 与 v2.0 operations platform baseline 验证结果。
 8. `case_studies/case_study_report.md`：v2.2.0 离线评测与案例研究，汇总场景状态准确率、证据覆盖率、误报和漏检。
+9. `open_source_logs/registry_validation.json`：v2.3.0 公开上游日志来源、许可证、commit、大小和 SHA-256 注册表门禁；不会自动下载文件。
 
 ## 安全边界
 

@@ -14,7 +14,7 @@ from packages.log_parsers.base import LogParserDependencyError, ParsedFlightLog
 
 class PX4ULogParser:
     name = "px4-ulog"
-    version = "0.1.0"
+    version = "0.2.0"
     supported_formats = ("px4-ulog",)
 
     def can_parse(self, path: Path, requested_format: str = "auto") -> bool:
@@ -75,7 +75,7 @@ class PX4ULogParser:
         from pyulog import ULog  # type: ignore[import-not-found]
 
         ulog = ULog(str(path))
-        topics = {dataset.name: _dataset_rows(dataset) for dataset in ulog.data_list}
+        topics, topic_instances = _select_topic_datasets(ulog.data_list)
         timestamps = _topic_timestamps(topics.get("battery_status"), path, "battery_status")
         if not timestamps:
             raise ValueError(f"PX4 ULog has no usable battery_status samples: {path}")
@@ -88,7 +88,12 @@ class PX4ULogParser:
             source_log_id=path.name,
             parser_name=self.name,
             parser_version=self.version,
-            warnings=_topic_warnings(topics),
+            warnings=[
+                "PX4 ULog timestamps are boot-relative microseconds mapped to the Unix epoch.",
+                "The first four actuator outputs are treated as motor channels for compatibility only.",
+                *_topic_warnings(topics),
+                *_mapping_warnings(topics),
+            ],
             requested_format=requested_format,
             actual_format="px4-ulog",
             source_metadata={
@@ -99,7 +104,10 @@ class PX4ULogParser:
             parser_metadata={
                 "mock_fixture": False,
                 "topics_used": sorted(name for name, rows in topics.items() if rows),
+                "topic_instances": topic_instances,
                 "sample_count": len(records),
+                "timestamp_basis": "boot-relative-microseconds-mapped-to-unix-epoch",
+                "actuator_mapping": "first-four-outputs-compatibility-assumption",
                 "safety_boundary": "offline-read-only",
             },
         )
@@ -132,6 +140,20 @@ def _dataset_rows(dataset: Any) -> list[dict[str, Any]]:
     return rows
 
 
+def _select_topic_datasets(datasets: list[Any]) -> tuple[dict[str, list[dict[str, Any]]], dict[str, list[int]]]:
+    grouped: dict[str, list[Any]] = {}
+    for dataset in datasets:
+        grouped.setdefault(str(dataset.name), []).append(dataset)
+
+    topics: dict[str, list[dict[str, Any]]] = {}
+    topic_instances: dict[str, list[int]] = {}
+    for name, instances in grouped.items():
+        ordered = sorted(instances, key=lambda item: (int(getattr(item, "multi_id", 0)) != 0, int(getattr(item, "multi_id", 0))))
+        topics[name] = _dataset_rows(ordered[0])
+        topic_instances[name] = sorted({int(getattr(item, "multi_id", 0)) for item in instances})
+    return topics, dict(sorted(topic_instances.items()))
+
+
 def _topic_timestamps(rows: object, path: Path, topic: str) -> list[datetime]:
     if not isinstance(rows, list):
         raise ValueError(f"PX4 ULog missing required topic {topic}: {path}")
@@ -158,6 +180,7 @@ def _record_from_topics(
         actuators = _nearest(topics, "actuator_outputs", timestamp, path)
         telemetry = _nearest(topics, "telemetry_status", timestamp, path)
         sensor = _nearest(topics, "sensor_combined", timestamp, path)
+        barometer = _nearest_optional(topics, "sensor_baro", timestamp)
         outputs = _motor_outputs(actuators)
         return FlightLogRecord(
             timestamp=timestamp,
@@ -170,13 +193,13 @@ def _record_from_topics(
             gps_hdop=round(_float(gps, "hdop", "eph"), 3),
             vibration_x=round(_float(vibration, "vibration_x", "accel_vibration_metric"), 3),
             vibration_y=round(_float(vibration, "vibration_y", "gyro_vibration_metric"), 3),
-            vibration_z=round(_float(vibration, "vibration_z", "delta_angle_coning_metric"), 3),
+            vibration_z=round(_float(vibration, "vibration_z", "delta_angle_coning_metric", "gyro_coning_vibration"), 3),
             motor_1_output=outputs[0],
             motor_2_output=outputs[1],
             motor_3_output=outputs[2],
             motor_4_output=outputs[3],
-            link_quality_pct=round(_float(telemetry, "link_quality_pct", "rssi"), 3),
-            temperature_c=round(_float(sensor, "temperature_c", "temperature"), 3),
+            link_quality_pct=round(_link_quality_pct(telemetry), 3),
+            temperature_c=round(_temperature_c(sensor, barometer, battery), 3),
         )
     except KeyError as exc:
         raise ValueError(f"PX4 ULog missing required field {exc.args[0]} at sample {index}: {path}") from exc
@@ -191,6 +214,16 @@ def _nearest(topics: dict[str, Any], topic: str, timestamp: datetime, path: Path
     valid_rows = [row for row in rows if isinstance(row, dict)]
     if not valid_rows:
         raise ValueError(f"PX4 ULog topic {topic} has no usable samples: {path}")
+    return min(valid_rows, key=lambda row: abs((_parse_timestamp(row.get("timestamp")) - timestamp).total_seconds()))
+
+
+def _nearest_optional(topics: dict[str, Any], topic: str, timestamp: datetime) -> dict[str, Any] | None:
+    rows = topics.get(topic)
+    if not isinstance(rows, list):
+        return None
+    valid_rows = [row for row in rows if isinstance(row, dict)]
+    if not valid_rows:
+        return None
     return min(valid_rows, key=lambda row: abs((_parse_timestamp(row.get("timestamp")) - timestamp).total_seconds()))
 
 
@@ -225,10 +258,10 @@ def _motor_outputs(row: dict[str, Any]) -> list[float]:
     if isinstance(raw_outputs, (list, tuple)) and len(raw_outputs) >= 4:
         return [_normalize_motor_output(value) for value in raw_outputs[:4]]
     return [
-        _normalize_motor_output(_float(row, "motor_1_output", "output_0")),
-        _normalize_motor_output(_float(row, "motor_2_output", "output_1")),
-        _normalize_motor_output(_float(row, "motor_3_output", "output_2")),
-        _normalize_motor_output(_float(row, "motor_4_output", "output_3")),
+        _normalize_motor_output(_float(row, "motor_1_output", "output_0", "output[0]")),
+        _normalize_motor_output(_float(row, "motor_2_output", "output_1", "output[1]")),
+        _normalize_motor_output(_float(row, "motor_3_output", "output_2", "output[2]")),
+        _normalize_motor_output(_float(row, "motor_4_output", "output_3", "output[3]")),
     ]
 
 
@@ -236,7 +269,34 @@ def _normalize_motor_output(value: object) -> float:
     numeric = float(value)
     if numeric <= 1:
         numeric *= 100
+    elif numeric > 100:
+        numeric = (numeric - 1000) / 10
     return round(max(0, min(100, numeric)), 3)
+
+
+def _link_quality_pct(row: dict[str, Any]) -> float:
+    for field in ("link_quality_pct", "rssi"):
+        if field in row and row[field] is not None:
+            return max(0.0, min(100.0, float(row[field])))
+    if "rx_message_lost_rate" in row and row["rx_message_lost_rate"] is not None:
+        lost = float(row["rx_message_lost_rate"])
+        lost_pct = lost * 100 if lost <= 1 else lost
+        return max(0.0, min(100.0, 100 - lost_pct))
+    return 100.0
+
+
+def _temperature_c(
+    sensor: dict[str, Any],
+    barometer: dict[str, Any] | None,
+    battery: dict[str, Any],
+) -> float:
+    for row in (sensor, barometer, battery):
+        if row is None:
+            continue
+        for field in ("temperature_c", "temperature"):
+            if field in row and row[field] is not None:
+                return float(row[field])
+    return 0.0
 
 
 def _topic_warnings(topics: dict[str, list[dict[str, Any]]]) -> list[str]:
@@ -252,3 +312,19 @@ def _topic_warnings(topics: dict[str, list[dict[str, Any]]]) -> list[str]:
     }
     missing = sorted(name for name in required if not topics.get(name))
     return [f"PX4 ULog topic missing or empty: {name}" for name in missing]
+
+
+def _mapping_warnings(topics: dict[str, list[dict[str, Any]]]) -> list[str]:
+    warnings: list[str] = []
+    telemetry = (topics.get("telemetry_status") or [{}])[0]
+    if not any(field in telemetry for field in ("link_quality_pct", "rssi", "rx_message_lost_rate")):
+        warnings.append("PX4 ULog link quality unavailable; defaulted to 100 percent.")
+
+    temperature_rows = [
+        (topics.get("sensor_combined") or [{}])[0],
+        (topics.get("sensor_baro") or [{}])[0],
+        (topics.get("battery_status") or [{}])[0],
+    ]
+    if not any(any(field in row for field in ("temperature_c", "temperature")) for row in temperature_rows):
+        warnings.append("PX4 ULog temperature unavailable; defaulted to 0 degrees C.")
+    return warnings
