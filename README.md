@@ -366,6 +366,15 @@ v2.3.0 open-source upstream log compatibility:
 - `python -m apps.cli.main run-open-log-case-studies --registry data/open_source_logs/registry.json --cache-dir data/open_source_logs/cache --drone-id UAV-OPEN-SOURCE --out <tmp-open-log-dir>`：只分析本地缓存，不联网。
 - 当前 3 个公开上游 fixture 均通过 parser 兼容性验证；来源元数据不足以证明真实外场飞行，因此结果不能表述为真实异常检测准确率。
 
+v2.4.0 reproducible distribution:
+
+- `docs/reproducible_distribution.md`
+- `docs/v2.4.0_release_readiness.md`
+- `python scripts/check_environment.py --out <tmp>/environment.json`：以稳定 JSON 结构检查 Python、核心依赖和安全边界。
+- `python scripts/build_release_bundle.py --out dist/release`：按稳定文件顺序、时间戳和权限生成 ZIP、内部 manifest、`SHA256SUMS` 与外部 SHA-256 文件。
+- Windows 可运行 `powershell -ExecutionPolicy Bypass -File scripts/verify_release.ps1`，在临时虚拟环境完成约束安装、测试、演示生成、wheel/sdist 构建与安装 smoke test。
+- 约束文件只固定项目直接依赖和发布工具；发布检查可能访问 Python 包索引，但安装后的项目运行仍为 offline-only、advisory-only。
+
 v1.4.0 diagnosis/report evaluation:
 
 - `docs/diagnosis_report_evaluation.md`

@@ -1,6 +1,6 @@
 # 路线图
 
-项目当前已发布到 `v2.3.0 - Open-Source Upstream Log Compatibility`。
+项目当前版本为 `v2.4.0 - Reproducible Distribution`。
 
 详细规划见：
 
@@ -33,12 +33,14 @@
   - 用 14 个仿真场景和诊断/报告 golden case 量化预期状态准确率、证据覆盖率、误报与漏检。
 - `v2.3.0 - Open-Source Upstream Log Compatibility`
   - 增加固定来源和校验和的公开上游 ULog 注册表、显式下载与离线 parser 兼容性案例研究。
+- `v2.4.0 - Reproducible Distribution`
+  - 增加环境诊断、直接依赖约束、Windows 临时环境验收、wheel/sdist smoke test 和确定性发布 ZIP。
 
 ## 当前里程碑
 
-### v2.3.0：Open-Source Upstream Log Compatibility
+### v2.4.0：Reproducible Distribution
 
-目标已经完成：项目可以对许可证、固定 commit、大小和 SHA-256 均明确的公开上游 ULog 做显式获取和离线 parser 兼容性验证，同时如实区分“开源上游 fixture”与“已验证真实外场日志”。所有分析继续保持 offline-only、advisory-only 和 human-review-required。
+目标已经完成：项目可以在干净的 Windows 临时虚拟环境中按固定直接依赖安装、运行全量测试、生成演示成果、构建 wheel/sdist，并生成内容、顺序、时间戳和权限均稳定的发布 ZIP 与校验和。构建过程可能显式访问 Python 包索引，安装完成后的项目运行继续保持 offline-only、advisory-only 和 human-review-required。
 
 ## 已完成版本演进
 
@@ -53,6 +55,7 @@
 - `v2.1.0`：本地演示与作品展示就绪。
 - `v2.2.0`：离线评测与案例研究基线。
 - `v2.3.0`：公开上游日志兼容性案例研究。
+- `v2.4.0`：可复现安装、构建与发布包基线。
 
 ## 安全边界
 
