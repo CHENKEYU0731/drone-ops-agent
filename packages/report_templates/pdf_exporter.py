@@ -43,6 +43,7 @@ def export_markdown_to_pdf(markdown_path: Path, output_path: Path) -> None:
         output_path.parent.mkdir(parents=True, exist_ok=True)
         doc = SimpleDocTemplate(
             str(output_path),
+            invariant=1,
             pagesize=A4,
             leftMargin=18 * mm,
             rightMargin=18 * mm,

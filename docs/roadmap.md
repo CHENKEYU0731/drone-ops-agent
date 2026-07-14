@@ -1,6 +1,6 @@
 # 路线图
 
-项目当前版本为 `v2.4.0 - Reproducible Distribution`。
+项目当前版本为 `v2.5.0 - Portfolio Finalization`。
 
 详细规划见：
 
@@ -35,12 +35,14 @@
   - 增加固定来源和校验和的公开上游 ULog 注册表、显式下载与离线 parser 兼容性案例研究。
 - `v2.4.0 - Reproducible Distribution`
   - 增加环境诊断、直接依赖约束、Windows 临时环境验收、wheel/sdist smoke test 和确定性发布 ZIP。
+- `v2.5.0 - Portfolio Finalization`
+  - 增加中英文总览、能力矩阵、演示脚本、简历/面试说明和带 manifest/SHA-256 的 sanitized 最终展示包。
 
 ## 当前里程碑
 
-### v2.4.0：Reproducible Distribution
+### v2.5.0：Portfolio Finalization
 
-目标已经完成：项目可以在干净的 Windows 临时虚拟环境中按固定直接依赖安装、运行全量测试、生成演示成果、构建 wheel/sdist，并生成内容、顺序、时间戳和权限均稳定的发布 ZIP 与校验和。构建过程可能显式访问 Python 包索引，安装完成后的项目运行继续保持 offline-only、advisory-only 和 human-review-required。
+目标已经完成：项目具备面向导师、招聘方和维护者的中英文说明、能力与限制矩阵、3–5 分钟演示路径、简历/面试说明，以及只包含 sample/mock/sanitized 结果的最终展示包。展示材料明确区分固定案例回归、上游 parser 兼容性与尚未验证的真实世界准确率。
 
 ## 已完成版本演进
 
@@ -56,6 +58,7 @@
 - `v2.2.0`：离线评测与案例研究基线。
 - `v2.3.0`：公开上游日志兼容性案例研究。
 - `v2.4.0`：可复现安装、构建与发布包基线。
+- `v2.5.0`：作品集说明、演示和 sanitized 成果包收口。
 
 ## 安全边界
 
