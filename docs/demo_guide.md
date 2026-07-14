@@ -12,6 +12,32 @@ python scripts/generate_demo_outputs.py --out demo_outputs
 
 该命令会重新生成 `demo_outputs/` 目录。它只读取仓库内的 sample / mock / sanitized fixture，并调用现有离线 CLI 流程，不连接真实无人机、真实仿真器、真实维修系统或真实 fleet platform。
 
+一次成功运行会生成 46 个文件。`dashboard/dashboard_bundle.json` 使用相对于成果包根目录的 artifact 引用，因此整个 `demo_outputs/` 可以移动到其他目录后继续检查。
+
+## 5 分钟演示流程
+
+1. **第 0–1 分钟：说明项目定位**
+
+   打开本仓库 README，说明项目把离线飞行数据转换为异常、诊断、维护建议、报告和审计材料。强调系统不直接控制无人机，所有结论都需要人工复核。
+
+2. **第 1–2 分钟：生成成果包**
+
+   运行 `python scripts/generate_demo_outputs.py --out demo_outputs`，确认终端显示 `Generated 46 demo files`。
+
+3. **第 2–3 分钟：查看报告和证据链**
+
+   打开 `reports/ops_report.pdf`，展示执行摘要、异常、诊断和维护建议；再打开 `reports/evidence_index.json` 和 `reports/report_validation.json`，说明关键结论可以回溯到本地证据和 audit。
+
+4. **第 3–4 分钟：查看仿真与工单闭环**
+
+   打开 `reports/simulation_run.json` 和 `reports/work_order_drafts.md`，说明离线仿真规则如何进入报告，以及维护建议如何形成仍需审批的 `DRAFT` 工单。
+
+5. **第 4–5 分钟：查看机队与平台视图**
+
+   打开 `fleet/fleet_health_report.md`、`dashboard/dashboard_bundle.json` 和 `platform/operations_platform_validation.json`，说明系统既支持单次任务分析，也能汇总多资产样例并执行平台级离线质量门禁。
+
+演示结束时再次说明：`PASS` 只表示离线输入满足当前规则，不代表真实飞行、维修或自动派单授权。
+
 ## 推荐查看顺序
 
 生成完成后，建议按下面顺序查看：

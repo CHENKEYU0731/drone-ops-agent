@@ -15,3 +15,14 @@ def test_demo_guide_documents_local_showcase_workflow() -> None:
     assert "offline-only" in text
     assert "advisory-only" in text
     assert "不连接真实无人机" in text
+    assert "5 分钟演示流程" in text
+    assert "46" in text
+
+
+def test_readme_has_a_portfolio_showcase_entry() -> None:
+    text = Path("README.md").read_text(encoding="utf-8")
+
+    assert "3 分钟快速体验" in text
+    assert "```mermaid" in text
+    assert "docs/assets/showcase/ops_report_preview.png" in text
+    assert "docs/assets/showcase/dashboard_overview.png" in text

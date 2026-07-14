@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pytest
@@ -38,6 +39,12 @@ def test_generate_demo_outputs_creates_showcase_package(tmp_path: Path) -> None:
     assert "offline-only" in readme
     assert "advisory-only" in readme
     assert "不连接真实无人机" in readme
+
+    dashboard = json.loads((out_dir / "dashboard" / "dashboard_bundle.json").read_text(encoding="utf-8"))
+    assert dashboard["artifacts"]["report"]["report_dir"] == "reports"
+    assert dashboard["artifacts"]["report"]["ops_report_md"] == "reports/ops_report.md"
+    assert dashboard["artifacts"]["fleet_health"]["fleet_health_summary"] == "fleet/fleet_health_summary.json"
+    assert str(tmp_path).replace("\\", "/") not in json.dumps(dashboard, ensure_ascii=False)
 
 
 def test_demo_output_validation_rejects_workspace_root() -> None:

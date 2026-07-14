@@ -27,6 +27,8 @@ python -m apps.cli.main dashboard-bundle \
 - `audit`：本地 audit 目录路径
 - `evidence`：`evidence_index.json`
 
+普通 CLI 保留调用方传入的本地路径；`generate_demo_outputs.py` 生成的作品展示成果包会将这些引用写成相对于 `demo_outputs/` 的路径，便于整体移动和分享。
+
 ## 安全边界
 
 Dashboard bundle 只保存本地 artifact reference，不读取实时遥测，不调用外部 API，不启动服务，

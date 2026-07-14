@@ -98,6 +98,7 @@ def generate_demo_outputs(out_dir: Path = DEFAULT_OUTPUT_DIR) -> list[Path]:
         dashboard_dir / "dashboard_bundle.json",
         fleet_dir / "fleet_health_summary.json",
         fleet_dir / "fleet_health_report.md",
+        out_dir,
     )
     cli._run_evals([Path("data/sample_evals/diagnosis_report_eval_case.json")], evals_dir)
     cli._run_validate_rule_pack(Path("data/sample_rule_packs/offline_default_rules.json"), rules_dir / "rule_pack_validation.json")

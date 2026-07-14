@@ -831,11 +831,13 @@ def _run_dashboard_bundle(
     out: Path,
     fleet_summary: Path | None = None,
     fleet_report: Path | None = None,
+    reference_root: Path | None = None,
 ) -> dict:
     bundle = build_dashboard_bundle(
         report_dir=report_dir,
         fleet_summary=fleet_summary,
         fleet_report=fleet_report,
+        reference_root=reference_root,
     )
     write_json(out, bundle)
     return bundle
