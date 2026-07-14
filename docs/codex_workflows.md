@@ -187,7 +187,7 @@ v2.5.0 portfolio finalization 工作流：
 - 使用 `docs/v2.5.0_release_readiness.md` 作为最终作品发布门禁。
 - 运行 `pytest` 和 portfolio focused tests，确认 PDF invariant 输出、输出目录保护和作品包清单。
 - 运行 `python scripts/build_portfolio_showcase.py --out <tmp>/portfolio_showcase`。
-- 查看中文/英文总览、能力矩阵、演示脚本、简历说明、报告 PDF、案例研究、机队健康和 Dashboard 截图。
+- 查看中文/英文总览、能力矩阵、演示脚本、报告 PDF、案例研究、机队健康和 Dashboard 截图。
 - 检查 `portfolio_manifest.json`：只包含 sample/mock/sanitized 成果，`real_world_accuracy_claimed=false`，不包含 `.ulg`/`.bin`、外部 cache、凭据或本地仓库路径。
 - 校验 ZIP 的 `.sha256`，并明确跨次运行的随机 audit ID/时间会改变整体哈希；不虚构字节级跨次确定性。
 - 保持 offline-only、advisory-only 和 human-review-required，不把作品展示解释成真实飞行或维修授权。

@@ -22,7 +22,6 @@ def test_portfolio_showcase_contains_sanitized_review_materials(tmp_path: Path) 
         "guides/project_overview_en.md",
         "guides/capability_matrix.md",
         "guides/demo_script.md",
-        "guides/resume_and_interview_guide.md",
         "assets/dashboard_overview.png",
         "assets/ops_report_preview.png",
         "demo_outputs/reports/ops_report.pdf",
@@ -31,6 +30,7 @@ def test_portfolio_showcase_contains_sanitized_review_materials(tmp_path: Path) 
     }
     actual = {path.relative_to(out_dir).as_posix() for path in out_dir.rglob("*") if path.is_file()}
     assert expected.issubset(actual)
+    assert "guides/resume_and_interview_guide.md" not in actual
     assert not any(path.endswith((".ulg", ".bin")) for path in actual)
 
     manifest = json.loads((out_dir / "portfolio_manifest.json").read_text(encoding="utf-8"))
@@ -48,6 +48,7 @@ def test_portfolio_showcase_contains_sanitized_review_materials(tmp_path: Path) 
     with zipfile.ZipFile(result["archive"]) as archive:
         assert archive.testzip() is None
         assert all(name.startswith(f"drone-ops-agent-v{version}-showcase/") for name in archive.namelist())
+        assert not any(name.endswith("resume_and_interview_guide.md") for name in archive.namelist())
 
 
 def test_portfolio_output_validation_rejects_unmanaged_directory(tmp_path: Path) -> None:
