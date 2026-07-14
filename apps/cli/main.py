@@ -70,6 +70,11 @@ def _run_cli(action) -> None:
         raise typer.Exit(code=1) from exc
 
 
+def _require_pass(result: dict) -> None:
+    if result.get("status") != "PASS":
+        raise typer.Exit(code=1)
+
+
 @app.command("analyze-log")
 def analyze_log_command(
     log: Path = typer.Option(..., "--log", help="CSV、JSON、PX4 ULog 或 ArduPilot BIN 飞行日志路径。"),
@@ -203,6 +208,7 @@ def validate_platform_readiness_command(
     else:
         typer.echo("Platform readiness validation requires review")
     typer.echo(f"findings: {result['counts']['findings']}")
+    _require_pass(result)
 
 
 @app.command("validate-rule-pack")
@@ -240,6 +246,7 @@ def run_evals_command(
     payload = _run_evals(case, out)
     typer.echo(f"Eval suite status: {payload['status']}")
     typer.echo(f"Eval suite score: {payload['score']}")
+    _require_pass(payload)
 
 
 @app.command("run-case-studies")
@@ -289,6 +296,7 @@ def validate_datasets_command(
         typer.echo("Dataset registry validation requires review")
     typer.echo(f"cases: {result['counts']['cases']}")
     typer.echo(f"findings: {result['counts']['findings']}")
+    _require_pass(result)
 
 
 @app.command("validate-adapters")
@@ -303,6 +311,7 @@ def validate_adapters_command(
         typer.echo("Adapter registry validation requires review")
     typer.echo(f"adapters: {result['counts']['adapters']}")
     typer.echo(f"findings: {result['counts']['findings']}")
+    _require_pass(result)
 
 
 @app.command("validate-approvals")
@@ -317,6 +326,7 @@ def validate_approvals_command(
         typer.echo("Approval workflow validation requires review")
     typer.echo(f"approvals: {result['counts']['approvals']}")
     typer.echo(f"findings: {result['counts']['findings']}")
+    _require_pass(result)
 
 
 @app.command("validate-handoff-package")
@@ -331,6 +341,7 @@ def validate_handoff_package_command(
         typer.echo("Organization handoff package validation requires review")
     typer.echo(f"artifacts: {result['counts']['artifacts']}")
     typer.echo(f"findings: {result['counts']['findings']}")
+    _require_pass(result)
 
 
 @app.command("validate-platform-index")

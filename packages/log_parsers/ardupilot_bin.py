@@ -9,8 +9,9 @@ from typing import Any
 from pydantic import ValidationError
 
 from packages.drone_schemas import FlightLogRecord
+from packages.drone_schemas.io import MAX_JSON_FILE_BYTES, ensure_file_size
 from packages.log_parsers.base import LogParserDependencyError, ParsedFlightLog
-from packages.log_parsers.parser import REQUIRED_FIELDS, _record_from_row
+from packages.log_parsers.parser import MAX_FLIGHT_LOG_BYTES, REQUIRED_FIELDS, _record_from_row
 
 
 MOCK_MAGIC_LINE = b"DRONE_OPS_ARDUPILOT_BIN_MOCK_V1"
@@ -27,16 +28,21 @@ class ArduPilotBinParser:
         return requested_format == "auto" and path.suffix.lower() == ".bin"
 
     def parse(self, path: Path, requested_format: str = "auto") -> ParsedFlightLog:
-        if not path.exists():
-            raise FileNotFoundError(f"Flight log does not exist: {path}")
         if path.suffix.lower() != ".bin":
             raise ValueError(f"log format ardupilot-bin cannot parse file: {path}")
-
-        raw = path.read_bytes()
-        if not raw:
+        size = ensure_file_size(path, MAX_FLIGHT_LOG_BYTES, "ArduPilot BIN log")
+        if size == 0:
             raise ValueError(f"ArduPilot BIN log is empty: {path}")
-        first_line, separator, payload = raw.partition(b"\n")
-        if first_line.rstrip(b"\r") == MOCK_MAGIC_LINE and separator:
+
+        with path.open("rb") as handle:
+            first_line = handle.readline(len(MOCK_MAGIC_LINE) + 2)
+            if first_line.rstrip(b"\r\n") == MOCK_MAGIC_LINE:
+                payload = handle.read(MAX_JSON_FILE_BYTES + 1)
+            else:
+                payload = b""
+        if first_line.rstrip(b"\r\n") == MOCK_MAGIC_LINE:
+            if len(payload) > MAX_JSON_FILE_BYTES:
+                raise ValueError(f"ArduPilot BIN mock fixture exceeds {MAX_JSON_FILE_BYTES} bytes: {path}")
             return self._parse_mock_fixture(path, payload, requested_format)
         return self._parse_dataflash_log(path, requested_format)
 

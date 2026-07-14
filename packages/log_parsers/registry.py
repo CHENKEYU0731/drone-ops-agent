@@ -6,6 +6,8 @@ from packages.drone_schemas import FlightLogRecord
 from packages.log_parsers.ardupilot_bin import ArduPilotBinParser
 from packages.log_parsers.base import FlightLogParser, ParsedFlightLog, resolve_log_format
 from packages.log_parsers.parser import _read_csv, _read_json, _record_from_row
+from packages.log_parsers.parser import MAX_FLIGHT_LOG_BYTES
+from packages.drone_schemas.io import ensure_file_size
 from packages.log_parsers.px4_ulog import PX4ULogParser
 
 
@@ -45,8 +47,7 @@ def get_parser(actual_format: str) -> FlightLogParser:
 
 
 def parse_flight_log_details(path: Path, requested_format: str = "auto") -> ParsedFlightLog:
-    if not path.exists():
-        raise FileNotFoundError(f"飞行日志不存在: {path}")
+    ensure_file_size(path, MAX_FLIGHT_LOG_BYTES, "飞行日志")
     actual_format = resolve_log_format(path, requested_format)
     parser = get_parser(actual_format)
     if not parser.can_parse(path, actual_format):

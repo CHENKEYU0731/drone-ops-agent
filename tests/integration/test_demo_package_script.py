@@ -76,3 +76,20 @@ def test_demo_output_validation_rejects_unmanaged_nonempty_directory(tmp_path: P
         validate_demo_output_dir(out_dir)
 
     assert (out_dir / "keep.txt").read_text(encoding="utf-8") == "do not delete"
+
+
+def test_demo_output_validation_rejects_spoofed_readme_and_marker(tmp_path: Path) -> None:
+    readme_only = tmp_path / "readme-only"
+    readme_only.mkdir()
+    (readme_only / "README.md").write_text("# 无人机运维 Agent 示例成果包\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="不是已生成的 demo 目录"):
+        validate_demo_output_dir(readme_only)
+
+    wrong_marker = tmp_path / "wrong-marker"
+    wrong_marker.mkdir()
+    (wrong_marker / ".drone-ops-demo-output").write_text("spoofed\n", encoding="utf-8")
+    (wrong_marker / "keep.txt").write_text("keep", encoding="utf-8")
+    with pytest.raises(ValueError, match="不是已生成的 demo 目录"):
+        validate_demo_output_dir(wrong_marker)
+
+    assert (wrong_marker / "keep.txt").read_text(encoding="utf-8") == "keep"

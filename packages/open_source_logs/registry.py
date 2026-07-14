@@ -53,6 +53,11 @@ class OpenSourceLogSource(BaseModel):
             raise ValueError(f"source {self.source_id} filename must match source_path")
         if self.format != "px4-ulog" or Path(self.filename).suffix.lower() != ".ulg":
             raise ValueError(f"source {self.source_id} must declare a PX4 ULog file")
+        if self.real_world_flight_verified:
+            raise ValueError(
+                f"source {self.source_id} cannot set real_world_flight_verified=true; "
+                "this project has no real-world flight attestation mechanism"
+            )
         license_url = urlparse(self.license_url)
         if license_url.scheme != "https" or license_url.hostname != "github.com" or self.commit not in license_url.path:
             raise ValueError(f"source {self.source_id} license URL must pin the same commit")

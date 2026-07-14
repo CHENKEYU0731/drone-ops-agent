@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from packages.log_parsers import parse_flight_log
+from packages.log_parsers import parser as parser_module
 from packages.telemetry_rules import summarize_flight
 
 
@@ -48,4 +49,14 @@ def test_parse_missing_csv_field_reports_field_name(tmp_path: Path) -> None:
     )
 
     with pytest.raises(ValueError, match="battery_voltage_v"):
+        parse_flight_log(path)
+
+
+def test_csv_record_limit_is_enforced(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    source = Path("data/sample_logs/example_flight.csv").read_text(encoding="utf-8").splitlines()
+    path = tmp_path / "too-many.csv"
+    path.write_text("\n".join([source[0], source[1], source[2]]) + "\n", encoding="utf-8")
+    monkeypatch.setattr(parser_module, "MAX_FLIGHT_LOG_RECORDS", 1)
+
+    with pytest.raises(ValueError, match="记录数超过限制"):
         parse_flight_log(path)

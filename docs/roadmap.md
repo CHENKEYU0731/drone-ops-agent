@@ -1,6 +1,6 @@
 # 路线图
 
-项目当前版本为 `v2.5.0 - Portfolio Finalization`。
+项目当前版本为 `v2.5.1 - Final Adversarial Hardening`。
 
 详细规划见：
 
@@ -37,12 +37,14 @@
   - 增加环境诊断、直接依赖约束、Windows 临时环境验收、wheel/sdist smoke test 和确定性发布 ZIP。
 - `v2.5.0 - Portfolio Finalization`
   - 增加中英文总览、能力矩阵、演示脚本、简历/面试说明和带 manifest/SHA-256 的 sanitized 最终展示包。
+- `v2.5.1 - Final Adversarial Hardening`
+  - 修复输出目录标记伪造、Dashboard DOM 注入、超大输入资源耗尽、人工复核 fail-open 和质量门禁退出码不一致问题。
 
 ## 当前里程碑
 
-### v2.5.0：Portfolio Finalization
+### v2.5.1：Final Adversarial Hardening
 
-目标已经完成：项目具备面向导师、招聘方和维护者的中英文说明、能力与限制矩阵、3–5 分钟演示路径、简历/面试说明，以及只包含 sample/mock/sanitized 结果的最终展示包。展示材料明确区分固定案例回归、上游 parser 兼容性与尚未验证的真实世界准确率。
+目标已经完成：项目在作品集收口后完成恶意输入、误用、供应链和维护者四个视角的对抗式审查，并修复所有确认的高/中风险阻塞项。系统仍不声称真实飞行准确率或飞行/维修授权。
 
 ## 已完成版本演进
 
@@ -59,6 +61,7 @@
 - `v2.3.0`：公开上游日志兼容性案例研究。
 - `v2.4.0`：可复现安装、构建与发布包基线。
 - `v2.5.0`：作品集说明、演示和 sanitized 成果包收口。
+- `v2.5.1`：最终对抗式安全与质量门禁加固。
 
 ## 安全边界
 

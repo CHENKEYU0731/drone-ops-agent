@@ -9,7 +9,7 @@ from apps.cli import main as cli
 
 DEFAULT_OUTPUT_DIR = Path("demo_outputs")
 DEMO_MARKER = ".drone-ops-demo-output"
-DEMO_README_HEADER = "# 无人机运维 Agent 示例成果包"
+DEMO_MARKER_CONTENT = "managed demo output directory\n"
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -19,7 +19,7 @@ def generate_demo_outputs(out_dir: Path = DEFAULT_OUTPUT_DIR) -> list[Path]:
         shutil.rmtree(out_dir)
 
     out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / DEMO_MARKER).write_text("managed demo output directory\n", encoding="utf-8")
+    (out_dir / DEMO_MARKER).write_text(DEMO_MARKER_CONTENT, encoding="utf-8")
 
     reports_dir = out_dir / "reports"
     fleet_dir = out_dir / "fleet"
@@ -153,10 +153,12 @@ def validate_demo_output_dir(out_dir: Path) -> Path:
 
 
 def _is_managed_demo_dir(path: Path) -> bool:
-    if (path / DEMO_MARKER).is_file():
-        return True
-    readme = path / "README.md"
-    return readme.is_file() and readme.read_text(encoding="utf-8").startswith(DEMO_README_HEADER)
+    marker = path / DEMO_MARKER
+    return (
+        marker.is_file()
+        and not marker.is_symlink()
+        and marker.read_text(encoding="utf-8") == DEMO_MARKER_CONTENT
+    )
 
 
 def _write_demo_readme(out_dir: Path) -> None:

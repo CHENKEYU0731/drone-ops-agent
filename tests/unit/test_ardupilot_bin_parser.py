@@ -34,9 +34,13 @@ def test_bin_parser_rejects_non_bin_file() -> None:
     assert parser.can_parse(Path("flight.bin"), requested_format="auto") is True
 
 
-def test_real_bin_without_optional_dependency_has_clear_error(tmp_path: Path) -> None:
+def test_real_bin_without_optional_dependency_has_clear_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     path = tmp_path / "real-flight.bin"
     path.write_bytes(b"\xa3\x95not-a-mock-dataflash-log")
+    monkeypatch.setattr("packages.log_parsers.ardupilot_bin.find_spec", lambda name: None)
+    monkeypatch.setattr(Path, "read_bytes", lambda *_args, **_kwargs: pytest.fail("real BIN probe used read_bytes"))
 
     with pytest.raises(ValueError, match=r"pip install -e \.\[ardupilot\]"):
         parse_flight_log_with_metadata(path, requested_format="ardupilot-bin")
