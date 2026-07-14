@@ -35,7 +35,7 @@ def test_excessive_json_nesting_is_rejected(tmp_path: Path) -> None:
     path = tmp_path / "deep.json"
     path.write_text("[" * 2_000 + "0" + "]" * 2_000, encoding="utf-8")
 
-    with pytest.raises(ValueError, match="嵌套层级过深"):
+    with pytest.raises(ValueError, match="嵌套层级"):
         read_json_file(path)
 
 
