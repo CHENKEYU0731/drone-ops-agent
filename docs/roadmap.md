@@ -1,6 +1,6 @@
 # 路线图
 
-项目当前已发布到 `v2.1.0 - Demo and Portfolio Readiness`。
+项目当前已发布到 `v2.2.0 - Evaluation and Case Study Baseline`。
 
 详细规划见：
 
@@ -29,12 +29,14 @@
   - 将已完成能力收成可验证的组织级离线运维决策平台基线。
 - `v2.1.0 - Demo and Portfolio Readiness`
   - 增加可重复生成的本地演示成果包、中文演示指南和更严格的平台验证门禁。
+- `v2.2.0 - Evaluation and Case Study Baseline`
+  - 用 14 个仿真场景和诊断/报告 golden case 量化预期状态准确率、证据覆盖率、误报与漏检。
 
 ## 当前里程碑
 
-### v2.1.0：Demo and Portfolio Readiness
+### v2.2.0：Evaluation and Case Study Baseline
 
-目标已经完成：项目可以用一条本地命令生成适合项目讲解和作品展示的完整成果包，并对输出目录、平台索引、平台基线及人工复核边界执行确定性验证。所有流程继续保持 offline-only、advisory-only 和 human-review-required。
+目标已经完成：项目可以批量复用现有 simulation matrix 和 diagnosis/report eval，生成确定性的机器可读结果与中文案例研究报告，并明确报告状态准确率、证据覆盖率、误报数和漏检数。所有流程继续保持 offline-only、advisory-only 和 human-review-required。
 
 ## 已完成版本演进
 
@@ -47,6 +49,7 @@
 - `v1.5.x`：平台化准备。
 - `v2.0.0`：组织级离线运维平台基线。
 - `v2.1.0`：本地演示与作品展示就绪。
+- `v2.2.0`：离线评测与案例研究基线。
 
 ## 安全边界
 

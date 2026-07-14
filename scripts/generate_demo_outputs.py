@@ -25,6 +25,7 @@ def generate_demo_outputs(out_dir: Path = DEFAULT_OUTPUT_DIR) -> list[Path]:
     fleet_dir = out_dir / "fleet"
     dashboard_dir = out_dir / "dashboard"
     evals_dir = out_dir / "evals"
+    case_studies_dir = out_dir / "case_studies"
     platform_dir = out_dir / "platform"
     rules_dir = out_dir / "rules"
     adapters_dir = out_dir / "adapters"
@@ -37,6 +38,7 @@ def generate_demo_outputs(out_dir: Path = DEFAULT_OUTPUT_DIR) -> list[Path]:
         fleet_dir,
         dashboard_dir,
         evals_dir,
+        case_studies_dir,
         platform_dir,
         rules_dir,
         adapters_dir,
@@ -98,8 +100,14 @@ def generate_demo_outputs(out_dir: Path = DEFAULT_OUTPUT_DIR) -> list[Path]:
         dashboard_dir / "dashboard_bundle.json",
         fleet_dir / "fleet_health_summary.json",
         fleet_dir / "fleet_health_report.md",
+        out_dir,
     )
     cli._run_evals([Path("data/sample_evals/diagnosis_report_eval_case.json")], evals_dir)
+    cli._run_case_studies(
+        Path("data/sample_simulation/scenario_matrix.json"),
+        [Path("data/sample_evals/diagnosis_report_eval_case.json")],
+        case_studies_dir,
+    )
     cli._run_validate_rule_pack(Path("data/sample_rule_packs/offline_default_rules.json"), rules_dir / "rule_pack_validation.json")
     cli._run_validate_datasets(Path("data/sample_datasets/registry.json"), platform_dir / "dataset_validation.json")
     cli._run_validate_adapters(Path("data/sample_adapters/offline_adapter_registry.json"), adapters_dir / "adapter_validation.json")
@@ -160,6 +168,7 @@ def _write_demo_readme(out_dir: Path) -> None:
 5. `fleet/fleet_health_report.md`：机队健康分析摘要。
 6. `dashboard/dashboard_bundle.json`：本地只读 dashboard 数据包。
 7. `platform/platform_index_validation.json` 和 `platform/operations_platform_validation.json`：平台 readiness index 与 v2.0 operations platform baseline 验证结果。
+8. `case_studies/case_study_report.md`：v2.2.0 离线评测与案例研究，汇总场景状态准确率、证据覆盖率、误报和漏检。
 
 ## 安全边界
 

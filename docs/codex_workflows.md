@@ -151,3 +151,13 @@ v2.1.0 demo and portfolio readiness 工作流：
 - 确认 `validate-platform-index` 与 `validate-operations-platform` 对 `REVIEW_REQUIRED` 返回非零退出码。
 - 确认所有结论保持 `human_review_required=true`，并在 GitHub Actions Python 3.11 和 Python 3.12 均通过后发布。
 - 保持 offline-only 和 advisory-only；不连接真实无人机、真实仿真器、真实维修系统或真实 fleet platform，不执行 MAVLink command，不自动派单。
+
+v2.2.0 evaluation and case study baseline 工作流：
+
+- 使用 `docs/v2.2.0_release_readiness.md` 作为发布前质量门禁清单。
+- 运行 `pytest` 和清单中的 focused tests。
+- 运行 `python -m apps.cli.main run-case-studies --simulation-matrix data/sample_simulation/scenario_matrix.json --eval-case data/sample_evals/diagnosis_report_eval_case.json --out <tmp-case-study-dir>`。
+- 确认 `case_study_results.json` 和中文 `case_study_report.md` 已生成。
+- 确认 15 个案例全部匹配预期，状态准确率和证据覆盖率均为 `1.0`，误报数和漏检数均为 `0`。
+- 重复运行并确认 `result_digest` 不变。
+- 保持 offline-only、advisory-only 和 `human_review_required=true`；不调用外部模型，不连接真实无人机、真实仿真器、维修系统或 fleet platform。

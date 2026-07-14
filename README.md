@@ -2,6 +2,57 @@
 
 `drone-ops-agent` 是一个离线优先的无人机运维决策支持平台。它基于 sample / mock / sanitized 飞行数据和资产数据，完成日志解析、异常检测、故障假设、维护建议、运维报告、质量门禁和审计记录生成。
 
+## 3 分钟快速体验
+
+安装 Python 3.11+ 和项目依赖后，在仓库根目录运行：
+
+```bash
+python scripts/generate_demo_outputs.py --out demo_outputs
+```
+
+命令会生成 49 个本地成果文件。建议先打开：
+
+1. `demo_outputs/reports/ops_report.pdf`：中文无人机运维报告。
+2. `demo_outputs/reports/evidence_index.json`：异常、诊断、维护建议与报告之间的证据索引。
+3. `demo_outputs/reports/simulation_run.json`：离线/mock 仿真规则命中结果。
+4. `demo_outputs/reports/work_order_drafts.md`：等待人工复核的工单草稿。
+5. `demo_outputs/fleet/fleet_health_report.md`：多资产机队健康摘要。
+6. `demo_outputs/case_studies/case_study_report.md`：15 个离线案例的准确率、证据覆盖率、误报和漏检汇总。
+
+完整演示顺序和讲解脚本见 [`docs/demo_guide.md`](docs/demo_guide.md)。成果包只使用 sample / mock / sanitized 数据，生成目录被 Git 忽略。
+
+## 运行效果
+
+### 中文运维报告
+
+![中文无人机运维报告首页](docs/assets/showcase/ops_report_preview.png)
+
+### 本地只读 Dashboard
+
+![本地只读无人机运维 Dashboard](docs/assets/showcase/dashboard_overview.png)
+
+## 工作流程
+
+```mermaid
+flowchart LR
+    A["本地 sample / mock / sanitized 数据"] --> B["日志解析与遥测摘要"]
+    B --> C["异常检测"]
+    C --> D["故障诊断"]
+    D --> E["维护建议"]
+    E --> F["Markdown / PDF 运维报告"]
+    C --> G["证据索引与审计"]
+    D --> G
+    E --> G
+    E --> H["工单草稿"]
+    F --> I["报告质量门禁"]
+    G --> I
+    H --> J["工单质量门禁"]
+    K["离线仿真结果"] --> F
+    L["多资产样例"] --> M["机队健康分析"]
+    F --> N["本地只读 Dashboard"]
+    M --> N
+```
+
 ## 安全边界
 
 本项目只做运维支持和决策辅助，不直接控制真实无人机。系统不得解锁电机、启动电机、执行起飞、降落、返航、航线飞行、上传固件、修改飞控关键参数、arm/disarm 飞行器或执行任何真实飞控命令。
@@ -297,6 +348,14 @@ v2.1.0 demo and portfolio readiness:
 - 一条命令生成报告、PDF、证据索引、仿真验证、工单草稿、机队健康、Dashboard 数据包和平台验证结果。
 - 输出目录带 `.drone-ops-demo-output` 管理标记，并拒绝覆盖仓库根目录、用户目录或未受管理的非空目录。
 - 演示与验证仍保持 offline-only、advisory-only 和 `human_review_required=true`。
+
+v2.2.0 evaluation and case study baseline:
+
+- `docs/evaluation_case_studies.md`
+- `docs/v2.2.0_release_readiness.md`
+- `python -m apps.cli.main run-case-studies --simulation-matrix data/sample_simulation/scenario_matrix.json --eval-case data/sample_evals/diagnosis_report_eval_case.json --out <tmp-case-study-dir>`
+- 汇总 14 个离线仿真场景和 1 个诊断/报告 golden case，输出预期状态准确率、证据覆盖率、误报数、漏检数和确定性结果摘要。
+- 该流程只调用现有本地规则，不调用外部模型，不连接真实无人机、仿真器、维修系统或 fleet platform。
 
 v1.4.0 diagnosis/report evaluation:
 

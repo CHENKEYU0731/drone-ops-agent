@@ -53,3 +53,20 @@ def test_dashboard_bundle_keeps_missing_optional_paths_null() -> None:
 
     assert bundle["artifacts"]["fleet_health"]["fleet_health_summary"] is None
     assert bundle["artifacts"]["fleet_health"]["fleet_health_report"] is None
+
+
+def test_dashboard_bundle_can_make_artifact_refs_portable(tmp_path: Path) -> None:
+    demo_dir = tmp_path / "demo_outputs"
+    report_dir = demo_dir / "reports"
+    fleet_dir = demo_dir / "fleet"
+
+    bundle = build_dashboard_bundle(
+        report_dir=report_dir,
+        fleet_summary=fleet_dir / "fleet_health_summary.json",
+        fleet_report=fleet_dir / "fleet_health_report.md",
+        reference_root=demo_dir,
+    )
+
+    assert bundle["artifacts"]["report"]["report_dir"] == "reports"
+    assert bundle["artifacts"]["report"]["ops_report_md"] == "reports/ops_report.md"
+    assert bundle["artifacts"]["fleet_health"]["fleet_health_summary"] == "fleet/fleet_health_summary.json"
